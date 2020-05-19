@@ -1,0 +1,599 @@
+---
+title: "Answer Sketch for Homework D"
+author: "431 Staff and Professor Love"
+date: "Due **2019-09-20** at 2 PM. Last Edited `r Sys.time()`"
+output: 
+  pdf_document:
+    toc: yes
+---
+
+## R Setup
+
+Here's the complete R setup we used.
+
+```{r setup, message=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 60)
+
+library(janitor); library(magrittr); library(tidyverse)
+```
+
+Then we read in the data set, which we'd stored in the project directory.
+
+```{r}
+LBWunicef <- read_csv("unicef_lbw.csv") %>%
+  clean_names()
+```
+
+We could use `glimpse` to take a look at the data...
+
+```{r}
+glimpse(LBWunicef)
+```
+
+Or we could just list the tibble, as a check on what we've done...
+
+```{r}
+LBWunicef
+```
+
+Here's the data description from the assignment for the variables we'll actually use:
+
+- `iso3_code` = three-letter code for each nation
+- `nation` = the nation's name
+- `pct_low_birthweight` =  the nation's low birth weight percentage estimate from 2015 (updated June 2019) from https://data.unicef.org/wp-content/uploads/2014/10/Low-birthweight-data-2000-2015.xlsx
+- `least_developed` = whether or not the nation is regarded by the  United Nations High Representative for the Least Developed Countries, Landlocked Developing Countries and Small Island Developing States as one of the "least developed" countries on Earth (note that `least_developed` = 1 if the nation is in the "least developed countries" group and is 0 otherwise.)
+
+## Reordering the Variables
+
+The problem with that listing of our `LBWunicef` tibble is that it shows a variable I don't need (`unicef_subregion`) and hides one I will need (`least_developed`). So, I'll use `select` (along with the `everything()` function) to re-order the variables, putting the ones I'll need for this assignment at the beginning, so that when I print a tibble, the variables I need will appear in this answer sketch.
+
+```{r}
+LBWunicef <- LBWunicef %>%
+  select(nation, pct_low_birthweight, least_developed, everything())
+
+LBWunicef
+```
+
+OK. Much better for our purposes.
+
+# Question 1
+
+> How many nations have non-missing low birth weight percentage estimates?
+
+While there are `nrow(LBWunicef)` nations listed in the data set, only `r LBWunicef %>% filter(complete.cases(pct_low_birthweight)) %>% nrow()` have non-missing low birth weight percentage estimates.
+
+Note: The standard applied here, revealed in the Notes on the data at https://data.unicef.org/topic/nutrition/low-birthweight/, is low birth weight is defined as less than 2,500 grams (up to and including 2,499 grams.)
+
+## Using `dim` or `nrow` and `summary`
+
+We can use the `dim` function, or the `nrow` function to determine the number of rows in the `LBWunicef` data, and we can use the `summary` function to see if there are any missing values in the `LBWunicef` data:
+
+```{r}
+dim(LBWunicef)
+
+nrow(LBWunicef)
+
+summary(LBWunicef)
+```
+
+There are `r LBWunicef %$% sum(is.na(pct_low_birthweight))` missing values in `pct_low_birthweight`, as indicated by the summary. Since we have `r nrow(LBWunicef)` nations in the data, we must have `r nrow(LBWunicef)` - `r LBWunicef %$% sum(is.na(pct_low_birthweight))` =  `r LBWunicef %>% filter(complete.cases(pct_low_birthweight)) %>% nrow()` nations with a value of `lbw.pct`.
+
+## Using `favstats`
+
+Could we could use the `favstats` function from the `mosaic` package to obtain this directly? 
+
+```{r q1a}
+mosaic::favstats(~ pct_low_birthweight, data = LBWunicef) 
+```
+
+Yes. The `n` here indicates the number of non-missing values in the low birth weight percentage data.
+
+## Using `skim` from `skimr`
+
+```{r}
+skimr::skim_with(numeric = list(hist = NULL)) 
+## did that just to leave out the sparkline histograms
+
+skimr::skim(LBWunicef)
+```
+
+# Question 2
+
+> Which nations have the three largest low birth weight percentages? Are each of these considered by the UN to be "least developed" nations or not?
+
+The three largest low birth weight percentages in the data are Bangladesh (27.81%), Comoros (23.70%), and Nepal (21.81%). Of these three nations, all three falls in the "least developed nations" category.
+
+## Using `dplyr` and the tidyverse
+
+We can use `dplyr`, specifically the `arrange` function, to show a tibble that has been sorted in descending order of `pct_low_birthweight`. R Studio's cheat sheet for Data Transformation at https://www.rstudio.com/resources/cheatsheets/ is very helpful here.
+
+```{r}
+LBWunicef %>% arrange(desc(pct_low_birthweight)) 
+```
+
+And, if we wanted to view just the first three rows, we could arrange and then slice...
+
+```{r}
+LBWunicef %>%
+  arrange(desc(pct_low_birthweight)) %>%
+  slice(1:3)
+```
+
+## A fast, one-line alternative with `rank`
+
+With missing values, this can be a challenge. If we restrict the data to those nations with complete data on `pct_low_birthweight`, we can then do this in one (additional) line. 
+
+```{r}
+LBW_noNA <- LBWunicef %>% filter(complete.cases(pct_low_birthweight))
+
+## The fastest one-line alternative I know
+LBW_noNA[which(rank(LBW_noNA$pct_low_birthweight) > length(LBW_noNA$pct_low_birthweight) - 3),]
+```
+
+## `sort`, `which` and brute force
+
+Clearly, we could solve this problem through simple brute force, inspecting the data until we find the largest values, and then associating them with Nations. The `sort` and `which` commands can help us here.
+
+```{r}
+LBWunicef %$% sort(pct_low_birthweight)
+```
+
+OK. So the three largest values have `pct_low_birthweight` greater than 21.5. How do we identify which nations those are?
+
+```{r}
+LBWunicef %$% which(pct_low_birthweight > 21.5)
+```
+
+And now that we know which row numbers are the top 3, we can show all of the available data related to those three row numbers (including their names) using `slice` to identify specific rows in the data.
+
+```{r}
+LBWunicef %>% slice(c(15, 40, 126))
+```
+
+# Question 3
+
+> Create a histogram of the low birth weight percentages, then superimpose a normal density function with the same mean and standard deviation in red. Based on your plot, is the standard deviation or the inter-quartile range a more appropriate measure of variation in the low birth weight rates? Why?
+
+Here's one approach. We definitely will be helped by filtering our sample to include only those cases with complete data on low birth weight percentage estimate.
+
+```{r}
+LBW_noNA <- 
+  LBWunicef %>%
+  filter(complete.cases(pct_low_birthweight)) 
+
+res <- mosaic::favstats(~ pct_low_birthweight, data = LBW_noNA) # save summaries
+bin_w <- 1 # specify binwidth
+
+ggplot(LBW_noNA, aes(x = pct_low_birthweight)) +
+  geom_histogram(binwidth = bin_w, fill = "wheat", 
+                 col = "black") +
+  theme_bw() +
+  stat_function(
+    fun = function(x) dnorm(x, mean = res$mean, 
+                            sd = res$sd) * res$n * bin_w,
+    col = "red", size = 1) +
+  labs(title = "Low Birth Weight % according to UNICEF", 
+       x = "Low Birth Weight Percentage", 
+       y = "Number of Nations")
+```
+
+Clearly, the plot shows some right skew, and assuming a Normal model (while not by any means disastrous) doesn't appear to be especially well justified. Under these circumstances, the interquartile range is a more appropriate measure of spread for these data than the standard deviation would be.
+
+Does the story change much if we change the binwidth to be twice as large? Not really, according to the plot below. There's still some signs of right skew here.
+
+```{r}
+LBW_noNA <- 
+  LBWunicef %>%
+  filter(complete.cases(pct_low_birthweight)) 
+
+res <- mosaic::favstats(~ pct_low_birthweight, data = LBW_noNA) # save summaries
+bin_w <- 2 # specify binwidth
+
+ggplot(LBW_noNA, aes(x = pct_low_birthweight)) +
+  geom_histogram(binwidth = bin_w, fill = "wheat", 
+                 col = "black") +
+  theme_bw() +
+  stat_function(
+    fun = function(x) dnorm(x, mean = res$mean, 
+                            sd = res$sd) * res$n * bin_w,
+    col = "red", size = 1) +
+  labs(title = "Low Birth Weight % according to UNICEF", 
+       x = "Low Birth Weight Percentage", 
+       y = "Number of Nations")
+```
+
+Note that the IQR and standard deviation are available to us, if we want them, but we have to deal with the missing data somehow.
+
+```{r}
+LBWunicef %>%
+  summarize(IQR = IQR(pct_low_birthweight, na.rm = TRUE),
+            SD = sd(pct_low_birthweight, na.rm = TRUE))
+```
+
+Another option, of course, is to use a function that automatically restricts its summaries to non-missing values, like `favstats` from the `mosaic` package.
+
+```{r}
+mosaic::favstats(~ pct_low_birthweight, data = LBWunicef)
+```
+
+And here, we can then calculate the IQR by subtracting Q1 from Q3.
+
+# Question 4
+
+> Create a normal Q-Q plot for the low birth weight percentage estimates. Would you say that the data are approximately Normally distributed, or not approximately Normally distributed? Justify your answer by interpreting what you see in your plot, and whatever summary statistics you deem to be useful in making your decision.
+
+The data are somewhat right skewed, as indicated previously by the histogram, and now also by the curve in the normal Q-Q plot below. 
+
+```{r, fig.height = 5, fig.width = 5}
+LBW_noNA <- 
+  LBWunicef %>%
+  filter(complete.cases(pct_low_birthweight)) 
+
+ggplot(LBW_noNA, aes(sample = pct_low_birthweight)) +
+  geom_qq() + geom_qq_line(col = "red", lwd = 2) + 
+  labs(title = "Normal Q-Q plot of Low Birth Weight percentages",
+       subtitle = "across 147 nations with non-missing estimates") +
+  theme_light()
+```
+
+We could also have developed a boxplot, perhaps combined with a violin plot.
+
+```{r, fig.height = 3, fig.width = 6}
+ggplot(LBW_noNA, aes(x = "n = 147", y = pct_low_birthweight)) +
+  geom_violin(fill = "antiquewhite") +
+  geom_boxplot(width = 0.2, fill = "coral", col = "darkblue") +
+  coord_flip() +
+  theme_light() +
+  labs(title = "Violin and Boxplot of Low Birth Weight %s",
+       x = "", y = "% of Births below 2500 grams")
+```
+
+## Using Numerical Summaries to Assess Normality (if you must)
+
+Assess Normality with plots, whenever possible. Summary statistics should play a supporting role.
+
+### Thinking about A Skewness Measure
+
+```{r}
+mosaic::favstats(~ pct_low_birthweight, data = LBWunicef)
+```
+
+As for summary statistics, the mean (`r round(mean(LBWunicef$pct_low_birthweight, na.rm = TRUE),2)`) is well to the right of the median (`r median(LBWunicef$pct_low_birthweight, na.rm = TRUE)`), and, since the standard deviation is `r round(sd(LBWunicef$pct_low_birthweight, na.rm = TRUE),2)`. So the skew~1~ value is also indicative of right skew, with skew~1~ = `r round(with(LBWunicef, ( mean(pct_low_birthweight, na.rm = TRUE) - median(pct_low_birthweight, na.rm = TRUE) ) / sd(pct_low_birthweight, na.rm = TRUE)), 3)`, which is quite close to 0.2, the value we usually use as an indicator of substantial right skew.
+
+```{r}
+LBW_noNA %>%
+  summarize(Mean = mean(pct_low_birthweight), 
+            Median = median(pct_low_birthweight), 
+            SD = sd(pct_low_birthweight),
+    skew1 = ( Mean - Median ) / SD) %>%
+  knitr::kable(digits = 3)
+```
+
+### Thinking about the Empirical Rule
+
+We've already decided now that the data aren't symmetric enough for a Normal model to be a particularly good choice. If we wanted, we could also determine whether the Empirical Rule holds well for these data, and use that to help guide our understanding of whether the Normal model would work well (although at this point, that seems pretty settled.)
+
+For instance, if a Normal model held, then about 68% of the nations would fall within two standard deviations of the mean. Is that true here?
+
+```{r}
+LBW_noNA %>%
+  count(mean_pm_1sd = pct_low_birthweight > 
+          mean(pct_low_birthweight) - sd(pct_low_birthweight) & 
+        pct_low_birthweight < 
+          mean(pct_low_birthweight) + sd(pct_low_birthweight) )
+```
+
+In fact, 102/147 is `r round(100*102/147,1)`% of the nations that fall within 1 SD of the mean. That's a little bit higher than we would expect in data that followed a Normal distribution, but it's awfully close to the expected 68%.
+
+If a Normal model held, then about 95% of the data would fall within two standard deviations of the mean. Is that true?
+
+```{r}
+LBW_noNA %>%
+  count(mean_pm_2sd = pct_low_birthweight > 
+          mean(pct_low_birthweight) - 2*sd(pct_low_birthweight) & 
+        pct_low_birthweight < 
+          mean(pct_low_birthweight) + 2*sd(pct_low_birthweight) )
+```
+
+Note that 142/147 is `r round(100*142/147,1)`% of the nations that fall within 2 SD of the mean value of `pct_low_birthweight`. That's also pretty close to the expected 95%, so it appears that the Normal model wouldn't be such a bad choice, in terms of the Empirical Rule fitting the data.
+
+### Thinking about Hypothesis Testing (Shapiro-Wilk Test)
+
+A really **bad** idea (if you can avoid it) is to use a hypothesis test to assess Normality. Such a test is essentially valueless without first looking at a plot of the data. But such tests are available. None are good, specifically because they only test for specific types of non-Normality, and most people can visualize several types of non-Normality simultaneously, making that (visualization) a much more powerful tool (even if it seems less "objective").
+
+One of the simplest of such tests to run is the Shapiro-Wilk test of Normality. That test estimates a *p* value, something that's very easy to misinterpret. In the case of a Shapiro-Wilk test, if you see a *p* value that is less than a given value (the most common choice is 0.05), then that is meant to suggest that there is some evidence of non-Normality in the way the Shapiro-Wilk test tries to find it, or at least there's more evidence than if the *p* value were larger. The *p* value is a conditional probability, so it will always fall between 0 and 1. 
+
+
+```{r}
+LBWunicef %$% shapiro.test(pct_low_birthweight)
+```
+
+Here, the *p* value is very small, which pushes us slightly further in the direction of concluding that the Normal model isn't a good choice for these data. 
+
+Other hypothesis tests are available for assessing non-Normality. Again, none are great. In fact, I can't remember the last time I reported a Shapiro-Wilk test (or any other hypothesis test for non-Normality) in practical work.
+
+# Question 5
+
+> Display an effective graph comparing the two development groups (least developed nations vs. all other nations) in terms of their percentages of low birth weight births. What conclusions can you draw about the distribution of low birth weight rates across the two development groups? Be sure to label your graph so it stands alone, and also supplement your graph with separate text discussing your conclusions.
+
+Generally, the low birth weight percentages are higher in the nations which are least developed, but there is considerable overlap.
+
+## Preliminaries: Creating a Factor
+
+Before I build my plot, I'll create a new factor variable in the `LBWunicef` data, which I'll call `least_developed` and which will contain the levels No and Yes, for the original numeric 0 and 1.
+
+```{r}
+LBWunicef <- LBWunicef %>%
+  mutate(least_dev_f = 
+           fct_recode(factor(least_developed), "Yes" = "1", "No" = "0"))
+```
+
+Just as a sanity check, I'll be sure I've recoded appropriately with a frequency table:
+
+```{r}
+LBWunicef %>% tabyl(least_developed, least_dev_f)
+```
+
+We'll want to make sure this appears in the version of LBWunicef that we built omitting the cases with missing low birth weight percentage estimates, too.
+
+```{r}
+LBW_noNA <- LBW_noNA %>%
+  mutate(least_dev_f = 
+           fct_recode(factor(least_developed), "Yes" = "1", "No" = "0"))
+```
+
+
+## A Comparison Boxplot (and Violin Plot)
+
+Now, I'll build a comparison boxplot. I'll get a little fancy and create violin plots while I am at it.
+
+```{r}
+ggplot(LBW_noNA, aes(x = least_dev_f, y = pct_low_birthweight)) + 
+  geom_violin(col = "darkred") +
+  geom_boxplot(aes(fill = least_dev_f), width = 0.2) + 
+  guides(fill = FALSE) +
+  scale_fill_viridis_d(option = "C") +
+  coord_flip() +
+  labs(title = "Low Birth Weight % by Least Developed Nation Status", 
+       y = "Low Birth Weight %", 
+       x = "Least Developed Nation, per UN Population Division") +
+  theme_bw()
+```
+
+### Note: Making the Width of the Violin reflect the sample size
+
+You can set the `scale` parameter to "count" in the `geom_violin()` call to adjust the violins to have areas that are scaled proportionally to the number of observations. Otherwise, they will all have the same area.
+
+Here's an example of that for our data, which shows off the much larger group of No than Yes nations in terms of Least Developed status.
+
+```{r}
+ggplot(LBW_noNA, aes(x = least_dev_f, y = pct_low_birthweight)) + 
+  geom_violin(col = "darkred", scale = "count") +
+  geom_boxplot(aes(fill = least_dev_f), width = 0.2) + 
+  guides(fill = FALSE) +
+  scale_fill_viridis_d(option = "C") +
+  coord_flip() +
+  labs(title = "Low Birth Weight % by Least Developed Nation Status", 
+       y = "Low Birth Weight %", 
+       x = "Least Developed Nation, per UN Population Division") +
+  theme_bw()
+```
+
+So we see that there are considerably more No than Yes nations.
+
+### What if you wanted the boxplots to indicate the size of the data?
+
+You could use `varwidth = TRUE` in the `geom_boxplot` call, like this:
+
+```{r}
+ggplot(LBW_noNA, aes(x = least_dev_f, y = pct_low_birthweight)) + 
+  geom_violin(col = "darkred") +
+  geom_boxplot(aes(fill = least_dev_f), varwidth = TRUE) + 
+  guides(fill = FALSE) +
+  scale_fill_viridis_d(option = "C") +
+  coord_flip() +
+  labs(title = "Low Birth Weight % by Least Developed Nation Status", 
+       y = "Low Birth Weight %", 
+       x = "Least Developed Nation, per UN Population Division") +
+  theme_bw()
+```
+
+That approach makes the width (so height in this case, because we've flipped the coordinates) of the boxplot proportional to the square root of the sample size. Again, there are more No than Yes.
+
+## Another Reasonable Choice: Faceted Histograms
+
+You could certainly have built a set of faceted histograms instead, but ideally, you'd have them arranged so that the distributions were easy to compare (the two histograms on top of each other, as these boxplots are, rather than just plotted next to each other.) That's part of the reason I flipped those boxplots. Here's our attempt.
+
+```{r}
+ggplot(LBW_noNA, 
+       aes(x = pct_low_birthweight, fill = least_dev_f)) + 
+  geom_histogram(binwidth = 1, col = "white" ) +
+  facet_grid(least_dev_f ~ ., labeller = "label_both") +
+  guides(fill = FALSE) +
+  labs(title = "Low Birth Weight % by Least Developed Nation Status", 
+       y = "Number of Nations", 
+       x = "Low Birth Weight %") +
+  theme_bw()
+```
+
+This does convey a bit more effectively that the "least developed" nations comprise less than 20% (27/147) of the nations with low birth weight percentage estimates, but I think on the whole I prefer the boxplot here.
+
+```{r}
+LBW_noNA %>% tabyl(least_dev_f)
+```
+
+
+# Question 6 - When is "more data" not necessarily a good thing?
+
+We don't write answer sketches for essay questions. We're looking for a clear, coherent piece of writing, written in complete English sentences, that describes a relevant example effectively. We'll gather a few of the more interesting and enlightening responses, and share de-identified excerpts with the group after grading.
+
+# Question 7
+
+> Generate a "random" sample of 75 observations from a Normal distribution with mean 100 and standard deviation 10 using R. The `rnorm` function is likely to be helpful. Now, display a normal Q-Q plot of these data, using the `ggplot2` package from the `tidyverse`. How well does the Q-Q plot approximate a straight line? 
+
+> Repeat this task for a second sample of 150 Normally distributed observations, again with a mean of 100 and a standard deviation of 10. Then repeat it again for samples of 25 and 225 Normally distributed observations with a different mean and variance. Which of the four Q-Q plots you have developed better approximates a straight line and what should we expect the relationship of sample size with this phenomenon to be?
+
+We're going to first draw a random sample of 75 observations from a Normal distribution with mean 100 and standard deviation 10.
+
+```{r}
+set.seed(20190920)
+sample_75 <- rnorm(n = 75, mean = 100, sd = 10)
+```
+
+Then we'll put that sample into a tibble.
+
+```{r}
+q7a <- tbl_df(sample_75)
+```
+
+Now we'll draw a Normal Q-Q plot of those data.
+
+```{r}
+ggplot(q7a, aes(sample = sample_75)) + 
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q plot of 75 sampled observations")
+```
+
+Now, we'll do this again for a new sample of 150 observations, also drawn from a Normal distribution with mean 100 and standard deviation 10.
+
+```{r}
+sample_150 <- rnorm(n = 150, mean = 100, sd = 10)
+q7b <- tbl_df(sample_150)
+
+ggplot(q7b, aes(sample = sample_150)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q plot of 150 sampled observations")
+```
+
+Next, we'll do this again for samples of first 25 and then 225 observations from a Normal distribution with a different mean (we'll use 400) and standard deviation (we'll use 100)
+
+```{r}
+sample_25 <- rnorm(n = 25, mean = 400, sd = 100)
+q7c <- tbl_df(sample_25)
+
+sample_225 <- rnorm(n = 225, mean = 400, sd = 100)
+q7d <- tbl_df(sample_225)
+```
+
+OK. So now we have all four samples. Let's put the plots all together in a single figure.
+
+```{r}
+plot1 <- ggplot(q7c, aes(sample = sample_25)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "25 observations from N(400, 100)")
+
+plot2 <- ggplot(q7a, aes(sample = sample_75)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "75 observations from N(100, 10)")
+
+plot3 <- ggplot(q7b, aes(sample = sample_150)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "150 observations from N(100, 10)")
+
+plot4 <- ggplot(q7d, aes(sample = sample_225)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "225 observations from N(400, 100)")
+
+gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 2)
+```
+
+All four of these plots show fairly modest deviations from what we would expect a Normal distribution to look like, usually in terms of showing a few outlying values.
+
+With larger sample sizes, there's **no real reason** to assume that the plots will improve substantially in terms of eliminating outliers, in fact. Once we have at least 25 points (as in all of these cases) it appears that the results are fairly reasonable (in terms of suggesting that a Normal approximation is generally valid) in each of these plots.
+
+\newpage
+
+# On Grading Homework D
+
+Your grade on Homework D is on a 0-100 scale.
+
+## General/Administrative (15 points) {-}
+
+- Award up to 10 points for turning the assignment on time (on time = within 1 hour of the deadline)
+    + 10 points for both Markdown and Word/HTML/PDF in on time.
+    + 4 points for one of Markdown, Word/HTML/PDF in on time.
+    + 0 points if neither is in on time.
+    + If a student hasn't submitted either the Markdown or Word/HTML/PDF piece, please identify and pester them via email until they do.
+
+- Award an additional 5 points if there is an on-time answer provided for each of the 7 questions.
+
+- Award zero points on the entire assignment to anyone whose first submission of the assignment is more than 4 hours late, unless excused from the assignment by Professor Love.
+
+## Question 1 (5 points)
+
+- 5 points for a correct answer with code to indicate how they got it.
+- 2 points for a correct answer but no indication of using code to determine.
+- Otherwise, 0.
+
+## Question 2 (5 points)
+
+- 5 points for a correct answer (name of each country and correct identification as "least developed" or not is required for a correct answer.)
+- 3 points if they got 2/3 correct, or if they named all three countries but did not identify as least developed or not
+- Otherwise, 0.
+
+## Question 3 (10 points)
+
+Give 10 points if they do all five of the following:
+
+- successfully built the histogram, as required, 
+- with the Normal distribution plotted as well, 
+- and labeled it correctly, 
+- and correctly interpreted it (as not fit well by a Normal model) using complete sentences, 
+- and answered the question about SD or IQR in a way that matches their interpretation (if they believed the data followed a Normal model well, then they should probably prefer SD or be agnostic, but not prefer IQR)
+
+Drop 2 points for each of those five things that they didn't succeed in doing.
+
+## Question 4 (10 points)
+
+Give 10 points if they do all five of the following:
+
+- successfully built a Normal Q-Q plot using `ggplot2`
+- include in the plot an appropriate diagonal line,
+- correctly interpreted it in terms of Normal vs. Non-Normal using complete sentences 
+- correctly described what kind of non-Normality they saw (curve = skew, but it's not important for them to specify the direction unless of course they wrote left instead of the correct right skew)
+- provided meaningful justification for their read of the plot with either another plot (like a histogram or boxplot) and a meaningful explanation in complete sentences, **or** with numerical summaries (like those I described in the sketch) and a meaningful explanation in complete sentences.
+
+Drop 2 points for each of those five things that they didn't succeed in doing.
+
+## Question 5 (10 points)
+
+- 10 points for producing a useful plot, likely a boxplot with or without the violin plot, or a reasonable and correct comparison of two histograms, that does actually report the data appropriately, and for building English sentences that conclude that the "least developed" nations had generally higher rates of low birthweight.
+- 6 points for producing a useful plot, but not concluding that the "least developed" nations had generally higher rates of low birthweight.
+- 0 points for a useless or incorrect plot.
+
+## Question 6 (30 points)
+
+You need to identify (as a group) the 6-8 best essays (of the complete set of 60) that were read by the TAs (so that's choosing from the best two that each of you read, probably). In the Comments to Professor Love, please briefly identify the top 6-8 and specify the topic of these 6-8 best essays so I can read through them before returning them to the students, and select 2-4 to share.
+
+- Award up to 10 points for proper grammar, use of citations, and appropriate length. 
+    + Take off 5 points if the grammar is consistently poor.
+    + Take off 2 points if no citations are used
+    + Take off 3 points if the essay does not meet the required length of 200-400 words. 
+
+- Award up to 10 points for describing an "example in your own field/work/experience where a *surplus* of information made (or makes) it easier for people dealing with a complex system to cherry-pick information that supports their prior positions." 
+    + A run of the mill "good" example should receive 7-9 points on this. Reserve 10 points on this for an absolutely excellent essay that was a real pleasure to read.
+    + Award no more than 5 points if there is no specific example given.
+    + Take off all 10 points if the essay prompt was not followed at all, or the essay is completely off topic.
+ 
+- Award up to 10 points for describing the implications/lessons learned from the given example.
+    + A run of the mill "good" description should receive 7-9 points on this. Reserve 10 points for an absolutely excellent essay.
+    + Take off 5 points if no lessons/implications are provided.
+    + Take off all 10 points if the essay prompt was not followed at all, or the essay is completely off topic.
+
+The best few essays overall might receive a grade between 28 and 30, but I expect most essays to score between 20 and 26 points. We will just provide the total score on the essay, but the TAs will provide a comment to the students regarding every single essay, regardless of its score. Any score of 21 or higher indicates a fairly good essay, and anything 27 or higher indicates a really excellent one.
+
+## Question 7 (15 points)
+
+1. Award 5 points for making the random samples and the four Q-Q plots.
+
+ - 3 points for just random samples, but no QQ plots or vice versa.
+ - 2 points if only the first random sample and QQ plot are completed.
+
+2. Award 10 additional points for answering both questions fully, noting that the plots show only modest deviations from what is expected from a Normal distribution (in my case due to outliers), and for noting that all the plots with 25 points or more approximate a straight line fairly well.
+
+ - Deduct 5 points for not getting the point that they are all about equally good, unless their choice of random number was very unfortunate (in which case they should notice whatever they saw in their simulation.)
+ - Deduct 5 points for only answering one of the two questions posed.
+ - Deduct 2 points for neglecting to change the mean and SD in the final two plots.
+ - Deduct 3 points (but don't take this question below 0 points) if they neglected to set a seed for the random numbers. They can use any seed they like.
+

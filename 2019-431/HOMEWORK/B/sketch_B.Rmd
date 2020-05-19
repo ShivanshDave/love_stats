@@ -1,0 +1,288 @@
+---
+title: "Answer Sketch for Homework B"
+author: "431 Staff and Professor Love"
+date: "Due **2019-09-06** at 2 PM. Last Edited `r Sys.time()`"
+output: 
+  pdf_document
+---
+
+```{r setup, echo = FALSE, message=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 70)
+```
+
+```{r load_packages, message = FALSE, warning = FALSE}
+library(tidyverse)
+## always need tidyverse, can include other packages too
+```
+
+
+## The Data for Homework B
+
+Homework B uses data from the `midwest` data set, which is part of the `ggplot2` package (which is part of the `tidyverse`) so by loading the `tidyverse` package, we will have direct access to the `midwest` data by typing `midwest`. The `midwest` data describe demographic information for 437 counties in the midwestern United States. You might use `?midwest` to obtain a little bit of additional information about these data, and/or use `View(midwest)` to get a look at a "spreadsheet" view of the data. We will focus on just four variables in Homework B from this data set:
+
+- `county` = the name of the county
+- `state` = the name of the state (each county is contained in a single state)
+- `percollege` = the percentage of adult residents of the county who have completed a college degree
+- `inmetro` = an indicator variable, which takes the value 1 if the county is contained in a metropolitan area, and 0 if it is not
+
+# Question 1
+
+> Write a piece of R code that counts the number of observations (counties) in the data set within each state. Your result should also specify the states which are included in these data. Hint: The `count` function and the pipe `%>%` should be a big part of your code.
+
+The `midwest` data contain information on a total of `r nrow(midwest)` counties, in `r n_distinct(midwest %>% select(state))` states. The breakdown by state of the number of counties available follows:
+
+```{r q1_count}
+midwest %>%
+    count(state)  
+```
+
+So, for example, there are **`r n_distinct(midwest %>% filter(state == "OH"))`** counties from the state of Ohio in the data set, and the states represented also include Illinois, Indiana, Michigan and Wisconsin.
+
+## Additional Comments
+
+1. It's important to realize that each row in the data set represents a single county. 
+
+- You can verify this by looking at the data:
+    - perhaps with the command `View(midwest)`. This will bring up a spreadsheet of the data in a new R Studio window.
+    - **or** perhaps by typing the name of the data set `midwest` into the Console in R Studio to get a listing. 
+
+The listing of the data set (which is a tibble) displays the first few variables for the first ten rows of the data set, like this.
+
+```{r}
+midwest
+```
+
+Note that there are a total of 10 rows shown and an additional 427 rows hidden, so there are 437 rows in the data set, in total.
+
+2. You can observe a help file for the `midwest` data by typing `?midwest` into the Console in R Studio, although there isn't much information in this case.
+
+3. To obtain the number of counties (rows) in each state, I need only to obtain a count of the number of rows associated with each state. That's the command I used above, with ```midwest %>% count(state)```.
+
+4. There are some other things I used R to count in this case, for example:
+    - To count the number of rows (counties) in the data as a whole, I used the command `nrow(midwest)`. The result is `r nrow(midwest)`.
+    - If I'd wanted to count the number of columns (variables) I'd have used `ncol(midwest)`. The result is `r ncol(midwest)`.
+    - I can get a count of both the rows and the columns by either listing the tibble with `midwest` or by capturing its dimensions (the size of the rectangle of data) with:
+    
+```{r}
+dim(midwest)
+```
+
+5. I did some (slightly) more sophisticated counting to understand:
+    - The number of (different) states in the data, using `n_distinct(midwest %>% select(state))`, which yields `r n_distinct(midwest %>% select(state))`.
+    - The number of counties in the state of Ohio, using `nrow(midwest %>% filter(state == "OH"))`, which yields `r nrow(midwest %>% filter(state == "OH"))`.
+
+# Question 2
+
+> Use the `filter` and `select` functions in R to obtain a result which specifies the `percollege` and `inmetro` status of Cuyahoga County in the state of Ohio.
+
+Here's the approach we used
+
+```{r q2_results}
+midwest %>%
+    filter(state == "OH") %>%
+    filter(county == "CUYAHOGA") %>%
+    select(state, county, percollege, inmetro)
+```
+
+This displays the tibble, but restricted to the county of CUYAHOGA in the state of OH (Ohio) and to four of the available variables: the state, the county, the `percollege` value and the `inmetro` value.
+
+So we conclude that `r midwest %>% filter(county == "CUYAHOGA") %>% select(percollege) %>% round(.,1)`% of the adult residents of Cuyahoga County have completed a college degree, and that Cuyahoga County is identified as being part of a metropolitan area.
+
+## Comments
+
+1. Did we need the `filter(state == "OH")` line in our code? What happens if we leave this out?
+
+```{r q2_results_check}
+midwest %>%
+#    filter(state == "OH") %>%
+    filter(county == "CUYAHOGA") %>%
+    select(state, county, percollege, inmetro)
+```
+
+Looks like there is only one county in the data set with the name CUYAHOGA, so we're OK. 
+
+2. What if we tried this approach (not specifying the state) with ADAMS county?
+
+```{r}
+midwest %>% 
+  filter(county == "ADAMS") %>%
+  select(state, county, percollege, inmetro)
+```
+
+3. How many unique county names are seen in the `r nrow(midwest)` counties in the `midwest` data?
+
+```{r}
+n_distinct(midwest %>% select(county))
+```
+
+# Question 3
+
+> Use the tools we've been learning in the `ggplot2` package to build a histogram of the `percollege` results across all 437 counties represented in the data. Create appropriate (that is to say, meaningful) titles for each axis and for the graph as a whole (don't simply use the default choices.)  We encourage you to use something you find more attractive than the default gray fill in the histogram.
+
+Here is a simple and reasonable histogram for the `percollege` data, mostly using the template but filling in appropriate axis labels and a title, and using a red fill for the bars. 20 bins seems to work pretty well here.
+
+```{r q3_histogram}
+ggplot(midwest, aes(x = percollege)) +
+    geom_histogram(bins = 20, fill = "red", col = "white") + 
+    labs(title = "% of Adults with a college degree, by county, in 5 midwest states",
+         y = "# of Counties",
+         x = "% of adult residents with a college degree")
+```
+
+## Comment
+
+The setup below uses `theme_bw()` to specify a revised theme, reduces the number of bins a bit, and creates the fill with the official blue color of CWRU^[CWRU's color guide is available at https://case.edu/umc/our-brand/visual-guidelines/color.]. Anticipating question 4, I also added a red vertical line to the plot showing the value of Cuyahoga County, Ohio, and a text annotation to indicate what the line means.
+
+```{r}
+ggplot(midwest, aes(x = percollege)) +
+    geom_histogram(bins = 15, fill = "#0a304e", col = "white") + 
+    geom_vline(xintercept = 25.1, col = "red") +
+    geom_text(x = 32, y = 50, col = "red", label = "Cuyahoga County, OH") +
+    theme_bw() +
+    labs(title = "% of Adults with a college degree, by county, in 5 midwest states",
+         y = "# of Counties",
+         x = "% of adult residents with a college degree")
+```
+
+# Question 4
+
+> Based on your results in Questions 2 and 3, write a short description (2-3 sentences) of Cuyahoga County's position relative to the full distribution of counties in terms of `percollege`.
+
+Cuyahoga County's `percollege` rate was `r midwest %>% filter(county == "CUYAHOGA") %>% select(percollege) %>% round(.,1)`%, which looks to be above the median level for the counties included in the data. There are certainly more counties with rates below Cuyahoga's than above it.
+
+## Comment
+
+We could, if we like, be more precise, and perhaps identify the **ranking** of Cuyahoga County within the data set. We know there are `r nrow(midwest)` counties in all. How many have a *higher* value of `percollege` than Cuyahoga County?
+
+```{r q4_count}
+midwest %>% count(percollege > 25.1)
+```
+
+51 of the `r nrow(midwest)` counties rate above Cuyahoga on this measure, so that's `r round(100*51/nrow(midwest),1)`% of those midwest counties. Cuyahoga County ranks 52nd among counties in midwestern states on this measure.
+
+# Question 5
+
+> Use `ggplot2` to build a single plot (a pair of histograms after faceting would be one approach, or perhaps a comparison boxplot) which nicely compares the `percollege` distribution for counties within metropolitan areas to counties outside of metropolitan areas. Again, make an effort to build and incorporate useful titles and labels so that the resulting plot stands on its own, rather than just accepting all of the defaults that appear.
+
+Here is a reasonable result.
+
+```{r q5_histograms}
+ggplot(midwest, aes(x = percollege)) +
+    geom_histogram(bins = 20, col = "white", fill = "navy") +
+    facet_wrap(~ inmetro) +
+    theme_bw() + 
+    labs(x = "% of adult residents with a college degree", 
+         y = "Number of Counties",
+         title = "% of Adults with a college degree, by county, in 5 midwest states",
+         subtitle = "Non-Metro (0) vs. Metro (1) counties")
+```
+
+Another common approach, that shows a bit less of the data, would be a comparison boxplot. Note that it's important to get R to treat the 0-1 information in `inmetro` as categorical here, and we do this by telling R to see it as a **factor**.
+
+```{r q5_boxplot}
+ggplot(midwest, aes(x = factor(inmetro), y = percollege, 
+                    fill = factor(inmetro))) +
+    geom_boxplot() +
+    guides(fill = FALSE) +
+    theme_bw() + 
+    labs(y = "% of adult residents with a college degree", 
+         x = "Type of County (0 = Non-Metro, 1 = Metro)",
+         title = "% of Adults with a college degree, by county, in 5 midwest states")
+```
+
+## Comments
+
+1. I think this version of the faceted set of histograms plot is slightly better. What has changed?
+
+```{r q5_histogram2}
+midwest2 <- midwest %>%
+  mutate(inmetro_f = fct_recode(factor(midwest$inmetro), 
+                                "Metropolitan" = "1", "Not Metropolitan" = "0"))
+
+ggplot(midwest2, aes(x = percollege)) +
+    geom_histogram(bins = 20, col = "white", fill = "navy") +
+    facet_wrap(~ inmetro_f) +
+    theme_bw() + 
+    labs(x = "% of adult residents with a college degree", 
+         y = "Number of Counties",
+         title = "% of Adults with a college degree, in 5 midwest states",
+         subtitle = "By county, and by type of county")
+```
+
+By pre-specifying the `inmetro` variable as a factor, and giving it meaningful names for its two levels (Metropolitan and Non-Metropolitan, instead of 1 and 0) we improve the plot.
+
+2. Could we do the same sort of thing to improve the comparison boxplot? And what if we wanted a horizontal boxplot instead of a vertical one?
+
+Sure. Note the use of `coord_flip()` to flip the Y and X coordinates and axes.
+
+```{r q5_boxplot2}
+midwest2 <- midwest %>%
+  mutate(inmetro_f = fct_recode(factor(midwest$inmetro), 
+                                "Metropolitan" = "1", "Not Metropolitan" = "0"))
+
+ggplot(midwest2, aes(x = inmetro_f, y = percollege, 
+                    fill = inmetro_f)) +
+    geom_boxplot() +
+    guides(fill = FALSE) +
+    theme_bw() + 
+    coord_flip() +
+    labs(y = "% of adult residents with a college degree", 
+         x = "Type of County",
+         title = "% of Adults with a college degree, by county, in 5 midwest states")
+```
+
+# Question 6
+
+Within the metropolitan counties, Cuyahoga's position is still above the median county, but a bit closer to the center of the group on `percollege` than it was when we looked at the whole data set. 
+
+## Comments
+
+The plot below is restricted to those counties in the "Metropolitan" group.
+
+```{r}
+ggplot(filter(midwest, inmetro == 1), aes(x = percollege)) +
+    geom_histogram(bins = 15, fill = "#0a304e", col = "white") + 
+    geom_vline(xintercept = 25.1, col = "red") +
+    geom_text(x = 32, y = 30, col = "red", label = "Cuyahoga County, OH") +
+    theme_bw() +
+    labs(title = "% of Adults with a college degree, in Metropolitan midwest counties",
+         y = "# of Counties (Metropolitan only)",
+         x = "% of adult residents with a college degree")
+```
+
+It turns out that Cuyahoga County ranks 41st among the `r nrow(midwest %>% filter(inmetro == 1))` metropolitan counties.
+
+```{r}
+# number of Metropolitan counties
+nrow(midwest %>% filter(inmetro == 1)) 
+
+# number with percollege higher than Cuyahoga
+midwest %>% filter(inmetro == 1) %>%
+    count(percollege > 25.1) 
+```
+
+40 of the `r nrow(midwest %>% filter(inmetro == 1))` metropolitan counties in these five states rate above Cuyahoga County on this measure, so that's `r round(100*40/150,1)`%. Compare this to Cuyahoga's ranking behind only `r round(100*51/nrow(midwest),1)`% of all counties (metropolitan and non-Metropolitan) in those same five states.
+
+# Question 7
+
+> Ask one question of Dr. Love about this course (ideally one that you haven't asked us already) that interests you. 
+
+We won't specify these here, of course, but we'll answer as many of these as we can in the Class READMEs.
+
+
+# Grading
+
+Deliverable B will be graded on a 0-100 scale.
+
+For questions 1-6, students will be graded on a scale of 0-15, as follows:
+
+- 10 points for a reasonable effort to build a good response that is more than slightly incomplete or incorrect.
+- 11-14 points for a good effort that is either completely correct but not well written or the reverse, but has at most modest problems.
+- 15 points for a complete, correct, well-written response.
+
+Well-written responses use complete English sentences and show all required R code to achieve the desired result.
+
+For question 7, any reasonably phrased question will receive the available 10 points.
+
+

@@ -1,0 +1,1354 @@
+---
+title: "431 Class 08"
+author: "github.com/THOMASELOVE/2019-431"
+date: "2019-09-19"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    fonttheme: "structurebold"
+    colortheme: "whale"
+    fig_height: 5.5
+    fig_caption: false
+---
+
+```{r set-options, echo=FALSE, cache=FALSE, message = FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+## Today's Agenda, Part 1 (Notes, Chapters 9, 10)
+
+(Continuing what was posted originally as Slides Set 07)
+
+**Are these data well described by a Normal model?**
+
+1. Calibrating our understanding of visualizations
+2. Numerical Approaches
+3. What can we do about non-Normal data?
+  - Summarize it with median and IQR, not mean and SD
+  - Transform the data (perhaps a power transformation)?
+
+## Today's Packages for Part 1
+
+The R packages we're using today are `NHANES`, `magrittr`, `janitor` and `tidyverse`.
+
+```{r load_packages, message = FALSE}
+library(NHANES); library(magrittr)
+library(janitor); library(tidyverse)
+```
+
+### CWRU Colors
+
+```{r}
+cwru.blue <- '#0a304e'
+cwru.gray <- '#626262'
+```
+
+## Today's Agenda, Part 2 (See Notes, Chapter 11)
+
+1. A New Data Set (!)
+2. Studying Scatterplots
+3. Building Linear Models
+    - Making predictions with PIs and CIs
+    - Fundamental Summaries of a Regression Model
+    - Understanding Regression Residuals
+4. Measuring Association with Correlations
+    - Pearson and Spearman approaches
+    - Thinking about the impact of transformations
+5. Adding a categorical predictor (factor) to a model
+    - Using `fct_recode` from `forcats` (tidyverse)
+    - Interpreting an indicator variable regression
+
+# Part 1 (Does a Normal model fit my data?)
+
+
+## Our `nh2` data set (for Part 1)
+
+```{r}
+set.seed(20190910) # so we can get the same sample again
+
+nh2 <- NHANES %>%
+    filter(SurveyYr == "2011_12") %>%
+    select(ID, SurveyYr, Age, Height, Weight, BMI, Pulse,
+           SleepHrsNight, BPSysAve, BPDiaAve, Gender, 
+           PhysActive, SleepTrouble, Smoke100, 
+           Race1, HealthGen, Depressed) %>%
+    rename(SleepHours = SleepHrsNight, Sex = Gender,
+           SBP = BPSysAve, DBP = BPDiaAve) %>%
+    filter(Age > 20 & Age < 80) %>% ## ages 21-79 only
+    drop_na() %>% # removes all rows with NA
+    sample_n(., size = 1000) %>% # sample 1000 rows
+    clean_names() # from the janitor package (snake case)
+```
+
+## Obtaining our Subset of Interest
+
+```{r}
+nh2_GVGmales <- nh2 %>%
+  filter(sex == "male" & 
+           health_gen %in% c("Good", "Vgood"))
+```
+
+## 6 Normal Q-Q plots: Simulated Normal Data
+
+Six simulations from a Normal distribution.
+
+```{r, echo = FALSE}
+set.seed(43101) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(sample = dat1)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 1")
+p2 <- ggplot(tempdat, aes(sample = dat2)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 2")
+p3 <- ggplot(tempdat, aes(sample = dat3)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 3")
+p4 <- ggplot(tempdat, aes(sample = dat4)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 4")
+p5 <- ggplot(tempdat, aes(sample = dat5)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 5")
+p6 <- ggplot(tempdat, aes(sample = dat6)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Same Six Simulations, in Box + Violin Plots
+
+Six simulations from a Normal distribution.
+
+```{r, echo = FALSE}
+set.seed(43101) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = 1, y = dat1)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 1")
+p2 <- ggplot(tempdat, aes(x = 2, y = dat2)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 2")
+p3 <- ggplot(tempdat, aes(x = 3, y = dat3)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 3")
+p4 <- ggplot(tempdat, aes(x = 4, y = dat4)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 4")
+p5 <- ggplot(tempdat, aes(x = 5, y = dat5)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 5")
+p6 <- ggplot(tempdat, aes(x = 5, y = dat6)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Same Six Simulations, in Histograms
+
+Six simulations from a Normal distribution.
+
+```{r, echo = FALSE}
+set.seed(43101) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = dat1)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 1")
+p2 <- ggplot(tempdat, aes(x = dat2)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 2")
+p3 <- ggplot(tempdat, aes(x = dat3)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 3")
+p4 <- ggplot(tempdat, aes(x = dat4)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 4")
+p5 <- ggplot(tempdat, aes(x = dat5)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 5")
+p6 <- ggplot(tempdat, aes(x = dat6)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 6")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## One of these things is not like the others
+
+5 simulations of the Normal distribution, one of a heavy-tailed distribution.
+
+```{r, echo = FALSE}
+set.seed(43102) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rt(250, df = 4) * 15 + 100
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(sample = dat1)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B1")
+p2 <- ggplot(tempdat, aes(sample = dat2)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B2")
+p3 <- ggplot(tempdat, aes(sample = dat3)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B3")
+p4 <- ggplot(tempdat, aes(sample = dat4)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B4")
+p5 <- ggplot(tempdat, aes(sample = dat5)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B5")
+p6 <- ggplot(tempdat, aes(sample = dat6)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Box + Violin Plots of these 6 Samples
+
+```{r, echo = FALSE}
+set.seed(43102) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rt(250, df = 4) * 15 + 100
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = 1, y = dat1)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B1")
+p2 <- ggplot(tempdat, aes(x = 2, y = dat2)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B2")
+p3 <- ggplot(tempdat, aes(x = 3, y = dat3)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B3")
+p4 <- ggplot(tempdat, aes(x = 4, y = dat4)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B4")
+p5 <- ggplot(tempdat, aes(x = 5, y = dat5)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B5")
+p6 <- ggplot(tempdat, aes(x = 5, y = dat6)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Same Six Simulations, in Histograms
+
+```{r, echo = FALSE}
+set.seed(43102) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rt(250, df = 4) * 15 + 100
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = dat1)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B1")
+p2 <- ggplot(tempdat, aes(x = dat2)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B2")
+p3 <- ggplot(tempdat, aes(x = dat3)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B3")
+p4 <- ggplot(tempdat, aes(x = dat4)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B4")
+p5 <- ggplot(tempdat, aes(x = dat5)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B5")
+p6 <- ggplot(tempdat, aes(x = dat6)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B6")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Again, one of these is not like the others
+
+5 simulations of the Normal distribution, one of a left-skewed distribution.
+
+```{r, echo = FALSE}
+set.seed(43112) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- log(rnorm(250, mean = 100, sd = 15)) * 100 - 360
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(sample = dat1)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C1")
+p2 <- ggplot(tempdat, aes(sample = dat2)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C2")
+p3 <- ggplot(tempdat, aes(sample = dat3)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C3")
+p4 <- ggplot(tempdat, aes(sample = dat4)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C4")
+p5 <- ggplot(tempdat, aes(sample = dat5)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C5")
+p6 <- ggplot(tempdat, aes(sample = dat6)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Box + Violin Plots of these 6 Samples
+
+```{r, echo = FALSE}
+set.seed(43112) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- log(rnorm(250, mean = 100, sd = 15)) * 100 - 360
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = 1, y = dat1)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C1")
+p2 <- ggplot(tempdat, aes(x = 2, y = dat2)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C2")
+p3 <- ggplot(tempdat, aes(x = 3, y = dat3)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C3")
+p4 <- ggplot(tempdat, aes(x = 4, y = dat4)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C4")
+p5 <- ggplot(tempdat, aes(x = 5, y = dat5)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C5")
+p6 <- ggplot(tempdat, aes(x = 5, y = dat6)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Two plots, side by side
+
+```{r, eval = FALSE}
+plot_a <- ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = 4, 
+                 fill = cwru.blue, col = cwru.gray) + 
+  labs(title = "Histogram of Pulse Rates")
+
+plot_b <- ggplot(nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") + 
+  labs(title = "Normal Q-Q plot of Pulse Rates")
+
+gridExtra::grid.arrange(plot_a, plot_b, ncol = 2)
+```
+
+Resulting plot on the next slide...
+
+## Would a Normal model work well here?
+
+```{r, echo = FALSE}
+plot_a <- ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = 4, 
+                 fill = cwru.blue, col = cwru.gray) + 
+  labs(title = "Histogram of Pulse Rates")
+
+plot_b <- ggplot(nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") + 
+  labs(title = "Normal Q-Q plot of Pulse Rates")
+
+gridExtra::grid.arrange(plot_a, plot_b, ncol = 2)
+```
+
+## Does a Normal model fit well for my data?
+
+1. Is a Normal Q-Q plot showing something close to a straight line, without clear signs of skew or indications of lots of outliers (heavy-tailedness)?
+2. Does a boxplot, violin plot and/or histogram also show a symmetric distribution, where both the number of outliers is modest, and the distance of those outliers from the mean is modest?
+3. Do numerical measures match up with the expectations of a normal model?
+
+Let's start by looking at 1 and 2.
+
+## Four (potentially) Useful Plots
+
+```{r, echo = FALSE, message = FALSE}
+res <- mosaic::favstats(~ pulse, data = nh2_GVGmales)
+bin_w <- 4 # specify binwidth
+
+plot_a <- ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = bin_w, 
+                 fill = cwru.blue, 
+                 col = cwru.gray) +
+  theme_bw() +
+  stat_function(
+    fun = function(x) dnorm(x, mean = res$mean, 
+                            sd = res$sd) * res$n * bin_w,
+    col = "tomato", size = 2) +
+labs(title = "Histogram with Normal Curve")
+
+plot_b <- ggplot(nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") + 
+  labs(title = "Normal Q-Q plot") +
+  theme_bw()
+
+plot_c <- ggplot(nh2_GVGmales, aes(x = "", y = pulse)) +
+  geom_boxplot(fill = cwru.blue) + coord_flip() +
+  labs(x = "", title = "Box-and-Whiskers plot") + 
+  theme_bw()
+
+plot_d <- ggplot(nh2_GVGmales, aes(x = "", y = pulse)) +
+  geom_violin(fill = "white", col = cwru.blue) +
+  geom_boxplot(fill = "cyan4", width = 0.2) +
+  coord_flip() +
+  labs(x = "", title = "Violin Plot with Boxplot") +
+  theme_bw()
+
+gridExtra::grid.arrange(plot_a, plot_b, plot_c, plot_d, 
+                        ncol = 2, 
+                        top = "Pulse Rates for nh2_GVGmales")
+```
+
+## Does a Normal model fit well for my data?
+
+3. Do numerical measures match up with the expectations of a normal model?
+  - Is the mean close to the median (perhaps so that $skew_1$ is less than 0.2 in absolute value)?
+  - In a Normal model, mean $\pm$ 1 standard deviation covers 68% of the data.
+  - In a Normal model, mean $\pm$ 2 standard deviations covers 95% of the data.
+  - In a Normal model, mean $\pm$ 3 standard deviations covers 99.7% of the data.
+
+## Normal model for pulse rates of `nh2_GVGmales`?
+
+```{r}
+mosaic::favstats(~ pulse, data = nh2_GVGmales)
+```
+
+### What is $skew_1$ here?
+
+```{r}
+nh2_GVGmales %>% 
+  summarize(skew1 = (mean(pulse) - median(pulse))/sd(pulse))
+```
+
+## How many of the observations are within 1 SD of the mean?
+
+```{r}
+nh2_GVGmales %>%
+  count(pulse > mean(pulse) - sd(pulse), 
+        pulse < mean(pulse) + sd(pulse))
+```
+
+So 267 of the 368 (`r round(100*267/368, 1)`%) observations are within 1 SD of the mean. How does this compare to the expectation under a Normal model?
+
+## How about the mean $\pm$ 2 standard deviations rule?
+
+The total sample size here is 368.
+
+```{r}
+nh2_GVGmales %>%
+  count(pulse > mean(pulse) - 2*sd(pulse), 
+        pulse < mean(pulse) + 2*sd(pulse))
+```
+
+So 351 of the 368 (`r round(100*351/368, 1)`%) observations are within 2 SD of the mean. How does this compare to the expectation under a Normal model?
+
+## Hypothesis Testing to assess Normality
+
+Don't. Graphical approaches are **far** better than hypothesis tests.
+
+```{r}
+shapiro.test(nh2_GVGmales$pulse)
+```
+
+The very small p value indicates that the test finds some indications **against** adopting a Normal model for these data.
+
+## Why not test for Normality?
+
+There are multiple hypothesis testing schemes (Kolmogorov-Smirnov, etc.) and each looks for one specific violation of a Normality assumption. None can capture the wide range of issues our brains can envision, and none by itself is great at its job.
+
+- With any sort of reasonable sample size, the test is so poor at detecting non-normality compared to our eyes, that it finds problems we don't care about and ignores problems we do care about.
+
+- And without a reasonable sample size, the test is essentially useless.
+
+Whenever you *can* avoid hypothesis testing and instead actually plot the data, you should plot the data.
+
+## Summing Up: Does a Normal Model fit well?
+
+If a Normal model fits our data well, then we should see the following graphical indications:
+
+1. A histogram that is symmetric and bell-shaped.
+2. A boxplot where the box is symmetric around the median, as are the whiskers, without a serious outlier problem.
+3. A normal Q-Q plot that essentially falls on a straight line.
+
+As for numerical summaries, we'd like to see
+
+4. The mean and median within 0.2 standard deviation of each other.
+5. No real evidence of too many outlier candidates (more than 5% starts to get us concerned about a Normal model)
+6. No real evidence of individual outliers outside the reasonable range for the size of our data (we might expect about 3 observations in 1000 to fall more than 3 standard deviations away from the mean.)
+
+Should our data not be well-modeled by the Normal, what can we do?
+
+## The Ladder of Power Transformations
+
+The key notion in re-expression of a single variable to obtain a better fit to a Normal model, is that of a **ladder of power transformations**, which can apply to any unimodal data. 
+
+Power | Transformation
+:-----: | :----------:
+3 | x^3^
+2 | x^2^
+1 | x (unchanged)
+0.5 | x^0.5^ = $\sqrt{x}$
+0 | ln x
+-0.5 | x^-0.5^ = 1/$\sqrt{x}$
+-1 | x^-1^ = 1/x
+-2 | x^-2^ = 1/x^2^
+
+## `nh2_GVGmales` Pulse Rates, and their Natural Logarithms
+
+```{r, eval = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Raw Pulse Rates")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(sample = log(pulse))) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Logarithm of Pulse Rates")
+
+gridExtra::grid.arrange(p1, p2, ncol = 2)
+```
+
+## `nh2_GVGmales` Pulse Rates, and their Natural Logarithms
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Raw Pulse Rates")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(sample = log(pulse))) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Log of Pulse Rates")
+
+gridExtra::grid.arrange(p1, p2, ncol = 2)
+```
+
+## `nh2_GVGmales` Pulse Rates, and their Natural Logarithms
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Raw Pulse Rates")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(x = log(pulse))) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Log of Pulse Rates")
+
+p3 <- ggplot(data = nh2_GVGmales, aes(x = "Raw Data", y = pulse)) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Raw Pulse Rates")
+
+p4 <-  ggplot(data = nh2_GVGmales, aes(x = "Log(Data)", y = log(pulse))) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Log of Pulse Rates")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+## Using the Ladder
+
+- The ladder is most useful for strictly positive, ratio variables.
+- Sometimes, if 0 is a value in the data set, we will add 1 to each value before applying a transformation like the logarithm.
+- Interpretability is often an important criterion, although back-transformation at the end of an analysis is usually a sensible strategy.
+
+Power | -2 | -1 | -0.5 | 0 | 0.5 | 1 | 2 | 3
+----- | --: | --: | --: | --: | --: | --: | --: | --:
+Transformation | 1/x^2^ | 1/x | 1/$\sqrt{x}$ | ln x | $\sqrt{x}$ | x | x^2^ | x^3^
+
+## nh2_GVGmales BMI Data (Raw data and Log)
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(x = bmi)) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Raw BMI")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(x = log(bmi))) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Log of BMI")
+
+p3 <- ggplot(data = nh2_GVGmales, aes(x = "Raw Data", y = bmi)) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Raw BMI")
+
+p4 <-  ggplot(data = nh2_GVGmales, aes(x = "Log(Data)", y = log(bmi))) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Log of BMI")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+## nh2_GVGmales BMI - down the ladder to 1/BMI?
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(x = bmi)) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Raw BMI")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(x = 1/bmi)) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: 1/BMI")
+
+p3 <- ggplot(data = nh2_GVGmales, aes(x = "Raw Data", y = bmi)) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Raw BMI")
+
+p4 <-  ggplot(data = nh2_GVGmales, aes(x = "1/(Data)", y = 1/bmi)) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: 1/BMI")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+## Normal Q-Q plots for BMI
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(sample = bmi)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Raw BMI")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(sample = log(bmi))) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Logarithm of BMI")
+
+p3 <-  ggplot(data = nh2_GVGmales, aes(sample = 1/bmi)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: 1/BMI")
+
+gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
+```
+
+## Again, does a Normal Model fit our data?
+
+If a Normal model fits our data well, then we should see the following graphical indications:
+
+1. A histogram that is symmetric and bell-shaped.
+2. A boxplot where the box is symmetric around the median, as are the whiskers, without a serious outlier problem.
+3. A normal Q-Q plot that essentially falls on a straight line.
+
+As for numerical summaries, we'd like to see
+
+4. The mean and median within 0.2 standard deviation of each other.
+5. No real evidence of too many outlier candidates (more than 5% starts to get us concerned about a Normal model)
+6. No real evidence of individual outliers outside the reasonable range for the size of our data (we might expect about 3 observations in 1000 to fall more than 3 standard deviations away from the mean.)
+
+# Part 2 (Scatterplots, Linear Models, Correlation)
+
+## Today's Agenda, Part 2 (See Notes, Chapter 11)
+
+Repeating ...
+
+1. A New Data Set (!)
+2. Studying Scatterplots
+3. Building Linear Models
+    - Making predictions with PIs and CIs
+    - Fundamental Summaries of a Regression Model
+    - Understanding Regression Residuals
+4. Measuring Association with Correlations
+    - Pearson and Spearman approaches
+    - Thinking about the impact of transformations
+5. Adding a categorical predictor (factor) to a model
+    - Using `fct_recode` from `forcats` (tidyverse)
+    - Interpreting an indicator variable regression
+
+## Part 2 Data Load
+
+```{r load_data, message = FALSE}
+VHL <- read_csv("vonHippel-Lindau.csv") 
+
+dim(VHL)
+```
+
+## Von Hippel - Lindau study Codebook
+
+- `p.ne` = plasma norepinephrine (pg/ml)
+- `tumorvol` = tumor volume (ml)
+- `disease` = 1 for patients with multiple endocrine neoplasia type 2
+- `disease` = 0 for patients with von Hippel-Lindau disease
+
+```{r}
+head(VHL, 3)
+```
+
+First, we want to describe the association of `p.ne` and `tumorvol`.
+
+## Scatterplot predicting `tumorvol` from `p.ne`
+
+```{r, echo=FALSE}
+ggplot(VHL, aes(x = tumorvol, y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method="lm", col = "red", se = FALSE) +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of p.ne with tumor volume",
+       x = "Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+## The Linear Model
+
+```{r first_model}
+model1 <- lm(p.ne ~ tumorvol, data = VHL)
+model1
+```
+
+The (simple regression / prediction / ordinary least squares) model is 
+
+- `p.ne` = `r round(coef(model1)[1],1)` + `r round(coef(model1)[2],2)` * `tumorvol`.
+
+## Using the model to make predictions (PI)
+
+To predict the `p.ne` for a subject with tumor volume 200 ml, we have
+
+- `p.ne` = `r round(coef(model1)[1],1)` + `r round(coef(model1)[2],2)` * 200
+
+A 95% **prediction interval** for a single subject with volume 200 ml...
+
+```{r}
+predict(model1, newdata = tibble(tumorvol = 200), 
+        interval = "prediction", level = 0.95)
+```
+
+## Using the model to make predictions (CI)
+
+To predict the `p.ne` for the average of many subjects each with tumor volume 200 ml, we have
+
+- `p.ne` = `r round(coef(model1)[1],1)` + `r round(coef(model1)[2],2)` * 200
+
+A 95% **confidence interval** for the population average of all subjects with volume 200 ml...
+
+```{r}
+predict(model1, newdata = tibble(tumorvol = 200), 
+        interval = "confidence", level = 0.95)
+```
+
+## Adding a Confidence Interval to the Scatterplot
+
+```{r, echo=FALSE}
+ggplot(VHL, aes(x = tumorvol, y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method="lm", se = TRUE, col = "red") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of p.ne with tumor volume",
+       x = "Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+## Summary of our Linear (OLS) Model
+
+```{r summ1-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/model1summary.png")
+```
+
+
+## Key Elements of the Summary (1)
+
+```{r summ1b-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/model1b.png")
+```
+
+- The straight line model for these data fitted by ordinary least squares is p.ne = `r signif(coef(lm(p.ne ~ tumorvol, data = VHL))[1],3)` + `r signif(coef(lm(p.ne ~ tumorvol, data = VHL))[2],3)` `tumorvol`.
+- The slope of `tumorvol` is positive, which indicates that as `tumorvol` increases, we expect that `p.ne` will also increase. 
+- Specifically, we expect that for every additional ml of `tumorvol`, the `p.ne` is increased by `r signif(coef(lm(p.ne ~ tumorvol, data = VHL))[2],3)` pg/ml.
+
+
+## Tidying the Model Coefficients
+
+```{r}
+model1 <- lm(p.ne ~ tumorvol, data = VHL)
+
+broom::tidy(model1, conf.int = TRUE) %>% 
+  knitr::kable(digits = 2)
+```
+
+## Key Elements of the Summary (2)
+
+```{r summ1a-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/model1a.png")
+```
+
+- Here, the **outcome** is `p.ne`, and the **predictor** is `tumorvol`.
+- The **residuals** are the observed `p.ne` values minus the model's predicted `p.ne`. The sample residuals are the prediction errors.
+  - The biggest miss is for a subject whose observed `p.ne` was 1,811 pg/nl higher than the model predicts based on the subject's tumor volume.
+  - The mean residual will always be zero in an OLS model.
+
+
+## Understanding Regression Residuals (A)
+
+```{r resid1a-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/resid1a.png")
+```
+
+## Understanding Regression Residuals (B)
+
+```{r resid1b-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/resid1b.png")
+```
+
+## Understanding Regression Residuals (C)
+
+```{r resid1c-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/resid1c.png")
+```
+
+## Understanding Regression Residuals (D)
+
+```{r resid1d-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/resid1d.png")
+```
+
+## Key Elements of the Summary (3)
+
+```{r summ1c-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/model1c.png")
+```
+
+- The multiple R-squared (squared correlation coefficient) is `r signif(summary(lm(p.ne ~ tumorvol, data = VHL))$r.squared,3)`, which implies that `r 100*signif(summary(lm(p.ne ~ tumorvol, data = VHL))$r.squared,3)`% of the variation in `p.ne` is explained using this linear model with `tumorvol`. 
+- It also implies that the Pearson correlation between `p.ne` and `tumorvol` is the square root of `r signif(summary(lm(p.ne ~ tumorvol, data = VHL))$r.squared,3)`, or `r round(cor(VHL$p.ne, VHL$tumorvol),3)`.
+
+```{r Pearson correlation}
+cor(VHL$p.ne, VHL$tumorvol)
+```
+
+## Model 1, summarized at a glance, with `broom`
+
+```{r}
+broom::glance(model1)
+```
+
+Let's look at the elements of this...
+
+## Key Elements of `glance` for us now...
+
+```{r}
+broom::glance(model1) %>% 
+  select(r.squared, adj.r.squared, sigma) %>%
+  knitr::kable(digits = 3)
+```
+
+## Correlation Coefficients
+
+Two key types of correlation coefficient to describe an association between quantities. 
+
+- The one most often used is called the *Pearson* correlation coefficient, symbolized r or sometimes rho ($\rho$).
+- Another is the Spearman rank correlation coefficient, also symbolized by $\rho$, or sometimes $\rho_s$.
+
+```{r correlations}
+cor(VHL$p.ne, VHL$tumorvol)
+cor(VHL$p.ne, VHL$tumorvol, method = "spearman")
+```
+
+## Meaning of Pearson Correlation
+
+The Pearson correlation coefficient assesses how well the relationship between X and Y can be described using a linear function. 
+
+- The Pearson correlation is dimension-free. 
+- It falls between -1 and +1, with the extremes corresponding to situations where all the points in a scatterplot fall exactly on a straight line with negative and positive slopes, respectively. 
+- A Pearson correlation of zero corresponds to the situation where there is no linear association.
+- Unlike the estimated slope in a regression line, the sample correlation coefficient is symmetric in x and y, so it does not depend on labeling one of them (y) the response variable, and one of them (x) the predictor.
+
+\[
+r_{XY} = \frac{1}{n-1} \Sigma_{i=1}^n (\frac{x_i - \bar{x}}{s_x}) (\frac{y_i - \bar{y}}{s_y}) 
+\]
+
+## Simulated Example 1
+
+```{r ex1withcorrandequation, echo = FALSE}
+set.seed(431912)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 21)
+y <- -2*x + 300 + e
+
+frame1 <- data_frame(id = 1:100, x, y) 
+
+ggplot(frame1, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 260, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame1$x, frame1$y),3))) +
+  annotate("text", x = 32, y = 160, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame1))[1],1))) +
+  annotate("text", x = 32, y = 150, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame1))[2],1)))
+```
+
+## Simulated Example 2
+
+```{r ex2withcorrandequation, echo = FALSE}
+set.seed(431912)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 45.3)
+y <- -2*x + 300 + e
+
+frame2 <- data_frame(id = 1:100, x, y) 
+
+ggplot(frame2, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 340, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame2$x, frame2$y),3))) +
+  annotate("text", x = 32, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame2))[1],1))) +
+  annotate("text", x = 32, y = 65, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame2))[2],1)))
+```
+
+## Simulated Example 3
+
+```{r ex3withcorrandequation, echo = FALSE}
+set.seed(431912)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 129)
+y <- -2*x + 400 + e
+
+frame3 <- data_frame(id = 1:100, x, y) 
+
+ggplot(frame3, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 580, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame3$x, frame3$y),3))) +
+  annotate("text", x = 32, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame3))[1],1))) +
+  annotate("text", x = 32, y = 40, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame3))[2],1)))
+```
+
+## Simulated Example 4
+
+```{r ex4withcorrandequation, echo = FALSE}
+set.seed(431933)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 9.8)
+y <- - 2.2*x + 180 + e
+
+frame4 <- data_frame(id = 1:100, x, y) 
+
+ggplot(frame4, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 100, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame4$x, frame4$y),3))) +
+  annotate("text", x = 32, y = 50, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame4))[1],1))) +
+  annotate("text", x = 32, y = 40, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame4))[2],1)))
+```
+
+## Calibrate Yourself on Correlation Coefficients
+
+```{r set_of_4_examples, echo = FALSE}
+p1 <- ggplot(frame1, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") + 
+  annotate("text", x = 65, y = 250, col = "blue", size = 7, 
+           label = paste0("r = ", round(cor(frame1$x, frame1$y),2)))
+
+p2 <- ggplot(frame2, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") + 
+  annotate("text", x = 65, y = 300, col = "blue", size = 7, 
+           label = paste0("r = ", round(cor(frame2$x, frame2$y),2)))
+
+p3 <- ggplot(frame3, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") + 
+  annotate("text", x = 65, y = 600, col = "blue", size = 7, 
+           label = paste0("r = ", round(cor(frame3$x, frame3$y),2)))
+
+p4 <- ggplot(frame4, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") + 
+  annotate("text", x = 65, y = 100, col = "blue", size = 7, 
+           label = paste0("r = ", round(cor(frame4$x, frame4$y),2)))
+
+gridExtra::grid.arrange(p1, p2, p3, p4, nrow = 2)
+```
+
+## Simulated Example 5
+
+```{r ex5withcorrandequation, echo = FALSE}
+set.seed(431933)
+
+x <- rnorm(100, 50, 10)
+y <- rnorm(100, 200, 50)
+
+frame5 <- data_frame(id = 1:100, x, y) 
+
+ggplot(frame5, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 350, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame5$x, frame5$y),3))) +
+  annotate("text", x = 65, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame5))[1],1))) +
+  annotate("text", x = 65, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame5))[2],1)))
+```
+
+## Simulated Example 6
+
+```{r example6, echo = FALSE}
+set.seed(43191)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 25)
+y <- -3*x + 300 + e
+
+frame6 <- data_frame(id = 1:100, x, y) 
+
+frame6$x[14] <- 25
+frame6$y[14] <- 75
+
+frame6$y[90] <- 225
+frame6$x[90] <- 80
+
+ggplot(frame6, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 225, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6$x, frame6$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6))[2],1)))
+```
+
+
+## Example 6: What would happen if we omit Point A?
+
+```{r ex6withpointA, echo = FALSE}
+ggplot(frame6, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("label", x = 25, y = 75, label = "A", size = 6, fill = "yellow") +
+  annotate("text", x = 65, y = 225, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6$x, frame6$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6))[2],1))) + 
+  labs(title = "Summaries with Point A included")
+```
+
+## Example 6: Result if we omit Point A
+
+```{r ex6withoutA, echo = FALSE}
+frame6noA <- filter(frame6, id != 14)
+
+ggplot(frame6noA, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  geom_abline(intercept = 264.1, slope = -2.3, col = "purple") +
+  annotate("label", x = 25, y = 75, label = "A", size = 6, fill = "purple", col = "white") +
+  annotate("text", x = 65, y = 225, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6noA$x, frame6noA$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6noA))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6noA))[2],1))) + 
+  labs(title = "Summaries, Model Results without Point A",
+       subtitle = "Original Line with Point A included is shown in Purple")
+```
+
+## Example 6: What would happen if we omit Point B?
+
+```{r ex6withpointB, echo = FALSE}
+ggplot(frame6, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("label", x = 80, y = 225, label = "B", size = 6, fill = "yellow") +
+  annotate("text", x = 65, y = 225, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6$x, frame6$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6))[2],1))) + 
+  labs(title = "Summaries with Point B included")
+```
+
+## Example 6: Result if we omit Point B
+
+```{r ex6withoutB, echo = FALSE}
+frame6noB <- filter(frame6, id != 90)
+
+ggplot(frame6noB, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  geom_abline(intercept = 264.1, slope = -2.3, col = "purple") +
+  annotate("label", x = 80, y = 225, label = "B", size = 6, fill = "purple", col = "white") +
+  annotate("text", x = 65, y = 225, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6noB$x, frame6noB$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6noB))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6noB))[2],1))) + 
+  labs(title = "Summaries, Model Results without Point B",
+       subtitle = "Original Line with Point B included is shown in Purple")
+```
+
+## Example 6: What if we omit Point A AND Point B?
+
+```{r ex6withAandB, echo = FALSE}
+ggplot(frame6, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("label", x = 25, y = 75, label = "A", size = 6, fill = "yellow") +
+  annotate("label", x = 80, y = 225, label = "B", size = 6, fill = "yellow") +
+  annotate("text", x = 65, y = 225, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6$x, frame6$y),3))) +
+  labs(title = "Summaries with Points A and B included")
+```
+
+## Example 6: Result if we omit Points A and B
+
+```{r ex6withoutAB, echo = FALSE}
+frame6noAB <- frame6 %>%
+  filter(id != 90,
+         id != 14)
+
+ggplot(frame6noAB, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  geom_abline(intercept = 264.1, slope = -2.3, col = "purple") +
+  annotate("label", x = 25, y = 75, label = "A", size = 6, fill = "purple", col = "white") +
+  annotate("label", x = 80, y = 225, label = "B", size = 6, fill = "purple", col = "white") +
+  annotate("text", x = 65, y = 240, col = "blue", size = 6, 
+           label = paste0("A and B out: r = ", round(cor(frame6noAB$x, frame6noAB$y),3))) +
+  annotate("text", x = 65, y = 220, col = "purple", size = 6, 
+           label = paste0("With A and B: r = ", round(cor(frame6$x, frame6$y),3))) +
+  labs(title = "Summaries, Model Results without A or B",
+       subtitle = "Original Line with Points A and B included is shown in Purple")
+```
+
+## The Spearman Rank Correlation
+
+The Spearman rank correlation coefficient assesses how well the association between X and Y can be described using a **monotone function** even if that relationship is not linear. 
+
+- A monotone function preserves order - that is, Y must either be strictly increasing as X increases, or strictly decreasing as X increases.
+- A Spearman correlation of 1.0 indicates simply that as X increases, Y always increases.
+- Like the Pearson correlation, the Spearman correlation is dimension-free, and falls between -1 and +1.
+- A positive Spearman correlation corresponds to an increasing (but not necessarily linear) association between X and Y, while a negative Spearman correlation corresponds to a decreasing (but again not necessarily linear) association.
+
+## Monotone Association (Source: Wikipedia)
+
+```{r spearmanpic1-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/spearmanpic1.png")
+```
+
+## Spearman correlation reacts less to outliers
+
+```{r spearmanpic4-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/spearmanpic4.png")
+```
+
+## Our Key Scatterplot again
+
+```{r scatter_2_with_correlations, echo=FALSE}
+ggplot(VHL, aes(x = tumorvol, y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method="lm", se=FALSE, col = "red") +
+  theme(text = element_text(size = 14)) +
+  annotate("text", x = 550, y = 2700, col = "red", size = 6,
+           label = paste("Pearson r = ", signif(cor(VHL$tumorvol, VHL$p.ne),2))) +
+  annotate("text", x = 550, y = 2500, col = "blue", size = 6,
+           label = paste("Spearman r = ", signif(cor(VHL$tumorvol, VHL$p.ne, method="spearman"),2))) +
+  labs(title = "Association of p.ne with tumor volume",
+       x = "Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+## Smoothing using loess, instead
+
+```{r scatter3, echo=FALSE}
+ggplot(VHL, aes(x = tumorvol, y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "loess", col = "navy") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of p.ne with tumor volume",
+       x = "Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+## Using the Log transform to spread out the Volumes
+
+```{r scatter4, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "loess", col = "navy") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of p.ne with log(tumor volume)",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+## Does a Log-Log model seem like a good choice?
+
+```{r scatter_of_log-log, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = log(p.ne))) +
+  geom_point(size = 3) +
+  geom_smooth(method = "loess", col = "navy") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of log(p.ne) with log(tumorvol)",
+       x = "Log of Tumor Volume (ml)", y = "Log of Plasma Norepinephrine (pg/ml)")
+```
+
+## Linear Model for p.ne using log(tumor volume)
+
+```{r scatter_4_with_lm, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", col = "red") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of p.ne with log(tumorvol)",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+## Creating a Factor to represent disease diagnosis
+
+We want to add a new variable, specifically a factor, called `diagnosis`, which will take the values `von H-L` or `neoplasia`.
+
+- Recall `disease` is a numeric 1/0 variable (0 = von H-L, 1 = neoplasia)
+- Use `fct_recode` from the `forcats` package...
+
+```{r create_diagnosis}
+VHL <- VHL %>%
+  mutate(diagnosis = fct_recode(factor(disease), 
+                                "neoplasia" = "1",
+                                "von H-L" = "0")
+  )
+```
+
+## Now, what does VHL look like?
+
+```{r view_new_VHL}
+VHL
+```
+
+
+## Compare the patients by diagnosis
+
+```{r scatter_5_no_facets, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne, col = diagnosis)) +
+  geom_point(size = 3) +
+  stat_smooth(method=lm, se=FALSE) +
+  theme(text = element_text(size = 14)) +
+  labs(title = "p.ne vs. log(tumorvol), by diagnosis",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)") +
+  theme_bw()
+```
+
+## Facetted Scatterplots by diagnosis
+
+```{r scatter_5_with_facets, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne, col = diagnosis)) +
+  geom_point(size = 3) +
+  stat_smooth(method=lm) +
+  facet_wrap(~ diagnosis) +
+  guides(color = FALSE) +
+  theme(text = element_text(size = 14)) +
+  labs(title = "p.ne vs. log(tumorvol), by diagnosis",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)") +
+  theme_bw()
+```
+
+## Model accounting for different slopes and intercepts
+
+```{r model2}
+model2 <- lm(p.ne ~ log(tumorvol) * diagnosis, data = VHL)
+model2
+```
+
+## Model 2 results
+
+`p.ne` = 417 + 220 log(`tumorvol`) - 893 (`diagnosis = neoplasia`) + 125 (`diagnosis = neoplasia`)*log(`tumorvol`)
+
+where the indicator variable (`diagnosis = neoplasia`) = 1 for neoplasia subjects, and 0 for other subjects...
+
+- Model for `p.ne` in von H-L patients: 
+    + 417 + 220 log(`tumorvol`)
+- Model for `p.ne` in neoplasia patients: 
+    + (417 - 893) + (220 + 125) log(`tumorvol`) 
+    + -476 + 345 log(`tumorvol`)
+    
+## Model 2 Predictions
+
+What is the predicted `p.ne` for a single new subject with `tumorvol` = 200 ml (so log(tumorvol) = `r round(log(200),2)`) in each diagnosis category?
+
+```{r model2predictionsneoplasia}
+predict(model2, newdata = data_frame(tumorvol = 200, 
+        diagnosis = "neoplasia"), interval = "prediction")
+```
+
+```{r model2predictionVHL}
+predict(model2, newdata = data_frame(tumorvol = 200, 
+        diagnosis = "von H-L"), interval = "prediction")
+```
+
+## Tidying the Model 2 coefficients, with `broom`
+
+```{r}
+broom::tidy(model2)
+```
+
+## Model 2, summarized at a glance, with `broom`
+
+```{r}
+broom::glance(model2)
+```
+
+Compare this to model 1...
+
+```{r}
+broom::glance(model1)
+```
+
+## Conclusions about VHL data
+
+- The second model, accounting for the interaction of diagnosis with the log of tumor volume, was able to account for about 29% of the variation in the plasma norepinephrine levels.
+
+- Model 1, our original linear model, which didn't account for diagnosis at all, showed that tumor volume accounted for about 12% of the variation we observed in plasma norepinephrine levels.
+
+Can we draw a lot more from this yet?
+
+## So what did we hear about today?
+
+- The central role of linear regression in understanding associations between quantitative variables.
+- The interpretation of a regression model as a prediction model.
+- The meaning of key regression summaries, including residuals.
+- Using tidy and glance from the broom package to help with summaries.
+- Measuring association through correlation coefficients.
+- How we might think about "adjusting" for the effect of a categorical predictor on a relationship between two quantitative ones.
+- How a transformation might help us "linearize" the relationship shown in a scatterplot.

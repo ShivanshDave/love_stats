@@ -1,0 +1,92 @@
+# Setting Up R {#Rsetup}
+
+These Notes make extensive use of 
+
+- the statistical software language R, and
+- the development environment R Studio,
+
+both of which are free, and you'll need to install them on your machine. Instructions for doing so are in found in the course syllabus.
+
+If you need an even gentler introduction, or if you're just new to R and RStudio and need to learn about them, we encourage you to take a look at http://moderndive.com/, which provides an introduction to statistical and data sciences via R at @ModernDive.
+
+## R Markdown
+
+These notes were written using R Markdown. R Markdown, like R and R Studio, is free and open source.
+
+R Markdown is described as an *authoring framework* for data science, which lets you
+
+- save and execute R code
+- generate high-quality reports that can be shared with an audience
+
+This description comes from http://rmarkdown.rstudio.com/lesson-1.html which you can visit to get an overview and quick tour of what's possible with R Markdown.
+
+Another excellent resource to learn more about R Markdown tools is the Communicate section (especially the R Markdown chapter) of @R4DS.
+
+## R Packages
+
+To start, I'll present a series of commands I run at the beginning of these Notes. These particular commands set up the output so it will look nice as either an HTML or PDF file, and also set up R to use several packages (libraries) of functions that expand its capabilities. A chunk of code like this will occur near the top of any R Markdown work.
+
+```{r setup, message=FALSE}
+knitr::opts_chunk$set(comment = NA)
+
+# library(pander); library(pwr)
+
+library(grid); library(devtools); 
+library(magrittr); library(patchwork);
+library(knitr); library(NHANES); library(boot);
+library(broom); library(janitor); library(tidyverse)
+
+# source("data/Love-boost.R")
+```
+
+I have deliberately set up this list of loaded packages/libraries to be relatively small, and will add some other packages later, as needed. You only need to install a package once, but you need to reload it every time you start a new session.
+
+## Other Packages
+
+I may also make use of functions in the following packages/libraries, but when I do so, I will explicitly specify the package name, using a command like `Hmisc::describe(x)`, rather than just `describe(x)`, so as to specify that I want the Hmisc package's version of `describe` applied to whatever `x` is. Those packages are:
+
+- `aplpack` which provides `stem.leaf` and `stem.leaf.backback` for building fancier stem-and-leaf displays
+- `arm` which provides a set of functions for model building and checking that are used in @Gelman-Hill
+- `broom` which turns the results lots of different analyses in R into more useful tidy data frames (tibbles.)
+- `car` which provides some tools for building scatterplot matrices, but also many other functions described in @Fox-Weisberg
+- `cowplot` which is used in Part C to put multiple graphical objects in the same plot, like `gridExtra`: https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html
+- `DataExplorer` for generating highly detailed profiles of a data frame
+- `Epi` for 2x2 table analyses and materials for classical epidemiology: http://BendixCarstensen.com/Epi/
+- `exact2x2` for calculating McNemar odds ratios and confidence intervals in paired comparisons of proportions
+- `GGally` for scatterplot and correlation matrix visualizations: http://ggobi.github.io/ggally/
+- `ggridges` which is used to make ridgeline plots
+- `gridExtra` which includes a variety of functions for manipulating graphs: https://github.com/baptiste/gridextra
+- `Hmisc` from Frank Harrell at Vanderbilt U., for its version of `describe` and for many regression modeling functions we'll use in 432. Details on Hmisc are at http://biostat.mc.vanderbilt.edu/wiki/Main/Hmisc. Frank has written several books - the most useful of which for 431 students is probably @HarrellBBR
+- `mice`, which we'll use (a little) in 431 for multiple imputation to deal with missing data: http://www.stefvanbuuren.nl/mi/
+- `mosaic`, mostly for its `favstats` summary, but Project MOSAIC is a community of educators you might be interested in: http://mosaic-web.org/
+- `naniar`, for wrangling and visualizing missingness, and for checking imputations. See http://naniar.njtierney.com/.
+- `PropCIs` for computing confidence intervals for differences in proportions in paired samples.
+- `psych` for its own version of `describe`, but other features are described at http://personality-project.org/r/psych/
+- `simputation` for some imputation work
+- `skimr` for its ability to provide a "skimmed" descriptive analysis of a data set
+
+
+We'll also use some packages that get loaded via `devtools` and Github by the code in these notes, including:
+
+- `xda` for two functions called `numSummary` and `charSummary`
+- `visdat` for two functions called vis_miss` and `vis_dat`
+- `patchwork`, which is a framework for composing `ggplot2` objects (actually this is now loaded above). 
+
+Several other packages are included below, even though they are not used in these Notes, because they will be used in class sessions or in 432.
+
+When compiling the Notes from the original code files, these packages will need to be installed (but not loaded) in R, or an error will be thrown when compiling this document. To install all of the packages used within these Notes, type in (or copy and paste) the following commands and run them in the R Console. Again, you only need to install a package once, but you need to reload it every time you start a new session. 
+
+```
+pkgs <- c("aplpack", "arm", "babynames", "boot", "broom", "car", "cowplot", 
+          "DataExplorer", "devtools", "Epi", "exact2x2", faraway", "fivethirtyeight", 
+          "foreign", "gapminder", "GGally", "ggridges", "gridExtra", "Hmisc", 
+          "janitor", "kableExtra", "knitr", "lme4", "magrittr", "markdown", 
+          "MASS", "mice", "mosaic", "multcomp", "naniar", "NHANES", "pander", 
+          "PropCIs", "psych", "pwr", "qcc", "rmarkdown", "rmdformats", "rms", 
+          "sandwich", "simputation", "skimr", "survival", "tableone", 
+          "tidyverse", "vcd")
+
+install.packages(pkgs)
+```
+
+

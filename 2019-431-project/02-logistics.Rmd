@@ -1,0 +1,38 @@
+# Logistics 
+
+## Group vs. Individual Work
+
+### Individual vs. Working in a Pair
+
+You will need to make a decision by the start of class on 2019-09-24 as to whether you will work individually, or with a single partner, on the vast majority of the tasks for this project. If you decide to work with a partner, that decision must be communicated to Dr. Love and the TAs as part of [the Task 1 form](#task1).
+
+### Study A group work
+
+- You will work in one of 10 small groups (each group will have six students) on Tasks 2 and 3 for Study A.
+- Everyone will complete Task 4 (taking the survey) for Study A individually.
+- If you are not working with a partner, then Study A tasks 5, 6 and 7 will either be completed by you alone.
+- If you *are* working with a partner, then you and your partner, working jointly, will complete Study A tasks 5, 6 and 7.
+
+### Study B group work
+
+- If you are not working with a partner, then you will complete all Study B tasks (2-7) on your own.
+- If you *are* working with a partner, then you and your partner, working jointly, will complete all of Study B tasks (2-7).
+
+## Where and When? 
+
+The source for all deadlines is the [Course Calendar](https://github.com/THOMASELOVE/2019-431/blob/master/calendar.md). If there is any confusion, the Calendar is the definitive word. The first deadline is for Task 1, which is due at 9 AM on 2019-09-30.
+
+Your final presentation will be in Professor Love's office, which is on the ground floor of the Wood building, in room WG82-J. 
+
+## Grading 
+
+You will receive a final grade on the project (on a scale of 0-100) made up of the following elements:
+
+- 15 points once you have successfully completed Tasks 2, 3, 4 and 5 for Study A in a timely fashion.
+- 15 points once you have successfully completed Tasks 2, 3, 4 and 5 for Study B in a timely fashion.
+- up to 15 points based on the timely submission and quality of your project portfolio for Study A (Task 6)
+- up to 20 points based on the timely submission and quality of your project portfolio for Study B (Task 6)
+- up to 35 points based on your project presentation (both studies, combined: Task 7)
+
+You and your partner will receive the same grade for all elements except the presentation (Task 7), where you will present together, but be evaluated *both* together (for the quality of the presentation materials) and as individuals (for the quality of your actual presentation and your responses to questions.)
+

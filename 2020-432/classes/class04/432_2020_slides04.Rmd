@@ -1,0 +1,576 @@
+---
+title: "432 Class 4 Slides"
+author: "github.com/THOMASELOVE/2020-432"
+date: "2020-01-23"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    colortheme: "lily"
+    fonttheme: "structurebold"
+    fig_caption: FALSE
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 60)
+```
+
+## Today's Agenda
+
+1. Continuing our discussion of two-way ANOVA and ANCOVA with binary factors
+2. Building a two-factor ANOVA model with multi-categorical factors
+    - again, focus on interpreting the interaction
+    - add covariates, as desired
+
+## Setup
+
+```{r, warning = FALSE, message = FALSE}
+library(here); library(magrittr); library(janitor)
+library(broom); library(simputation); library(patchwork)
+library(naniar); library(visdat)
+library(tidyverse)
+
+theme_set(theme_bw())
+
+smart1 <- readRDS(here("data/smart1.Rds"))
+smart1_sh <- readRDS(here("data/smart1_sh.Rds"))
+```
+
+## `smart1_sh` Variables, by Type
+
+Variable | Type | Description
+--------- | :----: | --------------------------------
+`landline` | Binary (1/0) | survey conducted by landline? (vs. cell)
+`healthplan` | Binary (1/0) | subject has health insurance?
+`age_imp` | Quantitative | age (imputed from groups - see Notes)
+`fruit_day` | Quantitative | mean servings of fruit / day
+`drinks_wk` | Quantitative | mean alcoholic drinks / week
+`bmi` | Quantitative | body-mass index (in kg/m^2^)
+`physhealth` | Count (0-30) | of last 30 days, # in poor physical health
+`dm_status` | Categorical | diabetes status (now 2 levels)
+`activity` | Categorical | physical activity level (4 levels)
+`smoker` | Categorical | tobacco use status (now 3 levels)
+`genhealth` | Categorical | self-reported overall health (5 levels)
+
+# Modeling with ANOVA for Binary Factors
+
+## Models we have fit (so far)
+
+```{r}
+a1 <- smart1_sh %$% lm(bmi ~ dm_status)
+
+a2 <- smart1_sh %$% lm(bmi ~ dm_status * healthplan)
+
+a2_noint <- smart1_sh %$% lm(bmi ~ dm_status + healthplan)
+```
+
+## Is the interaction term important here?
+
+1. Does the interaction plot display important non-parallelism?
+2. Does the interaction term account for a substantial fraction of the variation in our outcome?
+3. Does the interaction term's estimate/standard error/uncertainty interval meet usual standards for statistical significance?
+
+If **all** of these things are true, then it's easy to conclude that the interaction is important, and we cannot interpret the main effects of `dm_status` and `healthplan` without thinking first about the interaction of those two factors.
+
+- So let's walk through the decision. I've repeated the interaction plot on the next slide.
+
+## Interaction Plot 
+
+We'll plot the means of the `bmi` in the four combinations:
+
+- two levels of `dm_status` combined with
+- two levels of `healthplan`
+
+```{r}
+summaries1 <- smart1_sh %>% 
+  group_by(dm_status, healthplan) %>%
+  summarize(n = n(), mean = mean(bmi), stdev = sd(bmi))
+
+summaries1 %>% knitr::kable(digits = 2)
+```
+
+## Interaction Plot for Two-Way ANOVA (code)
+
+```{r, eval = FALSE}
+pd <- position_dodge(0.1)
+ggplot(summaries1, aes(x = dm_status, y = mean,
+                       col = factor(healthplan))) +
+  geom_errorbar(aes(ymin = mean - stdev,
+                    ymax = mean + stdev),
+                width = 0.1, position = pd) +
+  geom_point(size = 2, position = pd) +
+  geom_line(aes(group = healthplan), position = pd) +
+  labs(y = "Body-Mass Index",
+       x = "Diabetes?",
+       title = "Observed Means (+/- SD) for BMI", 
+       subtitle = "by Diabetes Status and Insurance")
+```
+
+## Interaction Plot for Two-Way ANOVA
+
+```{r, echo = FALSE}
+pd <- position_dodge(0.1)
+ggplot(summaries1, aes(x = dm_status, y = mean,
+                       col = factor(healthplan))) +
+  geom_errorbar(aes(ymin = mean - stdev,
+                    ymax = mean + stdev),
+                width = 0.1, position = pd) +
+  geom_point(size = 2, position = pd) +
+  geom_line(aes(group = healthplan), position = pd) +
+  labs(y = "Body-Mass Index",
+       x = "Diabetes?",
+       title = "Observed Means (+/- SD) for BMI", 
+       subtitle = "by Diabetes Status and Insurance")
+```
+
+## Evaluation in our Two-Way ANOVA of Interaction
+
+1. Does the interaction plot display important non-parallelism?
+    - No, I don't think so. 
+2. Does the interaction term account for a substantial fraction of the variation in our outcome?
+
+```{r}
+anova(a2) %>% knitr::kable(digits = 0)
+```
+
+- SS(total) = 288,338 + 30 + 3 + 14,775 = 303,146.
+- SS(interaction) = 30
+- $\eta^2$(interaction) = $\frac{30}{303146} = .000099$, or about 0.01% of `bmi` variation.
+
+## Is the interaction term important here?
+
+1. Does the interaction plot display important non-parallelism?
+    - No.
+2. Does the interaction term account for a substantial fraction of the variation in our outcome?
+    - It accounts for just under 0.01% of variation, so no.
+3. Does the interaction term's estimate/standard error/uncertainty interval meet usual standards for statistical significance?
+
+```{r}
+tidy(a2, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+## Is the interaction term important here?
+
+1. Does the interaction plot display important non-parallelism?
+  - No.
+2. Does the interaction term account for a substantial fraction of the variation in our outcome?
+  - No.
+3. Does the interaction term's estimate/standard error/uncertainty interval meet usual standards for statistical significance?
+  - No.
+
+It's clearly easier to ignore the interaction term (and fit the no-interaction model) if none of these three things are true.
+
+## Interpreting the "No Interaction" Model
+
+```{r}
+tidy(a2_noint, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+- If Harry and Sally have the same `healthplan` status, but only Harry has diabetes, then Harry's BMI is estimated to be 3.97 kg/m^2^ higher than Sally's. (90% uncertainty interval: 3.63, 4.30).
+- If Harry and Sally have the same `dm_status` but Harry has a health plan and Sally doesn't, our model will estimate Harry's BMI as 0.09 kg/m^2^ higher than Sally's (90% interval: -0.44, 0.62).
+
+## Adding a covariate
+
+We saw that the no-interaction model might well be sufficient for BMI as a function of `dm_status` and `healthplan`. Would this still be true if we first adjusted for the impact of a continuous covariate, like `physhealth`, that is meaningfully correlated with BMI?
+
+```{r}
+a3 <- smart1_sh %$% 
+  lm(bmi ~ physhealth + dm_status * healthplan)
+
+anova(a3) %>% knitr::kable(digits = 1)
+```
+
+## Model without the Covariate
+
+Compare that ANOVA table to this one for our interaction model without the covariate. What changes?
+
+```{r}
+anova(a2) %>% knitr::kable(digits = 1)
+```
+
+## `a3` covariate model without interaction term
+
+```{r}
+a3_noint <- smart1_sh %$% 
+  lm(bmi ~ physhealth + dm_status + healthplan)
+
+anova(a3_noint) %>% knitr::kable(digits = 1)
+```
+
+## Interpreting "No Interaction" Model + Covariate
+
+```{r}
+tidy(a3_noint, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 2)
+```
+
+- If Harry and Sally have the same `healthplan` status and the same `physhealth`, but only Harry has diabetes, then Harry's BMI is estimated to be 3.67 kg/m^2^ higher than Sally's. (90% uncertainty interval: 3.33, 4.01).
+- See next slide, too.
+
+## Interpreting "No Interaction" Model + Covariate
+
+```{r}
+tidy(a3_noint, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 2)
+```
+
+- If Harry and Sally have the same `dm_status` and the same `physhealth`, but Harry has a health plan and Sally doesn't, our model will estimate Harry's BMI as 0.03 kg/m^2^ higher than Sally's (90% uncertainty interval: -0.50, 0.56).
+- Why aren't I talking here about the covariate's effect?
+
+## Does the model fit the data well?
+
+We have the usual strategies applicable in any linear model:
+
+- evaluate the R^2^ and other summary statistics, especially in comparison to alternative specifications of models for the same outcome.
+- evaluate the fit of the model to regression assumptions, mostly through diagnostics based on residuals
+- cross-validate our model selection process, perhaps by partitioning the sample into a training sample (where candidate models are developed) and a holdout / test sample (where we choose between the candidates)
+
+## Summary Statistics (Whole Sample)
+
+```{r}
+bind_rows(glance(a1), glance(a2_noint), glance(a3_noint)) %>%
+  mutate(model = 
+           c("dm_status", "+ healthplan", "+ physhealth")) %>%
+  select(model, r.squared, sigma, AIC, BIC, adj.r.squared) %>% 
+  knitr::kable(digits = 3)
+```
+
+## `plot(a3_noint)`
+
+```{r, echo = FALSE}
+par(mfrow=c(2,2))
+  plot(a3_noint)
+par(mfrow = c(1,1))
+```
+
+# ANOVA and ANCOVA with Multi-Categorical Predictors in Linear Models
+
+## New Questions
+
+1. How does a subject's self-reported general health and their tobacco status combine when predicting their body mass index?
+2. Does adjusting for the number of alcoholic drinks consumed per week affect our assessment?
+
+## Addressing Question 1: Simple Summary
+
+1. How does a subject's `genhealth` and `smoker` status combine when predicting their body mass index?
+
+```{r, message = FALSE}
+smart1_sh %$% 
+  mosaic::favstats(bmi ~ smoker + genhealth) %>%
+  rename(smoke.health = smoker.genhealth) %>%
+  knitr::kable(digits = 1)
+```
+
+## Visualize Three Variables (Code)
+
+```{r, eval = FALSE}
+ggplot(smart1_sh, aes(x = genhealth, y = bmi, 
+                      fill = smoker)) +
+  geom_violin(alpha = 0.3) +
+  geom_boxplot(width = 0.3, notch = TRUE) +
+  facet_wrap(~ smoker, labeller = label_both) +
+  coord_flip() +
+  guides(fill = FALSE)
+```
+
+## Visualize Three Variables
+
+```{r, echo = FALSE}
+ggplot(smart1_sh, aes(x = genhealth, y = bmi, 
+                      fill = smoker)) +
+  geom_violin(alpha = 0.3) +
+  geom_boxplot(width = 0.3, notch = TRUE) +
+  facet_wrap(~ smoker, labeller = label_both) +
+  coord_flip() +
+  guides(fill = FALSE)
+```
+
+## Interaction Plot 
+
+We'll plot the means of the `bmi` in the fifteen combinations:
+
+- three levels of `smoker` combined with
+- five levels of `genhealth`
+
+```{r}
+summaries4 <- smart1_sh %>% 
+  group_by(genhealth, smoker) %>%
+  summarize(n = n(), mean = mean(bmi), stdev = sd(bmi))
+
+summaries4 %>% knitr::kable(digits = 2)
+```
+
+## Interaction Plot for Two-Way ANOVA (code)
+
+```{r, eval = FALSE}
+pd <- position_dodge(0.2)
+ggplot(summaries4, aes(x = genhealth, y = mean,
+                       col = smoker)) +
+  geom_errorbar(aes(ymin = mean - stdev,
+                    ymax = mean + stdev),
+                width = 0.2, position = pd) +
+  geom_point(size = 2, position = pd) +
+  geom_line(aes(group = smoker), position = pd) +
+  labs(y = "Body-Mass Index",
+       x = "Self-Reported General Health",
+       title = "Observed Means (+/- SD) for BMI", 
+       subtitle = "by General Health and Tobacco Status")
+```
+
+## Interaction Plot for Two-Way ANOVA
+
+```{r, echo = FALSE}
+pd <- position_dodge(0.2)
+ggplot(summaries4, aes(x = genhealth, y = mean,
+                       col = smoker)) +
+  geom_errorbar(aes(ymin = mean - stdev,
+                    ymax = mean + stdev),
+                width = 0.2, position = pd) +
+  geom_point(size = 2, position = pd) +
+  geom_line(aes(group = smoker), position = pd) +
+  labs(y = "Body-Mass Index",
+       x = "Self-Reported General Health",
+       title = "Observed Means (+/- SD) for BMI", 
+       subtitle = "by General Health and Tobacco Status")
+```
+
+## Two-Way Analysis of Variance
+
+```{r}
+a4 <- smart1_sh %$% lm(bmi ~ genhealth * smoker)
+
+anova(a4) %>% knitr::kable(digits = 3)
+```
+
+## Model `a4` tidied coefficients
+
+```{r}
+tidy(a4, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high, p.value) %>%
+  knitr::kable(digits = 2)
+```
+
+## The Equations
+
+The model with the interaction term is
+
+```
+BMI = 26.25 + 0.74 (genhealth = Very Good)  
+            + 1.88 (genhealth = Good) 
+            + ...
+            + 2.48 (genhealth = Poor)
+            + 0.40 (smoker = Former) 
+            - 0.29 (smoker = Never) 
+            + 0.66 (genhealth = Very Good)(smoker = Former)
+            + ...
+            + 1.09 (genhealth = Very Good)(smoker = Never)
+            + ...
+            + 3.88 (genhealth = Poor)(smoker = Never)
+```
+
+- Predict Harry, who's in Excellent health but a Current smoker
+- Predict Sally, who's in Very Good Health and a Former smoker
+
+## Is the interaction term important here?
+
+1. Does the interaction plot display important non-parallelism?
+2. Does the interaction term account for a substantial fraction of the variation in our outcome?
+3. Does the interaction term's estimate/standard error/uncertainty interval meet usual standards for statistical significance?
+
+- See the next 3 slides for the answers...
+
+## Interaction Plot, again...
+
+```{r, echo = FALSE}
+pd <- position_dodge(0.2)
+ggplot(summaries4, aes(x = genhealth, y = mean,
+                       col = smoker)) +
+  geom_errorbar(aes(ymin = mean - stdev,
+                    ymax = mean + stdev),
+                width = 0.2, position = pd) +
+  geom_point(size = 2, position = pd) +
+  geom_line(aes(group = smoker), position = pd) +
+  labs(y = "Body-Mass Index",
+       x = "Self-Reported General Health",
+       title = "Observed Means (+/- SD) for BMI", 
+       subtitle = "by General Health and Tobacco Status")
+```
+
+## Fraction of Variation accounted for by Interaction
+
+```{r}
+anova(a4) %>% knitr::kable(digits = 0)
+```
+
+- SS(total) = 14,912 + 2,198 + 943 + 285,094 = 303,147.
+- SS(interaction) = 943
+- $\eta^2$(interaction) = $\frac{943}{303147} = .0031$, or about 0.31% of `bmi` variation.
+
+## Are the interaction terms statistically significant?
+
+```{r}
+a4 <- smart1_sh %$% lm(bmi ~ genhealth * smoker)
+a4_noint <- smart1_sh %$% lm(bmi ~ genhealth + smoker)
+
+anova(a4_noint, a4)
+```
+
+So which model should we use? (Interaction or No Interaction)
+
+## Equation for the Interaction Model (`a4`)
+
+```
+bmi = 26.248 
+  + 0.741 (genhealth = Very Good) 
+  + 1.875 (genhealth = Good)
+  + 2.637 (genhealth = Fair) 
+  + 2.481 (genhealth = Poor) 
+  + 0.397 (smoker = Former) 
+  - 0.293 (smoker = Never) 
+  + 0.658 (Very Good)(Former) 
+  + 1.493 (Good)(Former)
+  + 1.475 (Fair)(Former) 
+  + 1.560 (Poor)(Former)
+  + 1.093 (Very Good)(Never) 
+  + 1.610 (Good)(Never)
+  + 2.452 (Fair)(Never) 
+  + 3.878 (Poor)(Never)
+```  
+
+## Comparing Harry and Sally (interaction model)
+
+Scenario | Subject | `genhealth` | `smoker` 
+-------: | ------: | --------: | -------:
+1 | Harry | Very Good | Current
+1 | Sally | Very Good | Never
+
+- Harry's predicted BMI is 26.248 + 0.741 = 26.989
+- Sally's predicted BMI is 26.248 + 0.741 - 0.293 + 1.093 = 27.789
+- If genhealth Very Good, effect of Never vs. Current is 0.800
+
+Scenario | Subject | `genhealth` | `smoker` 
+-------: | ------: | --------: | -------:
+2 | Harry | Poor | Current
+2 | Sally | Poor | Never
+
+- Harry's predicted BMI is 26.248 + 2.481 = 28.729
+- Sally's predicted BMI is 26.248 + 2.481 - 0.293 + 3.878 = 32.314
+- If genhealth Poor, effect of Never vs. Current is 3.585
+
+## Comparing Harry and Sally (interaction model)
+
+Scenario | Subject | `genhealth` | `smoker` 
+-------: | ------: | --------: | -------:
+3 | Harry | Very Good | Current
+3 | Sally | Poor | Current
+
+- Harry's predicted BMI is 26.248 + 0.741 = 26.989
+- Sally's predicted BMI is 26.248 + 2.481 = 28.729
+- If Current smoker, effect of Poor vs. Very Good is 1.740
+
+Scenario | Subject | `genhealth` | `smoker` 
+-------: | ------: | --------: | -------:
+4 | Harry | Very Good | Never
+4 | Sally | Poor | Never
+
+- Harry's predicted BMI is 26.248 + 0.741 - 0.293 + 1.093 = 27.789
+- Sally's predicted BMI is 26.248 + 2.481 - 0.293 + 3.878 = 32.314
+- If Never smoker, effect of Poor vs. Very Good is 4.525
+
+## Residual Plots for model `a4`
+
+```{r, echo = FALSE}
+par(mfrow=c(2,2))
+plot(a4)
+par(mfrow = c(1,1))
+```
+
+## Would using `log(BMI)` make the difference?
+
+```{r}
+a4_log <- smart1_sh %$% lm(log(bmi) ~ genhealth * smoker)
+
+anova(a4_log) %>% knitr::kable(digits = 3)
+```
+
+## Residual Plots for model `a4_log`
+
+```{r, echo = FALSE}
+par(mfrow=c(2,2))
+plot(a4_log)
+par(mfrow = c(1,1))
+```
+
+## What if we add a covariate?
+
+```{r}
+smart1_sh <- smart1_sh %>%
+  mutate(drinks_c = drinks_wk - mean(drinks_wk))
+
+a5_log <- smart1_sh %$% 
+  lm(log(bmi) ~ drinks_c + genhealth * smoker)
+
+anova(a5_log) %>% knitr::kable(digits = 3)
+```
+
+1. Can we make predictions? 
+2. Why center the `drinks_wk`?
+
+## Equation for model `a5_log`
+
+```
+log(BMI) = = 3.248 
+  - 0.0014 drinks_c
+  + 0.033 (genhealth = Very Good) 
+  + 0.063 (genhealth = Good)
+  + 0.087 (genhealth = Fair) 
+  + 0.067 (genhealth = Poor) 
+  + 0.025 (smoker = Former) 
+  - 0.005 (smoker = Never) 
+  + 0.013 (Very Good)(Former) 
+  + 0.045 (Good)(Former)
+  + 0.041 (Fair)(Former) 
+  + 0.052 (Poor)(Former)
+  + 0.031 (Very Good)(Never) 
+  + 0.053 (Good)(Never)
+  + 0.074 (Fair)(Never) 
+  + 0.125 (Poor)(Never)
+```  
+
+## Comparing Models
+
+- Does the addition of the covariate add statistically detectable predictive value?
+
+```{r}
+anova(a4_log, a5_log)
+```
+
+## Comparing Models
+
+```{r}
+bind_rows(glance(a4_log), glance(a5_log)) %>%
+  mutate(model = c("ANOVA", "+ drinks_c")) %>%
+  select(model, r2 = r.squared, sigma, AIC, BIC, 
+         adjr2 = adj.r.squared) %>%
+  knitr::kable(digits = c(0, 3, 3, 0, 0, 3))
+```
+
+## Residual Plots for model `a5_log`
+
+```{r, echo = FALSE}
+par(mfrow=c(2,2))
+plot(a5_log)
+par(mfrow = c(1,1))
+```
+
+## Next up
+
+What if we have a binary outcome?
+
+

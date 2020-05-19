@@ -1,0 +1,76 @@
+---
+title: "Homework G Template"
+author: "INSERT-YOUR-NAME-HERE"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: show
+---
+
+```{r setup, message=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 60)
+
+library(here); library(janitor); library(broom)
+library(PropCIs); library(exact2x2); library(Epi)
+library(patchwork); library(magrittr); library(tidyverse)
+
+source(here("R", "Love-boost.R"))
+
+q1_raw <- read_csv(here("data", "hwG_q1.csv")) %>% 
+  clean_names()
+
+q2_raw <- read_csv(here("data", "hwG_q2.csv")) %>% 
+  clean_names()
+```
+
+# Question 1
+
+## Part A
+
+## Part B
+
+## Part C
+
+## Part D
+
+## Part E
+
+## Part F
+
+## Part G
+
+## Part H
+
+## Part I
+
+## Part J
+
+# Question 2
+
+## Part A
+
+## Part B
+
+## Part C
+
+## Part D
+
+## Part E
+
+## Part F
+
+## Part G
+
+## Part H
+
+## Part I
+
+## Part J
+
+# Question 3
+
+# Question 4
+
+# Question 5
+

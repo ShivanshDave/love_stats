@@ -1,0 +1,11 @@
+# Teaching Assistant
+
+## Harry Persaud, MS
+
+```{r Harry_fig, echo = FALSE, out.width = '30%'}
+knitr::include_graphics("figures/Harry.png")
+```
+
+Harry Persaud completed the M.S. program in Population & Quantitative Health Sciences in Biostatistics (as part of the Health Care Analytics track) this January. He now works in the lab of Dr. Siran Koroukian, and has also worked with Dr. Love as a research intern at Better Health Partnership, and as a TA for the 431 course. He obtained his Bachelor's degree in Health Science from DePaul University in Chicago. Before enrolling at Case, he worked at Boston Children's Hospital and Harvard Medical School. Harry took 500 last year, and looks forward to helping you with R coding, data management, propensity score analysis and other matters. In his free time, he enjoys trail running, backpacking, and finding any excuse to spend time in the Sierra Nevada mountains.
+
+Harry's email is `hpersaud92` at `gmail` dot `com`.

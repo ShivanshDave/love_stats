@@ -1,0 +1,511 @@
+---
+title: "431 Class 03"
+author: "Thomas E. Love"
+date: "2019-09-03"
+output:
+  beamer_presentation: 
+    colortheme: whale
+    fig_height: 5.5
+    fonttheme: structurebold
+    keep_tex: yes
+    theme: Madrid
+---
+
+```{r set-options, echo=FALSE, cache=FALSE, message = FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+## Today's Agenda
+
+Using R, RStudio and R Markdown and the 431 RStudio Cloud
+
+Contact us at \color{blue} `431-help@case.edu` \color{black}
+
+Our web site: \color{blue} https://github.com/THOMASELOVE/2019-431 \color{black}
+
+## RStudio Cloud In-Class Early Project
+
+We assume you were able to follow the software installation instructions.
+
+If so, you'd want to:
+
+1. Get data from our site to a new directory on your machine.
+2. Open RStudio and start a new Project, in the new directory.
+3. Open and set up an R Markdown file to do the work.
+
+But, perhaps you haven't gotten to that yet. So we have RStudio Cloud.
+
+Link to join is: \color{blue} http://bit.ly/431-2019-join-cloud \color{black}
+
+## First Step: Load the Packages You Need
+
+```{r}
+library(tidyverse)
+```
+
+## Analyzing the Index Card Guesses of My Age
+
+61 students turned in an index card, meant to contain both a first and a second guess of my age. 
+
+For the slides, I have this information in a subfolder called data in my R Project.
+
+```{r}
+love_2019 <- read_csv("data/love-age-guess-2019.csv")
+```
+
+## The `love_2019` tibble
+
+```{r}
+love_2019
+```
+
+## Histogram of initial guesses?
+
+```{r, eval = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram()
+```
+
+## Histogram of initial guesses?
+
+```{r, echo = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram()
+```
+
+
+## Make the width of the bins 3 years?
+
+```{r, eval = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram(binwidth = 3)
+```
+
+## Make the width of the bins 3 years?
+
+```{r, echo = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram(binwidth = 3)
+```
+
+## Fill in the bars with a better color?
+
+```{r, eval = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "blue")
+```
+
+## Fill in the bars with a better color?
+
+```{r, echo = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "blue")
+```
+
+## Make it a little prettier?
+
+```{r, eval = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "navy", color = "white")
+```
+
+## Make it a little prettier?
+
+```{r, echo = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "navy", color = "white")
+```
+
+
+## Add more meaningful labels?
+
+```{r, eval = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "navy", color = "white") +
+  labs(x = "First Guess of Love's Age",
+       y = "# of Students",
+       title = "2019 Guesses of Professor Love's Age",
+       subtitle = "Actual Age was 52.5")
+```
+
+## Add more meaningful labels?
+
+```{r, echo = FALSE}
+ggplot(data = love_2019, aes(x = age1)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "navy", color = "white") +
+  labs(x = "First Guess of Love's Age",
+       y = "# of Students",
+       title = "2019 Guesses of Professor Love's Age",
+       subtitle = "Actual Age was 52.5")
+```
+
+
+## Numerical Summaries of Age Guesses
+
+```{r}
+summary(love_2019)
+```
+
+## Some Additional Summaries
+
+```{r}
+mosaic::favstats(~ age1, data = love_2019)
+```
+
+```{r}
+mosaic::favstats(~ age2, data = love_2019)
+```
+
+## Another Approach
+
+```{r}
+love_2019 %>%
+  skimr::skim()
+```
+
+## A Better Look
+
+```{r, eval = F}
+love_2019 %>%
+  skimr::skim()
+```
+
+![](images/2019_skim_snip.png)
+
+
+## What about the second guess?
+
+```{r, eval = FALSE}
+ggplot(data = love_2019, aes(x = age2)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "forestgreen", color = "white") +
+  labs(x = "Second Guess of Love's Age",
+       y = "# of Students",
+       title = "2019 Guesses of Professor Love's Age",
+       subtitle = "Actual Age was 52.5")
+```
+
+## What about the second guess?
+
+```{r, echo = FALSE}
+ggplot(data = love_2019, aes(x = age2)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "forestgreen", color = "white") +
+  labs(x = "Second Guess of Love's Age",
+       y = "# of Students",
+       title = "2019 Guesses of Professor Love's Age",
+       subtitle = "Actual Age was 52.5")
+```
+
+## Filter to complete cases only
+
+```{r, eval = FALSE}
+love_2019 %>%
+  filter(complete.cases(age2)) %>%
+  ggplot(data = ., aes(x = age2)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "forestgreen", color = "white") +
+  labs(x = "Second Guess of Love's Age",
+       y = "# of Students",
+       title = "2019 Guesses of Professor Love's Age",
+       subtitle = "Actual Age was 52.5")
+```
+
+## Filter to complete cases only
+
+```{r, echo = FALSE}
+love_2019 %>%
+  filter(complete.cases(age2)) %>%
+  ggplot(data = ., aes(x = age2)) +
+  geom_histogram(binwidth = 3, 
+                 fill = "forestgreen", color = "white") +
+  labs(x = "Second Guess of Love's Age",
+       y = "# of Students",
+       title = "2019 Guesses of Professor Love's Age",
+       subtitle = "Actual Age was 52.5")
+```
+
+## Comparing First Guess to Second Guess
+
+```{r, eval = FALSE}
+ggplot(data = love_2019, aes(x = age1, y = age2)) +
+  geom_point()
+```
+
+## Comparing First Guess to Second Guess
+
+```{r, echo = FALSE}
+ggplot(data = love_2019, aes(x = age1, y = age2)) +
+  geom_point()
+```
+
+## Filter to complete cases, add regression line
+
+```{r, eval = FALSE}
+love_2019 %>% 
+  filter(complete.cases(age1, age2)) %>%
+  ggplot(data = ., aes(x = age1, y = age2)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "purple")
+```
+
+## Filter to complete cases, add regression line
+
+```{r, echo = FALSE}
+love_2019 %>% 
+  filter(complete.cases(age1, age2)) %>%
+  ggplot(data = ., aes(x = age1, y = age2)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "purple")
+```
+
+## What's that regression line?
+
+```{r}
+lm(age2 ~ age1, data = love_2019)
+```
+
+- `lm` (by default) filters to complete cases.
+
+## How about a loess smooth curve, instead?
+
+```{r, eval = FALSE}
+love_2019 %>% 
+  filter(complete.cases(age1, age2)) %>%
+  ggplot(data = ., aes(x = age1, y = age2)) +
+  geom_point() +
+  geom_smooth(method = "loess", col = "blue")
+```
+
+## How about a loess smooth curve, instead?
+
+```{r, echo = FALSE}
+love_2019 %>% 
+  filter(complete.cases(age1, age2)) %>%
+  ggplot(data = ., aes(x = age1, y = age2)) +
+  geom_point() +
+  geom_smooth(method = "loess", col = "blue")
+```
+
+## Add a y = x line (no change in guess)?
+
+```{r, eval = FALSE}
+love_2019 %>% 
+  filter(complete.cases(age1, age2)) %>%
+  ggplot(data = ., aes(x = age1, y = age2)) +
+  geom_point() +
+  geom_smooth(method = "loess", col = "blue") +
+  geom_abline(intercept = 0, slope = 1, col = "red") 
+```
+
+## Add a y = x line (no change in guess)?
+
+```{r, echo = FALSE}
+love_2019 %>% 
+  filter(complete.cases(age1, age2)) %>%
+  ggplot(data = ., aes(x = age1, y = age2)) +
+  geom_point() +
+  geom_smooth(method = "loess", col = "blue") +
+  geom_abline(intercept = 0, slope = 1, col = "red") 
+```
+
+## Add more meaningful labels
+
+```{r, eval = FALSE}
+love_2019 %>% 
+  filter(complete.cases(age1, age2)) %>%
+  ggplot(data = ., aes(x = age1, y = age2)) +
+  geom_point() +
+  geom_smooth(method = "loess", col = "blue") +
+  geom_abline(intercept = 0, slope = 1, col = "red") +
+  geom_text(x = 60, y = 62, 
+            label = "y = x", col = "red") +
+  labs(x = "First Guess of Love's Age",
+       y = "Second Guess of Love's Age",
+       title = "Comparing 2019 Age Guesses",
+       subtitle = "Love's actual age = 52.5")
+```
+
+## Add more meaningful labels
+
+```{r, echo = FALSE}
+love_2019 %>% 
+  filter(complete.cases(age1, age2)) %>%
+  ggplot(data = ., aes(x = age1, y = age2)) +
+  geom_point() +
+  geom_smooth(method = "loess", col = "blue") +
+  geom_abline(intercept = 0, slope = 1, col = "red") +
+  geom_text(x = 60, y = 62, 
+            label = "y = x", col = "red") +
+  labs(x = "First Guess of Love's Age",
+       y = "Second Guess of Love's Age",
+       title = "Comparing 2019 Age Guesses",
+       subtitle = "Love's actual age = 52.5")
+```
+
+## `age1 - age2` difference in guesses?
+
+```{r, eval = FALSE}
+love_2019 %>%
+  mutate(diff = age1 - age2) %>%
+  skimr::skim()
+```
+
+![](images/2019_skim_diff_snip.png)
+
+## How Many Guesses Increased?
+
+```{r}
+love_2019 %>%
+  mutate(diff = age1 - age2) %>%
+  count(diff < 0)
+```
+
+## Increased / Stayed the Same / Decreased
+
+```{r}
+love_2019 %>%
+  mutate(diff = age1 - age2) %>%
+  count(sign(diff))
+```
+
+## Histogram of difference in guesses
+
+```{r, eval = FALSE}
+love_2019 %>%
+  mutate(diff = age1 - age2) %>%
+  filter(complete.cases(diff)) %>%
+  ggplot(data = ., aes(x = diff)) +
+  geom_histogram(binwidth = 1, 
+                 fill = "royalblue", color = "yellow") +
+  labs(x = "Change in Guess of Love's Age")
+```
+
+## Histogram of difference in guesses
+
+```{r, echo = FALSE}
+love_2019 %>%
+  mutate(diff = age1 - age2) %>%
+  filter(complete.cases(diff)) %>%
+  ggplot(data = ., aes(x = diff)) +
+  geom_histogram(binwidth = 1, 
+                 fill = "royalblue", color = "yellow") +
+  labs(x = "Change in Guess of Love's Age")
+```
+
+## Analyzing the Survey Data - A little challenge
+
+We have data on the site in a file called `surveyday1_2019.csv`. Build a project to study those data. 
+
+Put the data in a file called `survey1` in R. 
+
+- I'd call my R Markdown file `day1surveyanalysis`
+
+Can you reproduce the following...
+
+## A. That fill color is called *salmon*, I used 20 bins.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+survey1 <- read_csv("data/surveyday1_2019.csv") 
+
+survey1 %>% filter(complete.cases(pulse)) %>%
+  ggplot(data = ., aes(x = pulse)) +
+  geom_histogram(bins = 20, col = "blue", fill = "salmon") +
+  labs(x = "Pulse Rate of 313 students in 431", 
+       y = "# of Students",
+       title = "Pulse Rates of 313 students in 431",
+       subtitle = "Two students had missing pulse values")
+```
+
+## Code for Part A.
+
+```{r, eval = FALSE, warning = FALSE}
+survey1 <- read_csv("data/surveyday1_2019.csv") 
+
+survey1 %>% filter(complete.cases(pulse)) %>%
+  ggplot(data = ., aes(x = pulse)) +
+  geom_histogram(bins = 20, col = "blue", fill = "salmon") +
+  labs(x = "Pulse Rate of 313 students in 431", 
+       y = "# of Students",
+       title = "Pulse Rates of 313 students in 431",
+       subtitle = "Two students had missing pulse values")
+```
+
+## B. Histograms of Pulse Rates, Faceted by Year
+
+```{r, echo = FALSE, warning = FALSE}
+survey1 %>% filter(complete.cases(pulse)) %>%
+  ggplot(data = ., aes(x = pulse, fill = year)) + 
+  geom_histogram(bins = 15, col = "white") + 
+  facet_wrap(~ year) +
+  guides(fill = FALSE) +
+  labs(title = "Pulse Rate, by Year")
+```
+
+## Code for Plot B.
+
+```{r, eval = FALSE}
+survey1 %>% filter(complete.cases(pulse)) %>%
+  ggplot(data = ., aes(x = pulse, fill = year)) + 
+  geom_histogram(bins = 15, col = "white") + 
+  facet_wrap(~ year) +
+  guides(fill = FALSE) +
+  labs(title = "Pulse Rate, by Year")
+```
+
+
+## C. Boxplots of Age Guesses, by Year
+
+```{r, echo = FALSE, warning = FALSE}
+survey1 %>% filter(complete.cases(ageguess)) %>%
+  ggplot(data = ., aes(x = factor(year), y = ageguess, 
+                    fill = factor(year))) + 
+  geom_boxplot() + 
+  guides(fill = FALSE) +
+  labs(title = "Age Guess, by Year")
+```
+
+## Code for Plot C
+
+```{r , eval = FALSE}
+survey1 %>% filter(complete.cases(ageguess)) %>%
+  ggplot(data = ., aes(x = factor(year), y = ageguess, 
+                    fill = factor(year))) + 
+  geom_boxplot() + 
+  guides(fill = FALSE) +
+  labs(title = "Age Guess, by Year")
+```
+
+## Summary Table of Age Guesses, by Year
+
+```{r, echo = FALSE, warning = FALSE}
+survey1 %>%
+  filter(complete.cases(ageguess)) %>%
+  group_by(year) %>%
+  summarize(n = n(),
+            mean = mean(ageguess, na.rm=TRUE), 
+            sd = sd(ageguess, na.rm=TRUE), 
+            median = median(ageguess, na.rm=TRUE) 
+            )
+```
+
+## Code for Summary Table
+
+```{r, eval = FALSE}
+survey1 %>%
+  filter(complete.cases(ageguess)) %>%
+  group_by(year) %>%
+  summarize(n = n(),
+            mean = mean(ageguess, na.rm=TRUE), 
+            sd = sd(ageguess, na.rm=TRUE), 
+            median = median(ageguess, na.rm=TRUE) 
+            )
+```
+

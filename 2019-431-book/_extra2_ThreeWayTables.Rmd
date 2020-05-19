@@ -1,0 +1,123 @@
+# Three-Way Tables: A 2x2xK Table and a Mantel-Haenszel Analysis
+
+The material I discuss in this section is attributable to Jeff Simonoff and his book *Analyzing Categorical Data*. The example is taken from Section 8.1 of that book.
+
+A three-dimensional or three-way table of counts often reflects a situation where the rows and columns refer to variables whose association is of primary interest to us, and the third factor (a layer, or strata) describes a control variable, whose effect on our primary association is something we are *controlling* for in the analysis.
+
+## Smoking and Mortality in the UK
+
+In the early 1970s and then again 20 years later, in Whickham, United Kingdom, surveys yielded the following relationship between whether a person was a smoker at the time of the original survey and whether they were still alive 20 years later\footnote{See Appleton et al. 1996. Ignoring a Covariate: An Example of Simpson's Paradox. The American Statistician, 50, 340-341.}.
+
+```{r whickham table 1}
+whickham1 <- matrix(c(443, 139, 502, 230), byrow=TRUE, nrow=2)
+rownames(whickham1) <- c("Smoker", "Non-Smoker")
+colnames(whickham1) <- c("Alive", "Dead")
+pander(addmargins(whickham1))
+```
+
+
+
+Here's the two-by-two table analysis.
+
+```{r 2x2 for whickham}
+twoby2(whickham1)
+chisq.test(whickham1)
+```
+There is a significant association between smoking and mortality ($\chi^2$ = 8.75 on 1 df, *p* = 0.003), but it isn't the one you might expect. 
+
+- The odds ratio is 1.46, implying that the odds of having lived were 46% higher for smokers than for non-smokers.
+- Does that mean that smoking is *good* for you?
+
+Not likely. There is a key "lurking" variable here - a variable that is related to both smoking and mortality that is obscuring the actual relationship - namely, age.
+
+
+
+## The `whickham` data including age, as well as smoking and mortality
+
+The table below gives the mortality experience separated into subtables by initial age group.
+
+```{r build data frame for whickham2}
+age <- c(rep("18-24", 4), rep("25-34", 4), 
+         rep("35-44", 4), rep("45-54", 4), 
+         rep("55-64", 4), rep("65-74", 4), 
+         rep("75+", 4))
+smoking <- c(rep(c("Smoker", "Smoker", "Non-Smoker", "Non-Smoker"), 7))
+status <- c(rep(c("Alive", "Dead"), 14))
+counts <- c(53, 2, 61, 1, 121, 3, 152, 5,
+            95, 14, 114, 7, 103, 27, 66, 12,
+            64, 51, 81, 40, 7, 29, 28, 101,
+            0, 13, 0, 64)
+whickham2 <- data.frame(smoking, status, age, counts) %>% tbl_df()
+whickham2$smoking <- factor(whickham2$smoking, levels = c("Smoker", "Non-Smoker"))
+whickham2.tab1 <- xtabs(counts ~ smoking + status + age, data = whickham2)
+whickham2.tab1
+```
+
+The odds ratios for each of these subtables, except the last one, where it is undefined are as follows: 
+
+Age Group | Odds Ratio
+---------: | :-----:
+18-24 | 0.43
+25-34 | 1.33
+35-44 | 0.42
+45-54 | 0.69
+55-64 | 0.62
+65-74 | 0.87
+75+ | *undefined*
+
+Thus, for all age groups except 25-34 year olds, smoking is associated with higher mortality.
+
+Why? Not surprisingly, there is a strong association between age and mortality, with mortality rates being very low for young people (2.5% for 18-24 year olds) and increasing to 100% for 75+ year olds.
+
+There is also an association between age and smoking, with smoking rates peaking in the 45-54 year old range and then falling off rapidly. In particular, respondents who were 65 and older at the time of the first survey had very low smoking rates (25.4%) but very high mortality rates (85.5%). Smoking was hardly the cause, however, since even among the 65-74 year olds mortality was higher among smokers (80.6%) than it was among non-smokers (78.3%). A flat version of the table (`ftable` in R) can help us with these calculations.
+
+
+```{r flat table of whickham2 data}
+ftable(whickham2.tab1)
+```
+
+
+
+### The Cochran-Mantel-Haenszel Test
+
+So, the marginal table looking at smoking and mortality combining all age groups isn't the most meaningful summary of the relationship between smoking and mortality. Instead, we need to look at the *conditional* association of smoking and mortality, **given age**, to address our interests.
+
+The null hypothesis would be that, in the population, smoking and mortality are independent within strata formed by age group. In other words, H~0~ requires that smoking be of no value in predicting mortality once age has been accounted for.
+
+The alternative hypothesis would be that, in the population, smoking and mortality are associated within the strata formed by age group. In other words, H~A~ requires that smoking be of at least some value in predicting mortality even after age has been accounted for.
+
+We can consider the evidence that helps us choose between these two hypotheses with a Cochran-Mantel-Haenszel test, which is obtained in R through the `mantelhaen.test` function. This test requires us to assume that, in the population and within each age group, the smoking-mortality odds ratio is the same. Essentially, this means that the association of smoking with mortality is the same for older and younger people.
+
+```{r mh test for whickham2}
+mantelhaen.test(whickham2.tab1, conf.level  = 0.90)
+```
+
+- The Cochran-Mantel-Haenszel test statistic is 5.44 (after a continuity correction) leading to a *p* value of 0.02, indicating strong rejection of the null hypothesis of conditional independence of smoking and survival given age. 
+- The estimated common conditional odds ratio is 0.65. This implies that (given age) being a smoker is associated with a 35% lower odds of being alive 20 years later than being a non-smoker.
+- A 90% confidence interval for that common odds ratio is (0.49, 0.87), reinforcing rejection of the conditional independence (where the odds ratio would be 1).
+
+### Checking Assumptions: The Woolf test
+
+We can also obtain a test (using the `woolf_test` function, in the `vcd` library) to see if the common odds ratio estimated in the Mantel-Haenszel procedure is reasonable for all age groups. In other words, the Woolf test is a test of the assumption of homogeneous odds ratios across the six age groups. 
+
+If the Woolf test is significant, it suggests that the Cochran-Mantel-Haenszel test is not appropriate, since the odds ratios for smoking and mortality vary too much in the sub-tables by age group. Here, we have the following log odds ratios (estimated using conditional maximum likelihood, rather than cross-product ratios) and the associated Woolf test.
+
+```{r woolf test}
+## Next two results use the vcd library
+
+vcd::oddsratio(whickham2.tab1, log = TRUE)
+vcd::woolf_test(whickham2.tab1)
+```
+
+As you can see, the Woolf test is not close to statistically significant, implying the common odds ratio is at least potentially reasonable for all age groups (or at least the ones under ages 75, where some data are available.)
+
+### Without the Continuity Correction
+
+By default, R presents the Mantel-Haenszel test with a continuity correction, when used for a 2x2xK table. In virtually all cases, go ahead and do this, but as you can see below, the difference it makes in this case is modest.
+
+```{r mh test for whickham2 without continuity correction}
+mantelhaen.test(whickham2.tab1, correct=FALSE, conf.level = 0.90)
+```
+
+
+

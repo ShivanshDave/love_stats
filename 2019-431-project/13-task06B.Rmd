@@ -1,0 +1,36 @@
+# Study B Task 6. The Study B Portfolio {#task6b}
+
+## The Task
+
+You will build a portfolio of results for Study B. **Further details on formatting and style will come by November 5.** 
+
+## The Nine Required Steps for Study B
+
+For your portfolio presentation in Study B (Your Data) you will complete these steps:
+
+1. Identify all the variables in your tidy data set that have missing (NA) values. Delete all observations with missing outcomes (actually, this much you should have done before submitting the tidy data in Task F), and now use simple imputation to impute values for the candidate predictors with `NA`s. Use the resulting imputed data set in all subsequent work. Be sure to describe any choices you make in building your imputed data set.
+    - **Note** Your data set must contain between 250 and 2,500 rows. 
+2. Obtain a training sample with a randomly selected 67-80% of your data^[The training sample should include 67% of the data (1,675 rows) if you have 2,500 rows. If you have 250 rows, 80% of the data (200 rows) should be in the training sample. Otherwise, anything in the range of 67-80% is OK.], and have the remaining 20-33% in a test sample, properly labeled, and using `set.seed` so that the results can be replicated later. Use this training sample for Steps 3-7 below. 
+3. Using the training sample, provide numerical summaries of each predictor variable and the outcome, as well as graphical summaries of the outcome variable. Your results should now show no missing values in any variable. Are there any evident problems, such as substantial skew in the outcome variable?
+4. Build and interpret a scatterplot matrix to describe the associations (both numerically and graphically) between the outcome and all predictors. Use a Box-Cox plot to investigate whether a transformation of your outcome is suggested. Describe what a correlation matrix suggests about collinearity between candidate predictors.
+5. Specify a "kitchen sink" linear regression model to describe the relationship between your outcome (potentially after transformation) and the main effects of each of your predictors. Assess the overall effectiveness, within your training sample, of your model, by specifying and interpreting the R^2^, adjusted R^2^ (especially in light of your collinearity conclusions below), the residual standard error, and the ANOVA F test. Does collinearity in the kitchen sink model have a meaningful impact? How can you tell? Specify the size, magnitude and meaning of all coefficients, and identify appropriate conclusions regarding effect sizes with 90% confidence intervals.
+6. Build a second linear regression model using a subset of your four predictors, chosen by you to maximize predictive value within your training sample. Specify the method you used to obtain this new model. (Backwards stepwise elimination is a likely approach in many cases, but if that doesn't produce a new model, feel free to select two of your more interesting predictors from the kitchen sink model and run that as a new model.)
+7. Compare this new (second) model to your "kitchen sink" model within your training sample using adjusted R^2^, the residual standard error, AIC and BIC. Specify the complete regression equation in both models, based on the training sample. Which model appears better in these comparisons of the four summaries listed above? Produce a table to summarize your results. Does one model "win" each competition in the training sample?
+8. Now, use your two regression models to predict the value of your outcome using the predictor values you observe in the test sample. Be sure to back-transform the predictions to the original units if you wound up fitting a model to a transformed outcome. Compare the two models in terms of mean squared prediction error and mean absolute prediction error in a Table, which Professor Love will **definitely want to see** in your portfolio. Which model appears better at out-of-sample prediction according to these comparisons, and how do you know?
+9. Select the better of your two models (based on the results you obtain in Steps 7 and 8) and apply it to the entire data set. Do the coefficients or summaries the model show any important changes when applied to the entire data set, and not just the training set? Plot residuals against fitted values, and also a Normal probability plot of the residuals, each of which Professor Love **will be looking for** in your portfolio. What do you conclude about the validity of standard regression assumptions for your final model based on these two plots?
+
+In the Study B work, each step should begin with at least one complete sentence explaining what you are doing, specifying the variables being used, and how you are using them, and then conclude with at least one complete sentence of discussion of the key conclusions you draw from the current step, and a discussion of any limitations you can describe that apply to the results. Present each new step as a subsection with an appropriate heading that shows up in the table of contents, so we can move to a new step efficiently in reviewing your work. 
+
+## Demonstration Project
+
+A demonstration of an appropriate analysis for each of the required steps is now available at https://github.com/THOMASELOVE/2019-431/blob/master/PROJECT/STUDY_B/EXAMPLE/README.md.
+
+## Deadline and Submission information
+
+Task 6 for Study A and Task 6 for Study B are to be submitted (at the same time, but as separate documents) to Canvas by 2019-12-11 at 2 PM, regardless of when you are giving your project presentation. 
+
+### "Grading"
+
+The Study B Project Portfolio is worth 20 points in the final Project grade, and is graded holistically. I will not publish my rubric, since you will have a demonstration project and extensive instructions. If you are working with a partner, you will receive the same grade on the portfolio.
+
+- You will not receive written feedback on either your project portfolio or presentation.

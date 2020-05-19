@@ -1,0 +1,95 @@
+---
+title: "Answer Sketch / Grading Rubric for Homework F"
+author: "431 Staff and Professor Love"
+date: "Due **2019-10-04** at 2 PM. Last Edited `r Sys.time()`"
+output: 
+  pdf_document:
+    toc: yes
+---
+
+Because of the nature of this Homework, this isn't really a sketch - it's just a grading rubric. I hope you find it helpful.
+
+# Question 1 (10 points)
+
+> Specify the URL where we can see the headline and news story describing the findings of the study. You should provide a complete reference, including the names of the author(s) of the news story, and its full title, and source.
+
+We accept any working reference that included the specified information.
+
+## Grading Notes 
+
+- Award 10 points if they have a working link that meets the specifications.
+- Award no more than 4 points if they don't have the author names, title and source, or if the link doesn't work.
+
+# Question 2 (10 points)
+
+> Specify a URL where we can see at least the abstract of the complete study. Again, provide a complete reference to the study, too.
+
+We would accept any working reference that included the specified information.
+
+## Grading Notes 
+
+- Award 10 points if they meet specifications.
+- Award no more than 4 points if they don't have the authors, title, journal name and so forth, or if the link doesn't work.
+
+# Question 3 (20 points)
+
+> Describe your opinion (gut feeling) related to the conclusions of the study as summarized in the headline and news article, first in terms of a probability statement, and then calculate the appropriate odds. Motivate your internal prior probability, describing your relevant personal experiences or other factors that drove your gut feeling.*
+
+We want to see an accurate calculation given your probability, and at least a reasonable attempt at motivation for your initial probability.
+
+## Grading Notes
+
+Full 20 points awarded requires:
+
+- Probability statement relating to gut feeling
+- Calculate odds related to gut feeling
+- Motivation/explanation of gut feeling
+- Complete sentences with correct spelling and grammar
+- Lose 5 points for each missing or problematic piece, down to a minimum of 0
+
+# Question 4 (30 points)
+
+> Evaluate the study in terms of the six specifications proposed by Leek when evaluating study support.
+
+We want to see a clear, motivated conclusion about each of the six specifications (each being worth 5 points), as well as direct quotes and evidence summaries to address the issues raised and justify conclusions.
+
+The six specifications we are looking for are:
+
+1. Was the study a clinical study in humans?
+2. Was the outcome of the study something directly related to human health like longer life or less disease? Was the outcome something you care about, such as living longer or feeling better?
+3. Was the study a randomized, controlled trial (RCT)?
+4. Was it a large study - at least hundreds of patients?
+5. Did the treatment have a major impact on the outcome?
+6. Did predictions hold up in at least two separate groups of people?
+
+## Grading Notes
+
+5 points for each of the 6 parts listed above should be awarded for complete sentences with correct spelling and grammar, using quotations or paraphrasing the complete study appropriately. They should score no higher than 3/5 for any part where they don't successfully generate a good response.
+
+# Question 5 (10 points)
+
+> Incorporate the study support assessment into a Bayes' Rule calculation to obtain the final odds you should now be willing to give to the headline, and specify this value in terms of a probability statement, as well.
+
+We wanted to see correct calculations of both the odds and probability in light of the prior probability established in Question 3 and the answers to the specifications described in Question 4.
+
+## Grading Notes
+
+- For full credit, provide **odds** and **probability** using Bayes' Rule, responding with **complete sentences with correct spelling and grammar**.
+- Lose 4 points for each missing item in bold, down to a minimum of 0.
+
+
+# Question 6 (20 points)
+
+> React to the final conclusion specified by this approach in a sentence or two. How does your subjective posterior probability that the headline is true match up with the formula's conclusions? Do you feel that the formulaic approach has yielded an appropriate conclusion for you in this case? Why or why not?
+
+We wanted to see you specify your subjective feeling about what the probability *should* be, and then match that up with the result of the calculation.
+
+## Grading Notes
+
+The student should reach a logical conclusion and summarize his/her reaction on whether or not this approach was accurate for assessing their initial gut feeling vs. their final conclusion after reading the article/study. No right or wrong answer, but using both logic and complete sentences are necessary. 
+
+- The default grade on this question is 16 points, which should be the grade for someone who uses logic and complete sentences, and meets the minimum standard for a complete answer.
+- Somewhere between 14 and 18 points should be awarded to most students for a good effort here. 
+- Give 10 or less if they don't manage to do all of these pieces.
+- Give 19 or 20 points only to the top 6-8 responses, across all 60 students, and indicate who those people are to me in the comments.
+- My prior assumption is that a moderate number of students will have a perfect score on Homework F for Questions 1-5, so we'll be tougher on Question 6.

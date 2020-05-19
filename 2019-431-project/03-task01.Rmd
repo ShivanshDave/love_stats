@@ -1,0 +1,58 @@
+# Task 1. Scheduling Project Presentations {#task1}
+
+## Deadline and Submission information
+
+By 9 AM on 2019-09-30, you will need to complete the Google Form at http://bit.ly/431-2019-project-scheduling to indicate your preferences regarding the scheduling of your project presentation. In this form, you will also specify whether you will complete the project and give your presentation working alone, or with a partner. If you are working with a partner, you must **both** complete the form, providing the same time slot preferences, and indicating one another as your partner.
+
+## Details on the Presentation and the Form
+
+Your presentation will be given in Dr. Love's office - room WG82-L on the ground floor of the Wood building at the School of Medicine. You should be planning to arrive 10 minutes early for your presentation, so do not select a time where that is impossible.
+
+The form will require you to specify a minimum of 9 time slots, on at least two different days, when you are available to give your presentation. You will also be able to specify your two favorite time slots among those you have chosen. You'll need to log into Google using your CWRU ID in order to access the form. 
+
+The presentation dates are Monday 2019-12-09, Tuesday 2019-12-10 and Thursday 2019-12-12. 
+
+- Our last 431 Class meeting is 2019-12-05. 
+- While 2019-12-09 is a University Reading Day, 2019-12-10 and 2019-12-12 are Final Exam Days, so don't sign up for a session during which you may have a final exam. 
+
+If you have some special problem or concern or need to give your presentation before 2018-12-09, there is a space to tell Dr. Love about that at the end of the form. All presentations must be completed on or before 2019-12-12.
+
+Again, the form is at http://bit.ly/431-2019-project-scheduling.
+
+## Available Time Slots
+
+The form requires you to select at least **nine** of these 69 time slots, and you must indicate at least one available time on a minimum of two of the three available days.
+
+- This list specifies the arrival time, presentation slot and time slot numbers for each date.
+- Monday = 2019-12-09, Tuesday = 2019-12-10, Thursday = 2019-12-12
+
+Arrive at | Presentation Time | Monday | Tuesday | Thursday
+--------: | :---------------: | ---: | ---: | ---:
+7:50 AM | 8:00 to 8:20 AM | Slot 09-01 | Slot 10-01 | Slot 12-01
+8:15 AM | 8:25 to 8:45 AM | 09-02 | 10-02 | 12-02
+8:40 AM | 8:50 to 9:10 AM | 09-03 | 10-03 | 12-03
+9:05 AM | 9:15 to 9:35 AM | 09-04 | 10-04 | 12-04
+9:30 AM | 9:40 to 10:00 AM | 09-05 | 10-05 | 12-05
+10:05 AM | 10:15 to 10:35 AM | 09-06 | 10-06 | 12-06
+10:30 AM | 10:40 to 11:00 AM | 09-07 | 10-07 | 12-07
+10:55 AM | 11:05 to 11:25 AM | 09-08 | 10-08 | 12-08
+11:20 AM | 11:30 to 11:50 AM | 09-09 | 10-09 | 12-09
+11:45 AM | 11:55 to 12:15 PM | 09-10 | 10-10 | 12-10
+12:10 PM | 12:20 to 12:40 PM | 09-11 | 10-11 | 12-11
+12:50 PM | 1:00 to 1:20 PM | 09-12 | 10-12 | 12-12
+1:15 PM | 1:25 to 1:45 PM | 09-13 | 10-13 | 12-13
+1:40 PM | 1:50 to 2:10 PM | 09-14 | 10-14 | 12-14
+2:05 PM | 2:15 to 2:35 PM | 09-15 | 10-15 | 12-15
+2:30 PM | 2:40 to 3:00 PM | 09-16 | 10-16 | 12-16
+3:05 PM | 3:15 to 3:35 PM | 09-17 | 10-17 | 12-17
+3:30 PM | 3:40 to 4:00 PM | 09-18 | 10-18 | 12-18
+3:55 PM | 4:05 to 4:25 PM | 09-19 | 10-19 | 12-19
+4:20 PM | 4:30 to 4:50 PM | 09-20 | 10-20 | 12-20
+4:45 PM | 4:55 to 5:15 PM | 09-21 | 10-21 | 12-21
+5:10 PM | 5:20 to 5:40 PM | 09-22 | 10-22 | 12-22
+5:35 PM | 5:45 to 6:05 PM | 09-23 | 10-23 | 12-23
+
+## The Schedule
+
+After everyone has completed the form, Professor Love will post the Schedule of Project Presentations to http://bit.ly/2019-431-project-schedule.
+

@@ -1,0 +1,57 @@
+\contentsline {subsection}{\numberline {0.1}Load R packages}{3}{subsection.0.1}
+\contentsline {subsection}{\numberline {0.2}Read in Three Data Sets}{3}{subsection.0.2}
+\contentsline {section}{\numberline {1}Some Opening Thoughts}{3}{section.1}
+\contentsline {section}{\numberline {2}Getting R and R Studio onto your computer}{4}{section.2}
+\contentsline {section}{\numberline {3}Getting Data into R from Excel or another Software Package: The Fundamentals}{4}{section.3}
+\contentsline {section}{\numberline {4}Describing a Diabetes Pilot Study}{5}{section.4}
+\contentsline {subsubsection}{\numberline {4.0.1}A Bare Bones Data Dictionary}{6}{subsubsection.4.0.1}
+\contentsline {subsection}{\numberline {4.1}Task 1: Cleaning the Data}{7}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Task 2: Is there an important difference in BMI by gender?}{10}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Task 3: Are the compliance measures (smoking status and eye exam) strongly correlated?}{12}{subsection.4.3}
+\contentsline {subsection}{\numberline {4.4}Task 4: Is insurance status related to pneumovax?}{14}{subsection.4.4}
+\contentsline {subsection}{\numberline {4.5}Task 5: Is systolic blood pressure related to age? Is this a linear relationship?}{14}{subsection.4.5}
+\contentsline {subsection}{\numberline {4.6}Task 6: Is hemoglobin A1c linearly related to LDL cholesterol (treating A1c as the outcome?)}{16}{subsection.4.6}
+\contentsline {subsection}{\numberline {4.7}Task 7: What can we say about the relationships of insurance and race (separately and together) on A1c? Should we consider collapsing the smallest ``race/ethnicity'' category?}{17}{subsection.4.7}
+\contentsline {subsection}{\numberline {4.8}Task 8: How does the impact of insurance (ignoring race/ethnicity) on A1c change if we adjust A1c for the effect of LDL?}{20}{subsection.4.8}
+\contentsline {subsection}{\numberline {4.9}Task 9: Build a kitchen sink model to predict A1c using main effects of the other ten variables as predictors. Then use the step function to identify a subset model for further analysis.}{22}{subsection.4.9}
+\contentsline {subsection}{\numberline {4.10}Task 10: Does the smaller model produced by the stepwise analysis above look like a useful partition of the original set of predictors? Evaluate this by looking at significance tests, but also model summary statistics.}{25}{subsection.4.10}
+\contentsline {section}{\numberline {5}The SEPSIS and Ibuprofen Study: A Logistic Regression Example}{27}{section.5}
+\contentsline {subsection}{\numberline {5.1}The Data Set}{27}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Is Death Rate related to APACHE scores?}{27}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.3}The Logistic Regression Model}{30}{subsection.5.3}
+\contentsline {subsection}{\numberline {5.4}Fitting a Logistic Regression Model}{31}{subsection.5.4}
+\contentsline {subsection}{\numberline {5.5}Using the Fitted Logistic Regression Model To Make Predictions}{32}{subsection.5.5}
+\contentsline {subsection}{\numberline {5.6}Interpreting the Logistic Regression Model Summary}{33}{subsection.5.6}
+\contentsline {subsection}{\numberline {5.7}The Analysis of Deviance}{34}{subsection.5.7}
+\contentsline {section}{\numberline {6}Logistic Regression with Multiple Predictors}{35}{section.6}
+\contentsline {subsection}{\numberline {6.1}Making Predictions}{36}{subsection.6.1}
+\contentsline {section}{\numberline {7}The \texttt {demodata} Example: A Data Management Primer}{37}{section.7}
+\contentsline {subsection}{\numberline {7.1}A Quick Summary of the Data, as Initially Imported}{38}{subsection.7.1}
+\contentsline {section}{\numberline {8}Recoding Continuous Variables, including Time-to-Event and Count Variables}{39}{section.8}
+\contentsline {subsection}{\numberline {8.1}Imputing Values for the Missing Observations in Continuous Variables}{41}{subsection.8.1}
+\contentsline {subsection}{\numberline {8.2}Creating a Binary Variable from a Continuous one}{44}{subsection.8.2}
+\contentsline {subsection}{\numberline {8.3}Creating A 4-Category Variable from a Continuous one}{45}{subsection.8.3}
+\contentsline {section}{\numberline {9}Recoding Binary Categorical Variables}{45}{section.9}
+\contentsline {subsection}{\numberline {9.1}Creating Factors and 1-0 variables}{47}{subsection.9.1}
+\contentsline {subsubsection}{\numberline {9.1.1}Converting \texttt {histA}}{47}{subsubsection.9.1.1}
+\contentsline {subsubsection}{\numberline {9.1.2}Converting \texttt {histB}}{47}{subsubsection.9.1.2}
+\contentsline {subsubsection}{\numberline {9.1.3}Converting \texttt {histC}}{48}{subsubsection.9.1.3}
+\contentsline {subsection}{\numberline {9.2}Dealing with Missingness in Binary Data}{49}{subsection.9.2}
+\contentsline {subsubsection}{\numberline {9.2.1}Imputation for \texttt {histD} for building a propensity model.}{49}{subsubsection.9.2.1}
+\contentsline {subsubsection}{\numberline {9.2.2}Working with \texttt {histE}}{50}{subsubsection.9.2.2}
+\contentsline {subsubsection}{\numberline {9.2.3}Working with \texttt {histF}}{51}{subsubsection.9.2.3}
+\contentsline {section}{\numberline {10}Recoding Categorical Variables with More Than Two Categories}{52}{section.10}
+\contentsline {subsection}{\numberline {10.1}Working with \texttt {race}}{53}{subsection.10.1}
+\contentsline {subsection}{\numberline {10.2}Working with \texttt {rating}}{54}{subsection.10.2}
+\contentsline {subsection}{\numberline {10.3}Working with \texttt {return}}{56}{subsection.10.3}
+\contentsline {subsection}{\numberline {10.4}Working with \texttt {rotation}}{57}{subsection.10.4}
+\contentsline {subsection}{\numberline {10.5}Working with \texttt {reason}}{58}{subsection.10.5}
+\contentsline {section}{\numberline {11}Date Variables}{59}{section.11}
+\contentsline {subsection}{\numberline {11.1}The \texttt {date} format in Excel yields \texttt {date1}}{60}{subsection.11.1}
+\contentsline {subsection}{\numberline {11.2}The \texttt {general} format in Excel yields \texttt {date2}}{60}{subsection.11.2}
+\contentsline {section}{\numberline {12}On Using RStudio and R Markdown}{61}{section.12}
+\contentsline {subsection}{\numberline {12.1}Use R Studio Projects Whenever You Can}{61}{subsection.12.1}
+\contentsline {subsection}{\numberline {12.2}What is R Markdown?}{61}{subsection.12.2}
+\contentsline {subsubsection}{\numberline {12.2.1}Learning More about Writing Markdown Files}{61}{subsubsection.12.2.1}
+\contentsline {subsubsection}{\numberline {12.2.2}Creating an HTML, Word or PDF file}{61}{subsubsection.12.2.2}
+\contentsline {subsubsection}{\numberline {12.2.3}Some Specific Tips}{62}{subsubsection.12.2.3}

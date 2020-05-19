@@ -1,0 +1,355 @@
+# Comparisons with Contingency Tables {#Tables}
+
+## Larger Contingency Tables - Testing for Independence
+
+What will we do with tables describing data from more than two categories at a time, returning to the notion of independent (rather than paired or matched) samples? The chi-square tests we have already seen in our `twobytwo` table output will extend nicely to this scenario, especially the Pearson $\chi^2$ (asymptotic) test.
+
+## A 2x3 Table: Comparing Response to Active vs. Placebo
+
+The table below, containing 2 rows and 3 columns of data (ignoring the marginal totals) specifies the number of patients who show *complete*, *partial*, or *no response* after treatment with either **active** medication or a **placebo**.
+
+Group | None | Partial | Complete
+-----:| :---:| :----: | :-----:
+Active | 16 | 26 | 29
+Placebo | 24 | 26 | 18
+
+Is there a statistically significant association here? That is to say, is there a statistically significant difference between the treatment groups in the distribution of responses?
+
+### Getting the Table into R
+
+To answer this, we'll have to get the data from this contingency table into a matrix in R. Here's one approach...
+
+```{r table2x3 a}
+T1 <- matrix(c(16,26,29,24,26,18), ncol=3, nrow=2, byrow=TRUE)
+rownames(T1) <- c("Active", "Placebo")
+colnames(T1) <- c("None", "Partial", "Complete")
+
+T1
+```
+
+### Manipulating the Table's presentation
+
+We can add margins to the matrix to get a table including row and column totals.
+```{r table2x3 b}
+addmargins(T1)
+```
+
+Instead of the counts, we can tabulate the proportion of all patients within each cell.
+```{r table2x3 c}
+prop.table(T1)
+```
+
+Or, we can tabulate the probabilities, rather than the proportions, after some rounding.
+```{r table2x3 d}
+round(100*prop.table(T1),1)
+```
+
+R can also plot the percentages conditional on the rows...
+```{r table2x3 e}
+round(100*prop.table(T1,1),1)
+```
+
+The 40.8 in Active/Complete means that of the Active medication patients, 40.8% had a complete response.
+
+R can also plot the percentages conditional on the columns...
+
+```{r table2x3 g}
+round(100*prop.table(T1,2),1)
+```
+
+If we add the row of column totals for these percentages as shown below, it clarifies that the 61.7 in Active/Complete here means that of the patients with a Complete response, 61.7% were on the active medication.
+
+```{r table2x3 h}
+addmargins(round(100*prop.table(T1,2),1),1)
+```
+
+## Getting the Chi-Square Test Results
+
+Now, to actually obtain a *p* value and perform the significance test with H~0~: rows and columns are independent vs. H~A~: rows and columns are associated, we simply run a Pearson chi-square test on T1 ...
+
+```{r table2x3 i}
+chisq.test(T1)
+```
+
+Thanks to a p-value of about 0.13 (using the Pearson $\chi^2$ test) our conclusion would be to retain the null hypothesis of independence in this setting.
+
+We could have run a Fisher's exact test, too, if we needed it. 
+
+```{r table2x3 j}
+fisher.test(T1)
+rm(T1)
+```
+
+The Fisher exact test *p* value is also 0.13. Either way, there is insufficient evidence to conclude that there is a (true) difference in the distributions of responses.
+
+## Getting a 2x3 Table into R using a .csv file
+
+Suppose we have a table like this available, and want to compute the Pearson and Fisher $\chi^2$ test results in R, without having to set up the whole matrix piece discussed above? 
+
+Group | None | Partial | Complete
+-----:| :---:| :----: | :-----:
+Active | 16 | 26 | 29
+Placebo | 24 | 26 | 18
+
+We could do so by building a .csv file (a spreadsheet) containing the table above. In particular, I built a file called `active2x3.csv`, available on the course website. It is simply the table below.
+
+```
+Group   None  Partial	Complete
+Active	  16	     26	      29
+Placebo	  24	     26	      18
+```
+
+When we pull this .csv file into R, it emerges as a data frame and deliberately NOT as a tibble.
+
+```{r active2x3}
+active2x3
+```
+
+## Turning the Data Frame into a Table That R Recognizes
+
+We need to turn this data frame into something that R can recognize as a contingency table. The steps to do this are:
+
+1. Establish row names from the Group variable.
+2. Delete the Group variable, retaining only the variables containing counts.
+3. Convert the data frame into a matrix.
+
+Specifically in this case, the steps are:
+
+```{r active2x3 into table}
+rownames(active2x3) <- active2x3$Group
+active2x3$Group <- NULL
+tab2x3 <- as.matrix(active2x3)
+tab2x3
+```
+
+And this resulting `tab2x3` object can be treated as the matrix was previously, using `addmargins` or `chisq.test` or `prop.table` or whatever. For instance,
+
+```{r tab2x3 fisher}
+fisher.test(tab2x3)
+```
+
+## Collapsing Levels / Categories in a Factor
+
+Returning to the `survey1` data, let's build a table of the relationship between response to the `sex` and favorite `color` questions.
+
+```{r survey1 colors a}
+table(survey1$sex, survey1$color)
+chisq.test(table(survey1$sex, survey1$color))
+```
+
+Note the warning message. With all those small cell counts, and particular, so many zeros, this might not be so useful. 
+
+We might reasonably consider collapsing the `colors` data into four new categories:
+
+- Blue -- in which I will include the old aqua, aquamarine, blue, dark blue and sapphire; 
+- Green, which will include the old chartreuse and green, 
+- Red - which will include the old orange, pink and red, and 
+- Other - which will include all other colors, including purple and violet
+
+One way to do this sort of work uses the `plyr` library in R, and the `revalue` function in particular. I learned about this in Chapter 15 of Chung's R Graphics Cookbook, which is invaluable.
+
+```{r survey1 colors b}
+survey1$color.new <- factor(survey1$color)
+levels(survey1$color.new)
+survey1$color.new <- dplyr::recode(survey1$color.new, 
+    aqua = "Blue", aquamarine="Blue", black = "Other",
+    blue = "Blue", brown = "Other", chartreuse = "Green", 
+    'dark blue' = "Blue", depends = "Other", gray = "Other",
+    green = "Green", grey ="Other", 'light blue' = "Blue",
+    navy = "Blue", none = "Other", orange = "Red", 
+    pink = "Red", purple = "Other", red = "Red", 
+    'royal blue' = "Blue", sapphire = "Blue", silver = "Other",
+    teal = "Blue", violet = "Other", white = "Other", yellow = "Other")
+```
+
+So, what I've done here is create a new color variable that assigns the original colors into the four categories: Blue, Green, Red and Other that I defined above. Let's run a sanity check on our recoding, then look at the relationship between sex and this new four-category variable, in a 2x4 table...
+
+```{r survey1 colors c}
+table(survey1$color, survey1$color.new)  ## sanity check
+
+table(survey1$sex, survey1$color.new)
+```
+
+To neaten this output up, we might want to have Other show up last in the `color.new` group.
+
+```{r survey1 colors d}
+survey1$color.new2 <- factor(survey1$color.new, 
+       levels=c("Blue", "Green", "Red", "Other"))
+table(survey1$sex, survey1$color.new2)
+```
+
+Now, we run the new Pearson $\chi^2$ test, and conclude that there is no evidence of statistically significant association (at the 5% significance level) between sex and these collapsed favorite color categories.
+
+```{r survey1 colors e}
+chisq.test(table(survey1$sex, survey1$color.new2))
+```
+
+## Accuracy of Death Certificates (A 6x3 Table)
+
+The table below compiles data from six studies designed to investigate the accuracy of death certificates\footnote{Source:  Pagano M, Gauvreau K (2000) Principles of Biostatistics, 2nd Edition, Pacific Grove, CA: Duxbury, pp. 367-8.  The original citation is Kircher T, Nelson J, Burdo H (1985) The autopsy as a measure of accuracy of the death certificate.  NEJM, 313, 1263-1269.}.  5373 autopsies were compared to the causes of death listed on the certificates.  Of those, 3726 were confirmed to be accurate, 783 either lacked information or contained inaccuracies but did not require recoding of the underlying cause of death, and 864 were incorrect and required recoding.  Do the results across studies appear consistent?
+
+Date of Study | [Confirmed] Accurate | [Inaccurate] No Change | [Incorrect] Recoding | Total
+:-----------: | :------------------: | :--------------------: | :------------------: | :---:
+1955-1965 | 2040 | 367 | 327 | 2734
+1970 | 149 | 60 | 48 | 257
+1970-1971 | 288 | 25 | 70 | 383
+1975-1977 | 703 | 197 | 252 | 1152
+1977-1978 | 425 | 62 | 88 | 575
+1980 | 121 | 72 | 79 | 272
+Total | 3726 | 783 | 864 | 5373
+
+## The Pearson Chi-Square Test of Independence
+
+We can assess the homogeneity of the confirmation results (columns) we observe in the table using a Pearson chi-squared test of independence.
+
+- The null hypothesis is that the rows and columns are independent.
+- The alternative hypothesis is that there is an association between the rows and the columns.
+
+```{r death certificates a}
+z <- matrix(c(2040,367,327,149,60,48,288,25,70,703,    
+              197,252,425,62,88,121,72,79), byrow=TRUE, nrow=6)
+rownames(z) <- c("1955-65", "1970", "1970-71", "1975-77", "1977-78",
+                 "1980")
+colnames(z) <- c("Confirmed", "Inaccurate", "Incorrect")
+ 
+addmargins(z)
+```
+
+To see the potential heterogeneity across rows in these data, we should perhaps also look at the proportions of autopsies in each of the three accuracy categories for each study.
+
+```{r death certificates b}
+addmargins(round(100*prop.table(z,1),1),2) 
+```
+
+In three of the studies, approximately 3/4 of the results were confirmed. In the other three, 45%, 58% and 61% were confirmed. It looks like there's a fair amount of variation in results across studies. To see if this is true, formally, we run Pearson's chi-square test of independence, where the null hypothesis is that the rows and columns are independent, and the alternative hypothesis is that there is an association between the rows and the columns.
+
+```{r death certificates c}
+chisq.test(z)
+```
+
+The chi-square test statistic is 200 on 10 degrees of freedom, yielding p < 0.0001.
+
+Autopsies are not performed at random; in fact, many are done because the cause of death listed on the certificate is uncertain.  What problems may arise if you attempt to use the results of these studies to make inference about the population as a whole?
+
+## Three-Way Tables: A 2x2xK Table and a Mantel-Haenszel Analysis
+
+The material I discuss in this section is attributable to Jeff Simonoff and his book *Analyzing Categorical Data*. The example is taken from Section 8.1 of that book.
+
+A three-dimensional or three-way table of counts often reflects a situation where the rows and columns refer to variables whose association is of primary interest to us, and the third factor (a layer, or strata) describes a control variable, whose effect on our primary association is something we are *controlling* for in the analysis.
+
+### Smoking and Mortality in the UK
+
+In the early 1970s and then again 20 years later, in Whickham, United Kingdom, surveys yielded the following relationship between whether a person was a smoker at the time of the original survey and whether they were still alive 20 years later\footnote{See Appleton et al. 1996. Ignoring a Covariate: An Example of Simpson's Paradox. The American Statistician, 50, 340-341.}.
+
+```{r whickham table 1}
+whickham1 <- matrix(c(443, 139, 502, 230), byrow=TRUE, nrow=2)
+rownames(whickham1) <- c("Smoker", "Non-Smoker")
+colnames(whickham1) <- c("Alive", "Dead")
+addmargins(whickham1)
+```
+
+
+Here's the two-by-two table analysis.
+
+```{r 2x2 for whickham}
+Epi::twoby2(whickham1)
+chisq.test(whickham1)
+```
+
+There is a significant association between smoking and mortality ($\chi^2$ = 8.75 on 1 df, *p* = 0.003), but it isn't the one you might expect. 
+
+- The odds ratio is 1.46, implying that the odds of having lived were 46% higher for smokers than for non-smokers.
+- Does that mean that smoking is *good* for you?
+
+Not likely. There is a key "lurking" variable here - a variable that is related to both smoking and mortality that is obscuring the actual relationship - namely, age.
+
+
+### The `whickham` data including age, as well as smoking and mortality
+
+The table below gives the mortality experience separated into subtables by initial age group.
+
+```{r}
+age <- c(rep("18-24", 4), rep("25-34", 4), 
+         rep("35-44", 4), rep("45-54", 4), 
+         rep("55-64", 4), rep("65-74", 4), 
+         rep("75+", 4))
+smoking <- c(rep(c("Smoker", "Smoker", "Non-Smoker", "Non-Smoker"), 7))
+status <- c(rep(c("Alive", "Dead"), 14))
+counts <- c(53, 2, 61, 1, 121, 3, 152, 5,
+            95, 14, 114, 7, 103, 27, 66, 12,
+            64, 51, 81, 40, 7, 29, 28, 101,
+            0, 13, 0, 64)
+whickham2 <- data.frame(smoking, status, age, counts) %>% tbl_df()
+whickham2$smoking <- factor(whickham2$smoking, levels = c("Smoker", "Non-Smoker"))
+whickham2.tab1 <- xtabs(counts ~ smoking + status + age, data = whickham2)
+whickham2.tab1
+```
+
+The odds ratios for each of these subtables, except the last one, where it is undefined are as follows: 
+
+Age Group | Odds Ratio
+---------: | :-----:
+18-24 | 0.43
+25-34 | 1.33
+35-44 | 0.42
+45-54 | 0.69
+55-64 | 0.62
+65-74 | 0.87
+75+ | *undefined*
+
+Thus, for all age groups except 25-34 year olds, smoking is associated with higher mortality.
+
+Why? Not surprisingly, there is a strong association between age and mortality, with mortality rates being very low for young people (2.5% for 18-24 year olds) and increasing to 100% for 75+ year olds.
+
+There is also an association between age and smoking, with smoking rates peaking in the 45-54 year old range and then falling off rapidly. In particular, respondents who were 65 and older at the time of the first survey had very low smoking rates (25.4%) but very high mortality rates (85.5%). Smoking was hardly the cause, however, since even among the 65-74 year olds mortality was higher among smokers (80.6%) than it was among non-smokers (78.3%). A flat version of the table (`ftable` in R) can help us with these calculations.
+
+
+```{r}
+ftable(whickham2.tab1)
+```
+
+
+
+### The Cochran-Mantel-Haenszel Test
+
+So, the marginal table looking at smoking and mortality combining all age groups isn't the most meaningful summary of the relationship between smoking and mortality. Instead, we need to look at the *conditional* association of smoking and mortality, **given age**, to address our interests.
+
+The null hypothesis would be that, in the population, smoking and mortality are independent within strata formed by age group. In other words, H~0~ requires that smoking be of no value in predicting mortality once age has been accounted for.
+
+The alternative hypothesis would be that, in the population, smoking and mortality are associated within the strata formed by age group. In other words, H~A~ requires that smoking be of at least some value in predicting mortality even after age has been accounted for.
+
+We can consider the evidence that helps us choose between these two hypotheses with a Cochran-Mantel-Haenszel test, which is obtained in R through the `mantelhaen.test` function. This test requires us to assume that, in the population and within each age group, the smoking-mortality odds ratio is the same. Essentially, this means that the association of smoking with mortality is the same for older and younger people.
+
+```{r}
+mantelhaen.test(whickham2.tab1, conf.level  = 0.90)
+```
+
+- The Cochran-Mantel-Haenszel test statistic is 5 (after a continuity correction) leading to a *p* value of 0.02, indicating strong rejection of the null hypothesis of conditional independence of smoking and survival given age. 
+- The estimated common conditional odds ratio is 0.65. This implies that (given age) being a smoker is associated with a 35% lower odds of being alive 20 years later than being a non-smoker.
+- A 90% confidence interval for that common odds ratio is (0.49, 0.87), reinforcing rejection of the conditional independence (where the odds ratio would be 1).
+
+### Checking Assumptions: The Woolf test
+
+We can also obtain a test (using the `woolf_test` function, in the `vcd` library) to see if the common odds ratio estimated in the Mantel-Haenszel procedure is reasonable for all age groups. In other words, the Woolf test is a test of the assumption of homogeneous odds ratios across the six age groups. 
+
+If the Woolf test is significant, it suggests that the Cochran-Mantel-Haenszel test is not appropriate, since the odds ratios for smoking and mortality vary too much in the sub-tables by age group. Here, we have the following log odds ratios (estimated using conditional maximum likelihood, rather than cross-product ratios) and the associated Woolf test.
+
+```{r}
+## Next two results use the vcd library
+
+vcd::oddsratio(whickham2.tab1, log = TRUE)
+vcd::woolf_test(whickham2.tab1)
+```
+
+As you can see, the Woolf test is not close to statistically significant, implying the common odds ratio is at least potentially reasonable for all age groups (or at least the ones under ages 75, where some data are available.)
+
+### Without the Continuity Correction
+
+By default, R presents the Mantel-Haenszel test with a continuity correction, when used for a 2x2xK table. In virtually all cases, go ahead and do this, but as you can see below, the difference it makes in this case is modest.
+
+```{r}
+mantelhaen.test(whickham2.tab1, correct=FALSE, conf.level = 0.90)
+```
+
+
+

@@ -1,0 +1,456 @@
+---
+title: "432 Homework 4 Answer Sketch and Grading Rubric"
+author: "432 TAs"
+output: 
+  pdf_document:
+    extra_dependencies: ["xcolor"]
+    toc: yes
+date: 'Due 2020-03-25.  Version: `r Sys.Date()`'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+## Setup and Data Ingest {-}
+
+```{r, message = FALSE}
+knitr::opts_chunk$set(comment = NA)
+
+library(here); library(janitor); library(magrittr)
+
+library(mice)
+library(naniar)
+library(caret)
+library(simputation)
+library(car)
+library(rms)
+library(broom)
+library(knitr)
+
+library(tidyverse)
+```
+
+```{r, message = FALSE}
+phr <- read_csv(here("data", "phr.csv")) %>%
+    clean_names()
+```
+
+# Question 1 (5 points)
+
+\color{purple}
+
+Create a `phr1` tibble which includes 
+
+- only those patients who have data on systolic blood pressure, and
+- only the following 9 variables: `id`, `sbp`, `age`, `female`, `caucasian`, `insurance`, `hba1c`, `ldl`, and `bmi`.
+
+In addition to annotating your R code, specify (in a sentence) how the size of your tibble changes from the original `phr` to this new `phr1`.
+
+\color{black}
+
+For this task, you will use the `filter` and `select` functions to generate the required data set `phr1`. After selecting the requested variables and filtering, we have 3 fewer rows (observations) and 11 fewer columns (variables).
+
+```{r}
+phr1 <- phr %>% filter(complete.cases(sbp)) %>%
+    select(id, sbp, age, female, caucasian, 
+           insurance, hba1c, ldl, bmi)
+
+dim(phr)
+dim(phr1)
+```
+
+## Question 1 Rubric (5 points):
+
+* Give 5 points for correctly doing all of the following
+  + Loading the data set
+  + Creating the `phr1` data set
+  + Stating the difference in size between the two data sets
+* If the student does something incorrectly that will affect their answers for future questions, they should only be penalized here and not for those questions as long as their answers are correct given these errors.
+
+# Question 2 (5 points)
+
+\color{purple}
+
+Use the `caret` package to help you accomplish a validation split, to help you build up a model for `sbp` in the `phr1` data. Specifically, split the `phr1` tibble into a training sample containing 75% of the data, and a test sample containing the remaining 25%. Use the number `2020` as your seed for random number generation. 
+
+\color{black}
+
+After setting the seed to `2020`, we will use the `createDataPartition` function to create a data frame containing 75% of the observations. The rest of the observations will be used to create the test sample.
+
+```{r}
+set.seed(2020)
+
+training.samples <- phr1$sbp %>%
+    createDataPartition(p = 0.75, list = FALSE)
+
+phr1_train <- phr1[training.samples,]
+phr1_test <- phr1[-training.samples,]
+```
+
+## Question 2 Rubric (5 points):
+
+* Give 5 points for correctly doing all of the following
+  + Choosing the correct seed
+  + Creating a training sample containing 75% of the data
+  + Creating a test sample containing 25% of the data
+* If the student does something incorrectly that will affect their answers for future questions, they should only be penalized here and not for those questions as long as their answers are correct given these errors.
+
+# Question 3 (5 points)
+
+\color{purple}
+
+Next, you will build a regression model to predict a patient's systolic blood pressure on the basis of seven predictors, specifically the patient's hemoglobin A1c, LDL cholesterol, body-mass index, age, sex, race and insurance status. How many observations are missing for each of the predictors in your training sample?
+
+\color{black}
+
+For this question, we are just checking for missing variables. There are many ways to do this, but we will use the `miss_var_summary` function.
+
+```{r}
+phr1_train %>% select(hba1c, ldl, bmi, age, 
+                      female, caucasian, insurance) %>%
+    miss_var_summary(.)
+```
+
+## Question 3 Rubric (5 points):
+
+- Give full credit if the student checked missingness in all variables.
+- Deduct 1 point for each variable that was missed.
+
+# Question 4 (10 points)
+
+\color{purple}
+
+We'd like to use a Box-Cox procedure to evaluate whether a transformation of the outcome is necessary, within your training sample, but to accomplish this, you'll need to do something about those missing values. 
+
+So use simple imputation with a robust linear model including the other 6 predictors and the systolic blood pressure to predict any missing values you identified in Question 3. Verify that there is no missing data remaining after you do this imputation.
+
+\color{black}
+
+To perform a simple imputation with a robust linear model, you will have to use the `impute_rlm` function from the `simputation` package. 
+
+```{r}
+phr1_train_imp <- phr1_train %>%
+    impute_rlm(., ldl + bmi + hba1c ~ 
+                   age + female + caucasian + insurance + sbp)
+
+n_case_complete(phr1_train_imp) # sanity check
+n_case_miss(phr1_train_imp) # sanity check
+```
+
+After a sanity check, we are sure that all the variables now have no missing values.
+
+## Question 4 Rubric (10 points):
+
+- Give full credit if the student performed simple imputation with a robust linear model approach.
+- Deduct 2 points if the student performed imputation using a different method or didn't include the required variables for imputation.
+
+# Question 5 (10 points)
+
+\color{purple}
+
+Generate appropriate Box-Cox procedure results for assessing potential transformations of the outcome using the model described in Question 3, and describe your conclusions. Please restrict yourself to consideration of only five possible transformations: (a) squaring the outcome, (b) the untransformed outcome, (c) the square root of the outcome, (d) the natural logarithm of the outcome, or (e) the inverse of the outcome.
+
+\color{black}
+
+The model in Question 3 asks you to predict `sbp` based on `hba1c`, `bmi`, `ldl`, `age`, `female`, `caucasian`, and `insurance`. This is the Box-Cox Plot result for this model.
+
+```{r}
+phr1_train_imp %$% 
+    boxCox(sbp ~ hba1c + bmi + ldl + age + female + 
+               caucasian + insurance)
+```
+
+We will use a logarithm here, as the suggested result is far closer to 0 than to -1.
+
+## Question 5 Rubric (10 points):
+
+- Give 6 points if the students generates the appropriate Box-Cox plot with the correct model.
+- Give 4 points if the student interprets the plot appropriately and chooses the correct outcome transformation.
+
+# Question 6 (10 points)
+
+\color{purple}
+
+The planned model for the outcome you decided on in Question 5 includes seven predictors, all of which will be included in your model as main effects. Run this "main effects" model in your training sample using the `lm` function, and obtain the nominal R-squared, adjusted R-squared, AIC and BIC results.
+
+\color{black}
+
+We will run a linear regression model after transforming our outcome variable `sbp` and using the main effects of the 7 predictors we chose earlier.
+
+Using `glance` is an easy way to get the R-squared, AIC, and BIC results.
+
+```{r}
+mod_main <- phr1_train %$% 
+    lm(log(sbp) ~ hba1c + bmi + ldl + age + 
+           female + caucasian + insurance)
+
+glance(mod_main) %>%
+    mutate(model = "Main Effects") %>%
+    select(model, r.squared, adj.r.squared, AIC, BIC, df) %>%
+    kable(digits = c(0, 4, 4, 1, 1, 0))
+```
+
+## Question 6 Rubric (10 points):
+
+- Give 6 points for creating the appropriate model using the `lm` function.
+- Give 1 point for obtaining each of the requested regression metrics.
+
+# Question 7 (10 points)
+
+\color{purple}
+
+Use an appropriate strategy to determine how best to spend exactly 5 additional degrees of freedom (beyond the main effects model) on exactly two terms involving restricted cubic splines. Describe your conclusions and reasoning carefully.
+
+\color{black}
+
+We will use the the Spearman $\rho^2$ plot to figure out how to incorporate non-linear predictor terms in the model. 
+
+```{r}
+phr1_train %$% 
+    plot(Hmisc::spearman2(log(sbp) ~ hba1c + bmi + ldl + age + 
+                       female + caucasian + insurance))
+```
+
+We'll spend 3 additional df (beyond what we used in the main effects model) using a restricted cubic spline with 5 knots in `bmi` and then 2 additional df using a restricted cubic spline with 4 knots in `age`.
+
+## Question 7 Rubric (10 points):
+
+- Give 4 points for generating the Spearman $\rho^2$ plot.
+- Give 3 points for correctly identifying the most important non-linear term as an RCS with 5 knots for `bmi`.
+- Give 3 points for correctly identifying the most important non-linear term as an RCS with 4 knots for `age`.
+
+# Question 8 (10 points)
+
+\color{purple}
+
+Fit the "augmented" model you selected in Question 7 again using the `lm` function, and compare the training sample's R-squared, adjusted R-squared, AIC and BIC results to what you saw in Question 6. Then run an ANOVA to compare the two models. What conclusions do you draw about which model to prefer, based on the training sample?
+
+\color{black}
+
+First, we will fit this new model then compare it with the main effects model.
+
+```{r}
+mod_aug <- phr1_train %$% 
+    lm(log(sbp) ~ hba1c + rcs(bmi,5) + ldl + rcs(age, 4) + 
+           female + caucasian + insurance)
+
+glance(mod_aug) %>%
+    mutate(model = "Augmented") %>%
+    select(model, r.squared, adj.r.squared, AIC, BIC, df) %>%
+    kable(digits = c(0, 4, 4, 1, 1, 0))
+```
+
+The augmented model has slightly better results than the main effects model in terms of adjusted $R^2$, and AIC, but it displays slightly worse results in terms of BIC.
+
+In terms of the ANOVA comparison, the augmented model does appear to provide additional highly detectable predictive value in the training sample, based on the very small *p* value below.
+
+```{r}
+anova(mod_aug, mod_main)
+```
+
+## Question 8 Rubric (10 points):
+
+- Give 1 point for providing each of the regression metrics requested in the question.
+- Give 3 points for a proper comparison between the models with and without non-linear terms.
+- Give 1 point for correctly running an ANOVA comparing the two models.
+- Give 2 points for properly interpreting the ANOVA output.
+
+# Question 9 (15 points)
+
+\color{purple}
+
+Now use each model (the one from Question 6 and the one from Question 8) to make predictions in the test sample you developed way back in Question 2 and make a decision on the basis of the usual summary statistics (specifically the validation R-square, root mean squared prediction error and mean absolute prediction error) as to which model produces better predictions for systolic blood pressure. 
+
+\color{black}
+
+First, drop all observations with missing values in the test sample.
+
+```{r}
+phr1_test_cc <- phr1_test %>% drop_na()
+```
+
+Note that this drops quite a few rows from our test sample, but that's OK for this Homework.
+
+```{r}
+dim(phr1_test)
+dim(phr1_test_cc)
+```
+
+## Main Effects Model
+
+Obtain predicted `log(sbp)` in the test sample, using the main effects model `mod_main`
+
+```{r}
+main_pred_logs <- mod_main %>% predict(phr1_test_cc)
+```
+
+Exponentiate to get predicted `sbp` values in the test sample.
+
+```{r}
+main_pred_sbp <- exp(main_pred_logs)
+```
+
+Create key summaries of the quality of predictions we made for `sbp` using `mod_main`...
+
+```{r}
+main_summaries <- tibble(
+    model = "Main Effects",
+    R2 = R2(main_pred_sbp, phr1_test_cc$sbp),
+    RMSE = RMSE(main_pred_sbp, phr1_test_cc$sbp),
+    MAE = MAE(main_pred_sbp, phr1_test_cc$sbp)
+)
+```
+
+## Augmented Model
+
+Obtain predicted `log(sbp)` in the test sample, using the augmented model `mod_aug`
+
+```{r}
+aug_pred_logs <- mod_aug %>% predict(phr1_test_cc)
+```
+
+Exponentiate to get predicted `sbp` values in the test sample.
+
+```{r}
+aug_pred_sbp <- exp(aug_pred_logs)
+```
+
+Create key summaries of the quality of predictions we made for `sbp` using `mod_main`...
+
+```{r}
+aug_summaries <- tibble(
+    model = "Augmented",
+    R2 = R2(aug_pred_sbp, phr1_test_cc$sbp),
+    RMSE = RMSE(aug_pred_sbp, phr1_test_cc$sbp),
+    MAE = MAE(aug_pred_sbp, phr1_test_cc$sbp)
+)
+```
+
+And now we can produce the comparison
+
+```{r}
+bind_rows(main_summaries, aug_summaries) %>%
+    kable(digits = c(0, 4, 3, 3))
+```
+
+The main effects model has the better $R^2$ and MAE, but worse RMSE than the augmented model. So we'll go with the main effects model.
+
+## Question 9 Rubric (15 points):
+
+- Give 4 points for creating appropriate predictions for the main effects model.
+- Give 4 points for creating appropriate predictions for the augmented model.
+- Give 4 points for generating the prediction quality metrics.
+- Give 3 points for appropriately choosing the correct models based on the key summaries.
+
+# Question 10 (10 points)
+
+\color{purple}
+
+Return to the `phr1` tibble you created back in Question 1 and fit the regression model you preferred in Question 9 to predict your (potentially transformed) `sbp` using all of the **complete cases** in that tibble.
+
+- Provide an attractive table containing the coefficients, standard errors, and lower and upper bounds for a 95% confidence interval for each coefficient.
+
+\color{black}
+
+The code for this question is straightforward, just refitting the main effects model with the original `phr1` data. We then use `tidy` to produce our attractive table of model outputs.
+
+```{r}
+mod_cc <- phr1 %$% lm(log(sbp) ~ hba1c + bmi + ldl + age + 
+           female + caucasian + insurance)
+
+tidy(mod_cc, conf.int = TRUE, conf.level = 0.95) %>%
+    select(term, estimate, std.error, conf.low, conf.high)
+```
+
+## Question 10 Rubric (10 points):
+
+- Give 8 points if student correctly creates uses the model selected in Question 9 and fit with the `phr1` data.
+- Give 2 points for generating the table with the requested components of the model output, including the correct confidence interval.
+
+# Question 11 (15 points)
+
+\color{purple}
+
+Return to the `phr1` tibble you created back in Question 1 and fit the regression model you preferred in Question 9, to predict your (potentially transformed) `sbp` but this time, use **multiple imputation**. 
+
+- Include all 6 other predictors and the outcome in the imputation model for each predictor, and set the random seed to `2020432` and run 10 imputations. 
+- As in Question 10, provide an attractive table containing the coefficients, standard errors, and lower and upper bounds for a 95% confidence interval for each coefficient after this model has been fit.
+
+\color{black}
+
+First, we create the 10 imputations.
+
+```{r, message = FALSE}
+set.seed(2020432)
+phr1_mi10 <- mice(phr1, m = 10, print = FALSE)
+```
+
+Next we fit the main effects model on each imputed data frame.
+
+```{r}
+mi_mods <- with(phr1_mi10, 
+                lm(log(sbp) ~ hba1c + bmi + ldl + age + 
+                       female + caucasian + insurance))
+```
+
+Then we pool the models.
+
+```{r}
+mi_pool <- pool(mi_mods)
+```
+
+I'll summarize the two models in reasonably manageable tables.
+
+First, we repeat the complete cases result.
+
+```{r}
+tidy(mod_cc, conf.int = TRUE, conf.level = 0.95) %>%
+    select(term, estimate, std.error, p.value, conf.low, conf.high) %>%
+    kable(digits = 5)
+```
+
+And now, the multiple imputation result.
+
+```{r}
+summary(mi_pool, conf.int = TRUE, conf.level = 0.95) %>%
+    select(-df, -statistic) %>% kable(digits = 5)
+```
+
+## Question 11 Rubric (15 points):
+
+- Give 5 points for performing multiple imputation correctly.
+- Give 8 points if student creates the correct model.
+- Give 2 points for generating the output table with the requested summaries.
+
+# Question 12 (10 points)
+
+\color{purple}
+
+Specify the `insurance` effect size in the models you obtained in Questions 10 and 11. Provide a confidence interval and point estimate, and describe what the point estimate means in this context. Does the use of multiple imputation as opposed to a complete case analysis appear have a large impact on this estimate?  
+
+\color{black}
+
+For the complete cases model, the `insurance` point estimate is -0.00334, with 95% confidence interval (-0.00926, 0.00259). This means that if we have two patients named Harry and Sally, where Harry has commercial insurance while Sally has non-commercial, then the log of Harry's systolic blood pressure is estimated to be 0.00334 mm Hg lower than Sally's. Since the 95% confidence interval contains 0, the log of Harry's systolic blood pressure is not detectably less than Sally's.
+
+For the multiple imputation model, the `insurance` point estimate is 0.00021, with 95% confidence interval (-0.00524, 0.00566). This means that if we have two patients named Harry and Sally, where Harry has commercial insurance while Sally has non-commercial, then the log of Harry's systolic blood pressure is estimated to be 0.00021 mm Hg higher than Sally's. Since the 95% confidence interval contains 0, the log of Harry's systolic blood pressure is not detectably greater than Sally's.
+
+The impact of the imputation is pretty small, generally, but you could certainly note that the confidence intervals are a bit different, and the *p* value for `insurance` is 0.27 for the complete case analysis and 0.94 for the multiply imputed version. 
+
+## Question 12 Rubric (10 points):
+
+* Give 3 points for appropriately describing the effects of insurance in the first (complete cases) model.
+  + Subtract 2 points if the student doesn't correctly describe the insurance variable as the effect of moving from non-commercial to commercial insurance.
+* Give 3 points for appropriately describing the effects of insurance in the second (multiple imputation) model.
+  + Subtract 2 points if the student doesn't correctly describe the insurance variable as the effect of moving from non-commercial to commercial insurance.
+* Give 4 points for appropriately comparing the results and describing the effect of multiple imputation on the summary results.
+
+# Overall Grading Note
+
+We will subtract 5 points from the total score if there are more than two typographical/spelling or grammatical errors in the document.
+
+# Session Information
+
+```{r}
+sessioninfo::session_info()
+```

@@ -1,0 +1,48 @@
+# Deliverables and Grading
+
+## Timing and Deadlines
+
+The [Calendar](https://github.com/THOMASELOVE/2020-432/blob/master/calendar.md) is the exclusive home for all deadlines in the course.
+
+## Participation in the Course
+
+Students are required to participate actively in the course, including meaningful contributions in group work, in-class and minute paper participation, emails to 431-help, visits to the TAs, etc.
+
+- We're more concerned about the breadth of your participation rather than just its quantity.
+- If you're having trouble asking questions, the best way to make a contribution is to find something interesting and share it with us, through 431-help.
+- Most students score between 80% and 100% on this element.
+
+### Attendance
+
+I expect you to come to class. If you have to miss a single class, just be sure to catch up on any needed materials - no need to let me know in advance or afterwards. We expect you to complete all necessary deliverables, and to review the README for that day's class for other announcements. The audio recording can help, too. 
+
+If, however, you are going to miss more than one class in a row, you should let Dr. Love know, via email, in advance, ideally.
+
+## Projects
+
+Students are required to complete two project assignments, one in mid-semester, and one at the end of the term.
+
+Details on the project assignments are [posted on the Course Projects Page](https://github.com/THOMASELOVE/2019-432/tree/master/projects).
+
+## Homeworks
+
+There will be 6-8 homework assignments this semester. The exact number is not settled yet. 
+
+Details on those assignments are [posted on the Homework Page](https://github.com/THOMASELOVE/2020-432/tree/master/homework).
+
+## Quizzes
+
+Students will complete several quizzes during the semester. The exact number is not settled yet.
+
+Details on the Quizzes are [posted on the Course Quizzes Page](https://github.com/THOMASELOVE/2019-432/tree/master/quizzes).
+
+## Grading
+
+The final course grade is weighted as follows:
+
+- 15% Class Participation
+- 20-30% Homework
+- 15-25% Quizzes
+- 40% Two Projects, including the Final Portfolio Presentation
+
+A cut point to discriminate A vs. B will be set in the range of 85% to 90% at the end of the term. An average of 70% or higher is required to receive a B. Final decisions on the relative weights of the Homework and Quizzes will depend primarily on the number of Homeworks and number of Quizzes assigned.

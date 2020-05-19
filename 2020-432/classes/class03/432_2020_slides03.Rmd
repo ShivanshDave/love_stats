@@ -1,0 +1,637 @@
+---
+title: "432 Class 3 Slides"
+author: "github.com/THOMASELOVE/2020-432"
+date: "2020-01-21"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    colortheme: "lily"
+    fonttheme: "structurebold"
+    fig_caption: FALSE
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 60)
+```
+
+## Today's Agenda
+
+- Creating the `smart1` and `smart1_sh` data sets
+  - Working with factors
+  - Working with simple imputation (`naniar` tools)
+  - Creating a "shadow" to track what is imputed
+- A few words on PPDAC and the combination of knowledge
+- What is the effect of a diabetes diagnosis on BMI?
+  - One-way analysis of variance (linear model)
+- Does whether you have health insurance matter?
+  - Two-way analysis of variance (linear model)
+  - Thinking meaningfully about interaction
+- Adjusting for a covariate: poor physical health days
+  - Analysis of Covariance
+
+## Setup
+
+```{r, warning = FALSE, message = FALSE}
+library(here); library(magrittr); library(janitor)
+library(broom); library(simputation); library(patchwork)
+library(naniar); library(visdat)
+library(tidyverse)
+
+theme_set(theme_bw())
+
+smart0 <- read_csv(here("data/smart_ohio.csv")) 
+```
+
+## BRFSS and SMART (Creating `smart1`)
+
+```{r}
+smart1 <- smart0 %>%
+    mutate(SEQNO = as.character(SEQNO)) %>%
+    select(SEQNO, mmsa, mmsa_wt, landline, 
+           age_imp, healthplan, dm_status,
+           fruit_day, drinks_wk, activity,
+           smoker, physhealth, bmi, genhealth)
+```
+
+## `smart1` Variables, by Type
+
+Variable | Type | Description
+--------- | :----: | --------------------------------
+`landline` | Binary (1/0) | survey conducted by landline? (vs. cell)
+`healthplan` | Binary (1/0) | subject has health insurance?
+`age_imp` | Quantitative | age (imputed from groups - see Notes)
+`fruit_day` | Quantitative | mean servings of fruit / day
+`drinks_wk` | Quantitative | mean alcoholic drinks / week
+`bmi` | Quantitative | body-mass index (in kg/m^2^)
+`physhealth` | Count (0-30) | of last 30 days, # in poor physical health
+`dm_status` | Categorical | diabetes status (4 levels, *we'll collapse to 2*)
+`activity` | Categorical | physical activity level (4 levels, *we'll re-level*)
+`smoker` | Categorical | smoking status (4 levels, *we'll collapse to 3*)
+`genhealth` | Categorical | self-reported overall health (5 levels)
+
+## Collapsing Two Factors, Re-leveling another
+
+```{r}
+smart1 <- smart1 %>% type.convert() %>%
+    mutate(SEQNO = as.character(SEQNO)) %>%
+    mutate(dm_status = 
+           fct_collapse(factor(dm_status),
+                        Yes = "Diabetes",
+                        No = c("No-Diabetes", 
+                               "Pre-Diabetes", 
+                               "Pregnancy-Induced"))) %>%
+    mutate(smoker = 
+           fct_collapse(factor(smoker), 
+                        Current = c("Current_not_daily",
+                                    "Current_daily"))) %>%
+    mutate(activity = 
+             fct_relevel(factor(activity),
+                         "Highly_Active", "Active", 
+                         "Insufficiently_Active",
+                         "Inactive")) 
+```
+
+## The `naniar` and `visdat` packages
+
+add functions to:
+
+- display missing data, in many useful ways, often with `ggplot` approaches that you can modify as desired
+- replace existing values with NA
+- visualize imputed values
+- numerically summarize imputed values
+- model missingness
+
+See Getting Started with `naniar` vignette linked at [\color{blue}{our Class 3 README}](https://github.com/THOMASELOVE/2020-432/blob/master/classes/class03/README.md).
+
+## How many missing values in `smart1`?
+
+```{r}
+miss_var_table(smart1)
+```
+
+## How many missing values in `smart1`?
+
+```{r}
+miss_var_summary(smart1)
+```
+
+## Visualizing Missingness in Variables
+
+```{r, fig.height = 4}
+gg_miss_var(smart1) + 
+  labs(title = "Lots of NAs in smart1 (n = 7412)")
+```
+
+## `prop_miss_case` and `pct_miss_case`
+
+```{r}
+prop_miss_case(smart1)
+```
+
+```{r}
+smart1 %>% select(genhealth) %>% pct_miss_case(.)
+```
+
+Obtain the proportion or percentage of missing values in the data frame, or any piece of it.
+
+## `prop_miss_var` or `pct_miss_var`
+
+```{r}
+prop_miss_var(smart1)
+```
+
+```{r}
+pct_miss_var(smart1)
+```
+
+This is the proportion (or percentage) of variables in the data frame with missing values.
+
+## `miss_case_table`
+
+```{r}
+miss_case_table(smart1)
+```
+
+## `miss_case_summary`
+
+```{r}
+miss_case_summary(smart1)
+```
+
+## Creating a "Shadow" to track what is imputed
+
+```{r}
+smart1_sh <- smart1 %>% bind_shadow() 
+```
+
+## `smart1_sh` creates new variables, ending in `_NA`
+
+```{r}
+names(smart1_sh)
+```
+
+## What are the new variables tracking?
+
+```{r}
+smart1_sh %>% count(smoker, smoker_NA)
+```
+
+### The `fct_explicit_na` warning: A pain point
+
+My general preference is to not use `fct_explicit_na` in general, and I typically suppress this warning from printing by labeling the code chunk with 
+
+```
+{r, warning = FALSE}
+```
+
+## What do new variables track? (with `warning = FALSE`)
+
+```{r, warning = FALSE}
+smart1_sh %>% count(genhealth, genhealth_NA)
+```
+
+## "Simple" Imputation of Missing Factor Values
+
+Let's impute some of the factors by random draws from their distributions...
+
+```{r}
+set.seed(2020432)
+smart1_sh <- smart1_sh %>%
+    data.frame() %>%
+      impute_rhd(., 
+                 dm_status + smoker + activity ~ 1) %>%
+  tbl_df()
+```
+
+## Did this work? (Code Chunk has `warning = FALSE`)
+
+```{r, warning = FALSE}
+smart1 %>% count(dm_status)
+smart1_sh %>% count(dm_status)
+```
+
+## What happens if you impute a 1/0 variable this way?
+
+```{r}
+set.seed(2020432)
+smart1_sh <- smart1_sh %>%
+    data.frame() %>%
+      impute_rhd(., 
+                 healthplan ~ 1) %>%
+  tbl_df()
+```
+
+## Look at whether this worked...
+
+```{r}
+smart1 %>% tabyl(healthplan)
+smart1_sh %>% tabyl(healthplan)
+```
+
+Looks OK
+
+```{r}
+smart1_sh %$% n_distinct(healthplan)
+```
+
+## Another Sanity Check
+
+```{r}
+smart1 %>% 
+  select(healthplan, dm_status, smoker, activity) %>%
+  summarize_each(list(n_miss))
+```
+
+```{r}
+smart1_sh %>% 
+  select(healthplan, dm_status, smoker, activity) %>%
+  summarize_each(list(n_miss))
+```
+
+## "Simple" Imputation with Robust Linear Models
+
+```{r}
+set.seed(2020432)
+smart1_sh <- smart1_sh %>%
+    data.frame() %>%
+      impute_rlm(., 
+                age_imp + fruit_day + 
+                  drinks_wk + bmi ~ 
+                  mmsa + landline + healthplan) %>%
+    tbl_df()
+```
+
+## "Simple" Imputation with Other Methods
+
+```{r}
+set.seed(2020432)
+smart1_sh <- smart1_sh %>%
+    data.frame() %>%
+      impute_knn(., physhealth ~ bmi) %>%
+      impute_cart(., 
+                  genhealth ~ activity + 
+                    physhealth +
+                    mmsa + healthplan) %>% 
+    tbl_df()
+```
+
+## Sanity Check 2
+
+Before imputation...
+
+```{r}
+pct_miss_var(smart1)
+```
+
+After imputation ...
+
+```{r}
+pct_miss_var(smart1_sh)
+```
+
+## Resulting `smart1` and `smart1_sh` tibbles saved to `.Rds`
+
+```{r}
+saveRDS(smart1, "data/smart1.Rds")
+saveRDS(smart1_sh, "data/smart1_sh.Rds")
+```
+
+## *The Art of Statistics*: How to **Learn** From Data
+
+**Introduction**: Why We Need Statistics / Turning the World into Data 
+
+- Turning experiences into data is not straightforward, and data is inevitably limited in its capacity to describe the world.
+- Statistical science has a long and successful history, but is now changing in the light of increased availability of data.
+- The PPDAC cycle provides a convenient framework...
+    - Problem - Plan - Data - Analysis - Conclusion and communication.
+
+---
+
+![](figures/PPDAC.png)
+
+- Chris Wild, https://www.stat.auckland.ac.nz/~wild/StatThink/
+
+---
+
+![](figures/inkling.png)
+
+# Using the Analysis of Variance (ANOVA) and the Analysis of Covariance (ANCOVA) to model Categorical Predictors in Linear Models
+
+## Answering Questions
+
+1. What is the effect of having a diagnosis of diabetes on body mass index (BMI)?
+2. Does whether you have health insurance affect how we think about the BMI-diabetes association?
+3. Does adjusting for physical health (as measured by the number of poor physical health days in the past 30) affect our Question 2 assessment?
+
+## Distribution of BMI? (code)
+
+```{r, eval = FALSE}
+p1 <- ggplot(smart1_sh, aes(x = bmi)) +
+  geom_histogram(binwidth = 2) +
+  labs(title = "Histogram of BMI")
+
+p2 <- ggplot(smart1_sh, aes(sample = bmi)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q plot of BMI")
+
+p1 + p2
+```
+
+## Distribution of BMI? (results)
+
+```{r, echo = FALSE}
+p1 <- ggplot(smart1_sh, aes(x = bmi)) +
+  geom_histogram(binwidth = 2) +
+  labs(title = "Histogram of BMI")
+
+p2 <- ggplot(smart1_sh, aes(sample = bmi)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q plot of BMI")
+
+p1 + p2
+```
+
+## Answering Questions
+
+1. What is the effect of having a diagnosis of diabetes on body mass index?
+
+```{r}
+smart1_sh %$% mosaic::favstats(bmi ~ dm_status) 
+```
+
+How can we repair this?
+
+- `r, message = FALSE` in chunk name
+- show only a single decimal place?
+
+## Answering Questions
+
+1. What is the effect of having a diagnosis of diabetes on body mass index?
+
+```{r, message = FALSE}
+smart1_sh %$% mosaic::favstats(bmi ~ dm_status) %>% 
+  rename(dm = dm_status) %>%
+  knitr::kable(digits = 1) 
+```
+
+Plot the data!
+
+```{r, eval = FALSE}
+ggplot(smart1_sh, aes(x = dm_status, y = bmi)) +
+  geom_violin() + geom_boxplot(width = 0.3, notch = TRUE) +
+  coord_flip()
+```
+
+## Visualizing the Data in Boxplots (with Violins)
+
+```{r, echo = FALSE}
+ggplot(smart1_sh, aes(x = dm_status, y = bmi)) +
+  geom_violin() + geom_boxplot(width = 0.3, notch = TRUE) +
+  coord_flip()
+```
+
+
+## Analysis of Variance
+
+1. What is the effect of having a diagnosis of diabetes on body mass index?
+
+```{r}
+a1 <- smart1_sh %$% lm(bmi ~ dm_status)
+anova(a1)
+```
+
+## Estimate effect of `dm_status` on `bmi`...
+
+```{r}
+tidy(a1, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+Is this easy to interpret?
+
+## Re-level the `dm_status` variable...
+
+```{r}
+smart1_sh <- smart1_sh %>% 
+  mutate(dm_status = fct_relevel(dm_status, "No", "Yes"))
+
+a1 <- smart1_sh %$% lm(bmi ~ dm_status)
+
+anova(a1)
+```
+
+## Estimate effect of re-leveled `dm_status` on `bmi`...
+
+```{r}
+tidy(a1, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+
+## Answering Questions
+
+2. Does whether you have health insurance affect this association?
+
+```{r}
+smart1_sh %$% 
+  mosaic::favstats(bmi ~ dm_status + healthplan) %>%
+  rename(dm_hp = dm_status.healthplan) %>%
+  knitr::kable(digits = 1)
+```
+
+## Visualize Three Variables (Code)
+
+```{r, eval = FALSE}
+ggplot(smart1_sh, aes(x = dm_status, y = bmi, 
+                      fill = factor(healthplan))) +
+  geom_violin(alpha = 0.3) +
+  geom_boxplot(width = 0.3, notch = TRUE) +
+  facet_wrap(~ healthplan, labeller = label_both) +
+  coord_flip() +
+  guides(fill = FALSE)
+  
+```
+
+## Visualize Three Variables
+
+```{r, echo = FALSE}
+ggplot(smart1_sh, aes(x = dm_status, y = bmi, 
+                      fill = factor(healthplan))) +
+  geom_violin(alpha = 0.3) +
+  geom_boxplot(width = 0.3) +
+  facet_wrap(~ healthplan, labeller = label_both) +
+  coord_flip() +
+  guides(fill = FALSE)
+```
+
+## Direct Approach: An Interaction Plot 
+
+We'll plot the means of the `bmi` in the four combinations:
+
+- two levels of `dm_status` combined with
+- two levels of `healthplan`
+
+```{r}
+summaries1 <- smart1_sh %>% 
+  group_by(dm_status, healthplan) %>%
+  summarize(n = n(), mean = mean(bmi), stdev = sd(bmi))
+
+summaries1 %>% knitr::kable(digits = 2)
+```
+
+## Simplest Interaction Plot (code)
+
+```{r, eval = FALSE}
+ggplot(summaries1, aes(x = dm_status, y = mean,
+                       col = factor(healthplan))) +
+  geom_point(size = 2) +
+  geom_line(aes(group = healthplan)) +
+  labs(y = "Body-Mass Index",
+       x = "Diabetes?",
+       title = "Observed Means for BMI", 
+       subtitle = "by Diabetes Status and Insurance")
+```
+
+## Simplest Interaction Plot (Results)
+
+```{r, echo = FALSE}
+ggplot(summaries1, aes(x = dm_status, y = mean,
+                       col = factor(healthplan))) +
+  geom_point(size = 2) +
+  geom_line(aes(group = healthplan)) +
+  labs(y = "Body-Mass Index",
+       x = "Diabetes?",
+       title = "Observed Means for BMI", 
+       subtitle = "by Diabetes Status and Insurance")
+```
+
+## Interaction Plot for Two-Way ANOVA (code)
+
+```{r, eval = FALSE}
+pd <- position_dodge(0.1)
+ggplot(summaries1, aes(x = dm_status, y = mean,
+                       col = factor(healthplan))) +
+  geom_errorbar(aes(ymin = mean - stdev,
+                    ymax = mean + stdev),
+                width = 0.1, position = pd) +
+  geom_point(size = 2, position = pd) +
+  geom_line(aes(group = healthplan), position = pd) +
+  labs(y = "Body-Mass Index",
+       x = "Diabetes?",
+       title = "Observed Means (+/- SD) for BMI", 
+       subtitle = "by Diabetes Status and Insurance")
+```
+
+## Interaction Plot for Two-Way ANOVA
+
+```{r, echo = FALSE}
+pd <- position_dodge(0.1)
+ggplot(summaries1, aes(x = dm_status, y = mean,
+                       col = factor(healthplan))) +
+  geom_errorbar(aes(ymin = mean - stdev,
+                    ymax = mean + stdev),
+                width = 0.1, position = pd) +
+  geom_point(size = 2, position = pd) +
+  geom_line(aes(group = healthplan), position = pd) +
+  labs(y = "Body-Mass Index",
+       x = "Diabetes?",
+       title = "Observed Means (+/- SD) for BMI", 
+       subtitle = "by Diabetes Status and Insurance")
+```
+
+## Two-Way (Two Factor) Analysis of Variance
+
+```{r}
+a2 <- smart1_sh %$% lm(bmi ~ dm_status * healthplan)
+
+anova(a2) %>% knitr::kable(digits = 3)
+```
+
+Why am I using `*` rather than `+` to connect `dm_status` and `healthplan`?
+
+## Two-Way (Two Factor) Analysis of Variance
+
+Model without an interaction term:
+
+```{r}
+a2_noint <- smart1_sh %$% lm(bmi ~ dm_status + healthplan)
+
+anova(a2_noint) %>% knitr::kable(digits = 3)
+```
+
+## Model including an interaction term:
+
+```{r}
+a2_switch <- smart1_sh %$% lm(bmi ~ healthplan * dm_status)
+
+anova(a2_switch) %>% knitr::kable(digits = 3)
+```
+
+I switched the order of the two factors here. Does order matter?
+
+## Model `a2` tidied coefficients
+
+```{r}
+tidy(a2, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+## Model `a2_switch` coefficients
+
+```{r}
+tidy(a2_switch, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+We can use this model to make predictions for each of four types of people:
+
+- Those with diabetes, but not a health plan
+- Those with diabetes and a health plan
+- Those without diabetes, but who have a health plan
+- Those without diabetes, and also without a health plan
+
+## The Resulting Equations
+
+The model with the interaction term is
+
+```
+BMI = 28.011 + 3.006 (dm_status = Yes) 
+             + 0.002 (healthplan = 1) 
+             + 0.994 (dm_status = Yes)(healthplan = 1)
+```
+
+`dm_status` | `healthplan` | Predicted BMI
+----------: | -----------: | ------------------------------
+Yes | 1 (Yes) | 28.011 + 3.006 + 0.002 + 0.994 = 32.013
+Yes | 0 (No) | 28.011 + 3.006 = 31.017
+No | 1 (Yes) | 28.011 + 0.002 = 28.013
+No | 0 (No) | 28.011 
+
+These are the original means (except for rounding error) of the four groups.
+
+## Interpreting the Model with Interaction
+
+```{r}
+tidy(a2, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+- Our interpretation here would involve specifying that the interaction between `dm_status` and `healthplan` is important, and focusing on what that means, perhaps by specifying what happens to the four types of people we could see (Yes/Yes, Yes/No, No/Yes and No/No) in terms of our two factors.
+- Do we need the interaction term here, or could we simplify the model?
+
+## What's next?
+
+1. Determining the importance of an interaction term
+    - through an interaction plot
+    - using sums of squares
+    - using statistical significance testing
+2. Building a two-factor ANOVA model with multi-categorical factors
+    - again, focus on interpreting the interaction
+    - add covariates, as desired
+3. Building similar models for a binary outcome using linear probability models and then generalized linear models (specifically logistic regression).

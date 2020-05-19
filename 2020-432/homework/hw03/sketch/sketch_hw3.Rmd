@@ -1,0 +1,485 @@
+---
+title: "432 Homework 3 Answer Sketch and Grading Rubric"
+author: "432 TAs"
+output: 
+  pdf_document:
+    toc: yes
+date: 'Due 2020-02-18. Version: `r Sys.Date()`'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+## Setup and Data Ingest {-}
+
+```{r, message=FALSE}
+library(skimr)
+library(broom)
+library(magrittr)
+library(janitor)
+library(caret)
+library(naniar)
+library(leaps)
+library(knitr)
+library(patchwork)
+library(here)
+library(tidyverse)
+
+theme_set(theme_bw())
+
+hbp432 <- read_csv(here("data/hbp432.csv")) %>%
+    clean_names()
+```
+
+# Question 1 (30 points)
+
+Again, consider the `hbp432` data used in Homework 1. Build your best model for the prediction of body-mass index, considering the following 14 predictors: `practice`, `age`, `race`, `eth_hisp`, `sex`, `insurance`, `income`, `hsgrad`, `tobacco`, `depdiag`, `sbp`, `dbp`, `statin` and `bpmed`. Use an appropriate best subsets procedure to aid in your search, and use a cross-validation strategy to assess and compare potential models.
+
+- Feel free to omit the cases with missing values in the variables you are considering (these 14 predictors, plus the `bmi` outcome) before proceeding. This should not materially affect your sample size very much. In the answer sketch, we will use a complete cases analysis.
+- Use the `nvmax = 7` command within your call to `regsubsets` to limit your investigation to models containing no more than seven of these candidate predictors.
+- Do not transform any variables, and consider models with main effects only so that no product terms are used.
+- A 5-fold cross-validation strategy would be very appropriate. Another reasonable choice would involve partitioning the data once (prior to fitting any models) into training and test samples, as we did in 431.
+
+Be sure to provide a written explanation of your conclusions and specify the variables in your final model, in complete sentences.
+
+## Data Preparation
+
+We'll need to manage the data a bit. Specifically, we'll...
+
+1. Calculate the outcome, `bmi`.
+2. Express all multi-categorical variables in `hbp432` as factors, with `type.convert()`, except for the subject identifier (`subject`)
+3. Restrict ourselves to complete cases, so as to avoid problems with missing data.
+4. Use only the variables we're considering as predictors, plus the outcome (`bmi`) and `subject` code.
+
+```{r}
+hw3q1 <- hbp432 %>%
+    mutate(bmi = weight / (height^2)) %>%
+    type.convert() %>%
+    mutate(subject = as.character(subject)) %>%
+    drop_na() %>%
+    select(subject, bmi, 
+           practice, age, race, eth_hisp,
+           sex, insurance, income, hsgrad, tobacco,
+           depdiag, sbp, dbp, statin, bpmed)
+```
+
+### Sanity Check
+
+Let's check to be sure all predictors are either a factor or numeric, and that we now have no missing values.
+
+```{r}
+skim_without_charts(hw3q1)
+```
+
+OK. This looks reasonable. Now, we could partition the data first into training and test samples at this point, but instead, we'll do the exhaustive search first and then do 5-fold cross-validation later.
+
+## Performing an exhaustive search with `regsubsets`
+
+```{r}
+q1_best <- regsubsets(bmi ~ practice + age + race + 
+                eth_hisp + sex + insurance + income + 
+                hsgrad + tobacco + depdiag + sbp + dbp + 
+                statin + bpmed,
+              data = hw3q1, nvmax = 7, nbest = 1)
+
+q1_summ <- summary(q1_best)
+```
+
+The `outmat` section of the summary output has the listing of fitted models that we want. Note that the multi-categorical variables, like `race`, `practice`, `insurance`, and `tobacco` are split into their indicators for each level.
+
+```{r}
+q1_summ$outmat
+```
+
+So, here are our "best subsets" models:
+
+Inputs | Predictors Included (in addition to Intercept)
+-----: | --------------------------------------------------
+1 | `age` 
+2 | `age`, `sex`
+3 | Model 2 + `statin`
+4 | Model 3 + `tobaccoNever`
+5 | Model 4 + `tobaccoFormer`
+6 | Model 5 + `insuranceUninsured`
+7 | **Model 5** + `raceWhite` and `practiceB`
+
+Notice that Model 7 doesn't include `insuranceUninsured` like Model 6 does.
+
+## Fit Quality Statistics
+
+```{r}
+q1_winners <- tbl_df(q1_summ$which) %>%
+    mutate(inputs = 1:(q1_best$nvmax - 1),
+           r2 = q1_summ$rsq,
+           adjr2 = q1_summ$adjr2,
+           cp = q1_summ$cp,
+           bic = q1_summ$bic,
+           rss = q1_summ$rss) %>%
+    select(inputs, adjr2, cp, bic, everything())
+
+q1_winners %>%
+  select(inputs, adjr2, cp, bic) %>%
+  kable(digits = c(0, 3, 1, 1))
+```
+
+
+## Comparing Best Subsets Models on Summary Measures
+
+To make it easier to compare, we'll create separate graphs for adjusted $R^2$, Mallows' $C_p$, and BIC (Bayes Information Criterion).
+
+### Code for Adjusted $R^2$ plot
+
+```{r}
+p1 <- ggplot(q1_winners, aes(x = inputs, y = adjr2, 
+                       label = round(adjr2,3))) +
+    geom_line() +
+    geom_label() +
+    geom_label(data = subset(q1_winners, 
+                             adjr2 == max(adjr2)),
+               aes(x = inputs, y = adjr2, 
+                   label = round(adjr2,3)), 
+               fill = "yellow", col = "blue", size = 6) +
+    scale_y_continuous(expand = expand_scale(mult = .1)) +
+    labs(x = "# of regression inputs",
+         y = "Adjusted R-squared")
+```
+
+### Code for Mallows' $C_p$ plot
+
+```{r}
+p2 <- ggplot(q1_winners, aes(x = inputs, y = cp, 
+                       label = round(cp,1))) +
+    geom_line() +
+    geom_label() +
+    geom_label(data = subset(q1_winners, 
+                             cp == min(cp)),
+               aes(x = inputs, y = cp, 
+                   label = round(cp,1)), 
+               fill = "navy", col = "white", size = 6) +
+    scale_y_continuous(expand = expand_scale(mult = .1)) +
+    labs(x = "# of regression inputs",
+         y = "Mallows' Cp")
+```
+
+### Code for BIC plot
+
+```{r}
+p3 <- ggplot(q1_winners, aes(x = inputs, y = bic, 
+                       label = round(bic, 1))) +
+    geom_line() +
+    geom_label() +
+    geom_label(data = subset(q1_winners, 
+                             bic == min(bic)),
+               aes(x = inputs, y = bic, label = round(bic,1)), 
+               fill = "red", col = "white", size = 6) +
+    scale_y_continuous(expand = expand_scale(mult = .1)) +
+    labs(x = "# of regression inputs",
+         y = "Bayes Information Criterion")
+```
+
+## Which looks best?
+
+Remember that we want to maximize adjusted $R^2$ and minimize Mallows' $C_p$ and BIC. 
+
+```{r}
+tibble(AdjR2 = which.max(q1_winners$adjr2),
+       Cp = which.min(q1_winners$cp),
+       BIC = which.min(q1_winners$bic))
+```
+
+### The Plots
+
+```{r, fig.height = 7}
+p1 / p2 / p3
+```
+
+## Selecting a Winner
+
+The models we'll consider are:
+
+Inputs | Predictors Included | Reason
+-----: | --------------------------- | ---------------
+3 |`age`, `sex`, `statin` | lowest BIC 
+7 | Model 3 + `tobaccoNever`, `tobaccoFormer`, `raceWhite`, and `practiceB` | highest adjusted $R^2$ and lowest $C_p$
+
+We'll fit each of these models in turn, and then perform a 5-fold cross validation for each, then compare results. In each case, we'll calculate the root mean squared error of the predictions, the $R^2$, and the mean absolute prediction error across the complete samples.
+
+### 5-fold cross-validation of model 3
+
+```{r}
+set.seed(4322020)
+
+train_c <- trainControl(method = "cv", number = 5)
+
+model3_cv <- train(bmi ~ age + sex + statin,
+                   data = hw3q1, method = "lm",
+                   trControl = train_c)
+
+model3_cv
+```
+
+### 5-fold cross-validation of model 7
+
+```{r}
+set.seed(2020432)
+
+train_c <- trainControl(method = "cv", number = 5)
+
+model7_cv <- train(bmi ~ age + sex + statin + tobacco + 
+                     (race == "White") + (practice == "B"),
+                   data = hw3q1, method = "lm",
+                   trControl = train_c)
+
+model7_cv
+```
+
+### Which model looks better?
+
+```{r}
+bind_rows(model3_cv$results, model7_cv$results) %>%
+    mutate(model = c("model3", "model7")) %>%
+    select(model, Rsquared, RMSE, MAE)
+```
+
+Model 7 has a larger cross-validated $R^2$ and smaller RMSE and MAE, so it looks like the stronger model.
+
+So, we select the model with seven inputs.
+
+## Moving forward with the 7-input model
+
+Refitting this model to the complete case sample of people without missing values on the variables we decided to use at the beginning, we have the following summary results. Notice that since our model includes indicator variables for tobacco = Former and tobacco = Never, and we only have three levels of tobacco (Current, Former and Never) we can simply include the tobacco factor to show this model. As with any included binary variable, we include the `sex` and `statin` factors as usual, too. For the `race` and `practice` multi-categorical variables, we instead need to isolate the indicator variable that best subsets selected.
+
+```{r}
+summary(lm(bmi ~ age + sex + statin + tobacco + 
+             (race == "White") + (practice == "B"),
+        data = hw3q1))
+```
+
+The model appears to account for about 22% of the variation in `bmi`, and includes information on age, sex, statin and tobaco usage, plus indicator variables for white race/ethnicity and practice B.
+
+## Question 1 (Rubric: 30 points)
+
+To receive 30 points, the students should:
+
+- (3 points) correctly set up the data to run regsubsets
+- (5 points) successfully perform the exhaustive search and identify seven models
+- (5 points) correctly plot the summaries of those models for adjusted $R^2$, BIC and Mallows' $C_p$
+- (4 points) use their plots to identify candidate models appropriately
+- (4 points) perform 5-fold cross-validation correctly on each of those candidate models
+- (3 points) come to an appropriate conclusion based on their RMSE, MAE, and $R^2$ and select a model
+- (6 points) identify the final choice of model explicitly, as part of a written explanation of their conclusions.
+- Subtract 3 points off of their total score if they fail to deal with the missing data in a sensible way.
+- Subtract 3 points if they fail to treat the multi-categorical variables as factors.
+
+- A reasonable but not completely successful attempt should receive points for all of the pieces above that are correct. If they made a mistake early on, but then did everything else correctly in light of their early mistake, they should receive credit for the later pieces.
+- A completely successful effort will thus receive the full 30 points.
+- Provide comments to all students who score less than 30 for any reason other than typos.
+
+# Question 2-5 (40 points, total) {-}
+
+Using the `hbp432` data, you will build models to predict whether or not the subject has a statin prescription based on the subject's current LDL cholesterol and which of the four practices they receive care from. Fit logistic regression models both with and without an interaction term between the two practice (factor) and LDL level.
+
+# Question 2 (10 points)
+
+Use a likelihood ratio test to compare the models, and describe its conclusions.
+
+## Check for missing data
+
+First, let's check on missingness in the `hbp432` data.
+
+```{r}
+gg_miss_var(hbp432)
+```
+
+As it turns out, we've got complete data on `statin` and `practice`, but we're missing 28 `ldl` observations, so we have to decide what to do about that. The simplest thing is to omit those cases, and then build our models on the remaining 404 observations. Another approach would have been to impute the missing `ldl` values.
+
+```{r}
+hw3q2 <- hbp432 %>%
+    filter(complete.cases(ldl)) %>%
+    select(subject, statin, ldl, practice)
+```
+
+## Building logistic regression models with and without interaction
+
+We'll fit the models using `glm`. Our initial model predicts `statin` based on `ldl` and `practice` without an interaction and our second model includes an interaction between the predictors. I'm using 90% confidence intervals here anticipating Question 5.
+
+```{r}
+model_without <- hbp432 %$%
+    glm(statin ~ ldl + practice, family = binomial)
+
+tidy(model_without, exponentiate = TRUE, 
+     conf.int=TRUE, conf.level=0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  kable(digits = 3)
+```
+
+```{r}
+model_with <- hbp432 %$%
+    glm(statin ~ ldl * practice, family = binomial)
+
+tidy(model_with, exponentiate = TRUE, 
+     conf.int=TRUE, conf.level=0.9) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  kable(digits = 3)
+```
+
+## Perform Likelihood Ratio Test
+
+Now, we will compare the two models using the Model Likelihood Ratio Test.
+
+```{r}
+anova(model_without, model_with, test= "LRT")
+```
+
+Because we have a small p-value, we conclude that adding the interaction term adds statistically detectable predictive value to the model.
+
+## Question 2 (Rubric: 10 points)
+
+- Award up to 5 points for generating appropriate logistic regression models with and without interaction.
+- Award 5 more points for correctly interpreting the usefulness of adding the interaction term using the Model Likelihood Test.
+
+If students don't explicitly notice the missing `ldl` data and address it, they should lose 2 points. (Note that the default approach for `glm` is to omit those 28 cases.)
+
+# Question 3 (10 points)
+
+Compare the confusion matrix produced by the two models (using a 0.5 cut point). Produce an attractively formatted table comparing the models in terms of prediction accuracy, sensitivity, specificity, as well as PPV and NPV.
+
+## Building the Confusion Matrix
+
+To do this, we will use the `augment` function and then the `confusionMatrix` function from the `caret` package. We'll do this for each model separately, and then compare the results.
+
+**NOTE** In the initial draft of this sketch, we left out the `type.predict = "response"` part of the `augment` statement for each of our logistic regression models. In order to show probabilities in the predictions with `augment` using a logistic regression model, this is a necessary element. Leaving it off led us to the wrong confusion matrix for each model. We've corrected it in what follows.
+
+```{r}
+model_without_aug <- augment(model_without, type.predict = "response")
+
+confuse_without <- 
+  model_without_aug %$% confusionMatrix(
+    data= factor(.fitted >= 0.5), 
+    reference = factor(statin==1), 
+    positive ="TRUE")
+
+confuse_without
+```
+
+```{r}
+model_with_aug <- augment(model_with, type.predict = "response")
+
+confuse_with <- 
+  model_with_aug %$% confusionMatrix(
+    data= factor(.fitted >= 0.5), 
+    reference = factor(statin==1), 
+    positive="TRUE")
+
+confuse_with
+```
+
+### Building an Attractively Formatted Table of Key Summaries
+
+We asked you to build a table of these key summaries. Here's how Dr. Love would do it. 
+
+```{r}
+cwo <- tidy(confuse_without) %>%
+  select(term, model_without = estimate) %>%
+  filter(term %in% 
+           c("accuracy", "sensitivity", "specificity",
+             "pos_pred_value", "neg_pred_value"))
+
+cw <- tidy(confuse_with) %>%
+  select(term, model_with = estimate) %>%
+  filter(term %in% 
+           c("accuracy", "sensitivity", "specificity",
+             "pos_pred_value", "neg_pred_value"))
+
+left_join(cwo, cw, by = "term")
+```
+
+If you just used the summaries printed previously, that would be OK, but you'd want to clean that up in practical work going forward using an approach like this.
+
+As for interpreting these results, the model without the interaction has ...
+
+- a **weaker** performance in terms of predictive **accuracy** (57% of predictions are correct, as compared to 60% of predictions made by the model including the interaction.)
+- a **weaker** performance in terms of **sensitivity** (if the subject actually has a statin prescription, the model without interaction detects this 88% of the time, as compared to 91% of the time for the model with interaction.)
+- a **weaker** performance in terms of **specificity** (if the subject actually doesn't have a statin prescription, the model without interaction gets this right 15% of the time, as compared to 18% of the time for the model with interaction.)
+- a **weaker positive predictive value** (our predictions from the model without the interaction that a subject has a statin prescription are correct 58% of the time, while for the model with the interaction such predictions are correct 60% of the time.)
+- a **weaker negative preditive value** (our predictions from the model without the interaction that a subject does not have a statin prescription are correct 47% of the time, while for the model with the interaction such predictions are correct 60% of the time.)
+
+So the clear preference is for the model with the interaction.
+
+## Question 3: Rubric (10 points)
+
+- Award 5 points for correctly creating the two confusion matrices, which may look a little different if they failed to deal with the missingness before fitting the models.
+  - If they neglected to include `type.predict = "response"` in their `augment()` statements, then they should lose 2 points.
+  - We're very sorry that we didn't catch this in our earlier draft of this sketch.
+- Award 5 points for correctly comparing each of the five requested summary characteristics given their confusion matrices, and associating the correct direction (stronger/weaker) with each.
+  - If they had the wrong confusion matrix, but correctly interpreted the results that they developed - they should only be penalized in the first part of this question.
+
+# Question 4 (10 points)
+
+Based on your general assessment of each model's quality of fit, select the model (interaction or no interaction) that seems more appropriate, and justify that selection.
+
+## Assessing Fit Quality with AIC and BIC
+
+We will use the `glance` function to evaluate the quality of fit for our models.
+
+```{r}
+bind_rows(glance(model_without), glance(model_with)) %>%
+  mutate(model= c("Without interaction", "With interaction"),
+         deviance_diff= null.deviance - deviance,
+         df_diff = df.null - df.residual) %>%
+  select(model, AIC, BIC, deviance_diff, df_diff) %>%
+  kable(digits = 1)
+```
+
+- The model with interaction has smaller values for both AIC and BIC, so it again looks like the more appropriate choice.
+- Note that the confusion matrix summaries aren't really what we were looking for in this question, and present a somewhat mixed bag of results.
+
+## Question 4 (Rubric: 10 points)
+
+- Award 5 points if the student generates appropriate quality of fit measures.
+- Award 5 points for proper interpretation of the results.
+
+# Question 5 (10 points)
+
+For the model you selected in Question 4, interpret the odds ratio associated with the `ldl` main effect carefully, specifying a 90% uncertainty interval and what we can conclude from the results.
+
+```{r}
+tidy(model_with, exponentiate = TRUE, 
+     conf.int=TRUE, conf.level=0.90) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  kable(digits = 3)
+```
+
+The `ldl` odds ratio is estimated to be 0.964, with 90% uncertainty interval (0.950, 0.978). In order to interpret this in light of the interaction term, we have to pick a specific `practice` in order to interpret the `ldl` result. If we have two patients named Harry and Sally who are seen at practice A, where Harry's LDL cholesterol is 1 point higher than Sally's, then the odds of Harry having a statin prescription are 96.4% as high as the odds for Sally. Since the 90% confidence interval is below 1, Harry's odds are detectably smaller (with 90% confidence) than Sally's.
+
+## Question 5 (Rubric: 10 points)
+
+- Award 5 points if the student generates the appropriate odds ratios and uncertainty intervals.
+- Award 3 points for proper interpretation of the `ldl` value but not recognizing that this only applies if the practice is A (so 3 points if they suggest only that their version of Harry and Sally need to be at the same practice.)
+- Award the final 2 points if they recognize that the main effect of `ldl` only applies to practice A in this interaction model.
+- If they mistakenly chose the model without the interaction in Question 4, then their answer should reflect that choice.
+
+# Question 6 (30 points)
+
+- First, in 2-4 complete English sentences, please specify, using your own words and complete English sentences, the most useful and relevant piece of advice you took away from reading the chapters in David Spiegelhalter's **The Art of Statistics** that you have read so far. 
+    - Please provide a reference to the section of the book that provides this good advice. 
+- Then, in an essay of 4-8 additional sentences, describe why this particular piece of advice was meaningful or useful for you, personally, and how it will affect the way you move forward. 
+    - You are strongly encouraged to provide a specific example of a past or current scientific experience of yours that would have been (or is being) helped by this new approach or idea. 
+    - After reading your work, we want to be able to easily specify what this idea is, and why it is important and worth sharing.
+
+We don't write sketches for essay questions. We hope to share a few of the more interesting responses with you after they've been graded.
+
+## Question 6 (Rubric: 30 points)
+
+- Award up to 12 points for the initial little essay, giving full credit if they write down an actual piece of advice that makes sense to you, assuming they provide a clear indication of where it came from.
+    - A reasonable piece of advice with no citation should get 9/12 on this part.
+- Award up to 18 additional points for the second little essay, awarding 14-15 points for most students who do this in a reasonable way, but 17-18 points for the top 5 or so essays overall.
+- Provide comments to all students who score below 24/30 here for reasons other than just typos or grammatical issues.
+
+
+# Session Information
+
+```{r}
+sessioninfo::session_info()
+```

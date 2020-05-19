@@ -1,0 +1,45 @@
+# Building Predictions from our models
+
+The `predict` function, when applied to a linear regression model, produces the fitted values, just as the `fitted` function did, and, as we've seen, it can be used to generate *prediction* intervals for a single new observation, or *confidence* intervals for a group of new observations with the same predictor values. 
+
+## Predictions for a "typical" island
+
+Let us, just for a moment, consider a "typical" island, exemplified by the median value of all the predictors\footnote{This approach is motivated by @Faraway2015, pp. 52-53.}. There's a trick to creating this and dumping it in a vector I will call `x.medians`.
+
+```{r p70a}
+x <- model.matrix(model1)
+x.medians <- apply(x, 2, function(x) median(x))
+x.medians
+```
+
+We want to use the model to predict our outcome (species) on the basis of the inputs above: a new island with values of all predictors equal to the median of the existing islands. As before, building an interval forecast around a fitted value requires us to decide whether we are:
+
+- predicting the number of species for one particular island with the specified characteristics (in which case we use something called a prediction interval) or
+- predicting the mean number of species across all islands that have the specified characteristics (in which case we use the confidence interval). 
+
+```{r p 70b}
+newdata <- data.frame(t(x.medians))
+predict(model1, newdata, interval="prediction", level = 0.95)
+predict(model1, newdata, interval="confidence", level = 0.95)
+```
+
+### Questions about the Prediction and Confidence Interval Methods
+
+74. What is the 95% prediction interval for this new observation? Does that make sense?
+75.	Which interval (prediction or confidence) is wider? Does that make sense?
+76.	Is there an island that has characteristics that match our new medians variable?
+77.	What happens if we don't specify new data in making a prediction?
+
+## Making a Prediction with New Data
+
+78.	How does the output below help us to make a prediction with a new data point, or series of them? Interpret the resulting intervals.
+
+```{r p70-2}
+newdata2 <- data.frame(area = 2, elevation = 100, nearest = 3, 
+                       scruz = 5, adjacent = 1)
+predict(model1, newdata2, interval="prediction", level = 0.95)
+predict(model1, newdata2, interval="confidence", level = 0.95)
+```
+
+
+

@@ -1,0 +1,510 @@
+---
+title: "500 Homework 5 Answer Sketch"
+author: "Thomas E. Love"
+date: "Due 2019-04-04 at noon. Version: `r Sys.time()`"
+output: 
+    pdf_document:
+        number_sections: TRUE
+        toc: TRUE
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+```{r, message = FALSE}
+library(Epi)
+library(Matching)
+library(tableone)
+library(cobalt)
+library(rbounds)
+library(survival)
+library(twang)
+library(survey)
+library(skimr)
+library(tidyverse)
+```
+
+# Selecting an Exposure, Outcome and Population
+
+## What the Class Did (2018)
+
+Students in 2018 selected all kinds of things as treatments and outcomes, and some also restricted the sample to look at particular subpopulations of interest. Thanks for doing that.
+
+- Everyone selected a binary outcome
+    - Death
+    - Angina
+    - Hospitalization due to respiratory infection
+    - Respiratory infection
+    - MI
+    - Stroke
+
+- Treatments people considered were:
+    - Digoxin was the most common choice
+    - Diabetes
+    - Hydralazine
+    - Pulmonary congestion
+    - Rales
+    - ACE-inhibitor
+    - Nitrates
+    - Hypertension
+
+As a result, pretty much whatever I choose, I'm going to miss something that people were interested in. Rather than write many answer sketches, I'll just select something that doesn't actually match any of those folks, and we'll see how that works out.
+
+## My Choices
+
+- I will study the subpopulation of patients who have no prior MI (`PREVMI` == 0).
+- The exposure of interest is NYHA Functional Class (`FUNCTCLS`) of III or IV, as compared to I or II.
+- The outcome I'll study is all-cause hospitalization (`HOSP`).
+
+I am anticipating that among the patients without a prior myocardial infarction, those with baseline NYHA Class III or IV will be hospitalized more freqently than those with NYHA Class I or II.
+
+The covariates I'll study (selected at least in part to try to cover each kind of variable people had trouble with) are:
+
+1. ejection fraction (`EJF_PER`)
+2. sex (`SEX`)
+3. age (`AGE`)
+4. race (`RACE`)
+5. body-mass index (`BMI`)
+6. serum creatinine level (`CREAT`)
+7. heart rate (`HEARTRTE`)
+8. systolic blood pressure (`SYSBP`)
+9. diastolic blood pressure (`DIABP`)
+10. baseline angina (`ANGINA`)
+11. history of diabetes (`DIABETES`)
+12. history of hypertension (`HYPERTEN`)
+13. use of potassium-sparing diuretics (`DIURETK`)
+14. present and past status of pulmonary edema (`PEDEMA`)
+15. present and past status of rales (`RALES`)
+
+These covariates include:
+- quantities measured as continuous (`EJF_PER`, `AGE`, `BMI`, `CREAT`, `HEARTRTE`, `SYSBP`, `DIABP`)
+- binary variables (`SEX`, `RACE`, `ANGINA`, `DIABETES`, `HYPERTEN`, `DIURETK`)
+- multi-categorical variables (`PEDEMA`, `RALES`)
+
+# Cleaning the Data
+
+The code below reads in the data, and selects my population and the variables I'll use. Among the 2,380 subjects with `PREVMI` of 0 in the main data set, all but 11 have complete data on my selected variables^[I won't lie. That's part of the reason I selected them.] so I'll just simply my life by dropping all 11 cases with missing values.
+
+```{r}
+dig <- read.csv("dig1.csv") %>% tbl_df %>%
+    filter(PREVMI == 0) %>%
+    select(subjectid, PREVMI, FUNCTCLS, HOSP, EJF_PER, 
+           SEX, AGE, RACE, BMI, CREAT, HEARTRTE, SYSBP, 
+           DIABP, ANGINA, DIABETES, HYPERTEN, DIURETK, 
+           PEDEMA, RALES) %>%
+    drop_na ## only 11 subjects have any missing values
+```
+
+## Exposure
+
+Next, I'll create my exposure variable. 
+
+- I'll call the 1/0 version `badNYHA`, which is 1 if the patient's NYHA functional class is III or IV, and 0 otherwise. This is the version I'll use in modeling.
+- I'll call the factor version `NYHA_f` which takes the values "III or IV" or "I or II" corresponding directly to the NYHA functional class. This is the version I'll use in summary tables.
+
+```{r}
+dig <- dig %>%
+    mutate(badNYHA = ifelse(FUNCTCLS %in% c(3, 4), 1, 0),
+           NYHA_f = fct_recode(factor(badNYHA), 
+                               "III or IV" = "1", "I or II" = "0"),
+           NYHA_f = fct_relevel(NYHA_f, "III or IV"))
+
+dig %>% count(badNYHA, NYHA_f)
+```    
+
+Of the 2,369 subjects in my subpopulation, 760 (32%) have the exposure of interest (NYHA class III or IV.)
+
+## Outcome
+
+Next, I'll set up a factor version of my outcome variable. 
+
+```{r}
+dig <- dig %>%
+    mutate(hosp_f = fct_recode(factor(HOSP), 
+            "Hospitalized" = "1", "Not Hosp." = "0"),
+           hosp_f = fct_relevel(hosp_f, "Hospitalized"))
+
+dig %>% count(hosp_f, HOSP)
+```
+
+Of the 2,369 subjects in my subpopulation, 1558 (66%) were hospitalized.
+
+## Binary Covariates: Cleanup
+
+```{r}
+dig <- dig %>%
+    mutate(female = ifelse(SEX == 2, 1, 0),
+     sex_f = fct_recode(factor(SEX), "Male" = "1", 
+                        "Female" = "2"),
+     white = ifelse(RACE == 1, 1, 0),
+     race_f = fct_recode(factor(RACE), "White" = "1", 
+                         "Non-White" = "2"),
+     angina_f = fct_recode(factor(ANGINA), 
+                           "Yes" = "1", "No" = "0"),
+     dm_f = fct_recode(factor(DIABETES), 
+                       "Yes" = "1", "No" = "0"),
+     htn_f = fct_recode(factor(HYPERTEN), 
+                        "Yes" = "1", "No" = "0"),
+     diurk_f = fct_recode(factor(DIURETK), 
+                          "Yes" = "1", "No" = "0"))
+```
+
+## Multi-Categorical Variables
+
+```{r}
+dig <- dig %>%
+    mutate(
+      ped_f = fct_recode(factor(PEDEMA),
+                         "None" = "0",
+                         "Present" = "1",
+                         "Past" = "2",
+                         "Present & Past" = "3"),
+      ped_pres = ifelse(PEDEMA %in% c(1, 3), 1, 0),
+      ped_past = ifelse(PEDEMA %in% c(2, 3), 1, 0),
+      rales_f = fct_recode(factor(RALES),
+                         "None" = "0",
+                         "Present" = "1",
+                         "Past" = "2",
+                         "Present & Past" = "3"),
+      rales_pres = ifelse(RALES %in% c(1, 3), 1, 0),
+      rales_past = ifelse(RALES %in% c(2, 3), 1, 0)
+    )
+```
+
+
+# Task 1. Build a Table 1
+
+```{r}
+v1 <- c("EJF_PER", "sex_f", "AGE", "race_f", "BMI", "CREAT", 
+       "HEARTRTE", "SYSBP", "DIABP", "angina_f", "dm_f", 
+       "htn_f", "diurk_f", "ped_f", "rales_f")
+fv1 <- c("sex_f", "race_f", "angina_f", "dm_f", "htn_f", 
+        "diurk_f", "ped_f", "rales_f")
+
+CreateTableOne(vars = v1, strata = "NYHA_f", 
+               factorVars = fv1, data = dig)
+```
+
+Four or five variables show a large and significant difference here (for instance, ejection fraction, sex, diabetes, potassium-sparing diuretics and perhaps race), but most of the others show only tiny distinctions between the I-II vs. III-IV groups. The angina rate, coincidentally, is exactly the same in each exposure group in this sample. We'd expect that the results will look a bit different after propensity adjustment.
+
+# Task 2. Unadjusted Analysis of Exposure on Outcome
+
+Before any sort of propensity adjustment, the effect of NYHA functional class (III or IV vs. I or II) on hospitalization rates looks highly significant^[This is another reason why I selected the setup I did.]
+
+```{r}
+twoby2(dig$NYHA_f, dig$hosp_f)
+```
+
+The unadjusted estimate of the odds ratio for bad NYHA class vs. good NYHA class on hospitalization is 1.52, with 95% CI (1.26, 1.83).
+
+# Fit the Propensity Score Model
+
+```{r}
+psmod <- glm(badNYHA ~ EJF_PER + sex_f + AGE + race_f + 
+                 BMI + CREAT + HEARTRTE + SYSBP + DIABP +
+                 ANGINA + DIABETES + HYPERTEN + DIURETK +
+                 ped_f + rales_f, family = binomial(),
+             data = dig)
+summary(psmod)
+
+dig$ps <- fitted(psmod) # propensity score
+dig$linps <- psmod$linear.predictors # linear PS
+```
+
+## Overlap of the propensity scores by exposure group
+
+```{r}
+ggplot(dig, aes(x = ps, fill = NYHA_f)) +
+    geom_density(alpha = 0.3)
+```
+
+## Rubin's Rule 1 for the unadjusted comparison
+
+```{r}
+rubin1.unadj <- with(dig,
+     abs(100*(mean(linps[badNYHA==1])-mean(linps[badNYHA==0]))/sd(linps)))
+rubin1.unadj
+```
+
+## Rubin's Rule 2 for the unadjusted comparison
+
+```{r}
+rubin2.unadj <-with(dig, var(linps[badNYHA==1])/var(linps[badNYHA==0]))
+rubin2.unadj
+```
+
+# Task 3: Analysis using Propensity Score Matching
+
+I'll do a 1:1 greedy match.
+
+```{r}
+X <- dig$linps ## matching on the linear propensity score
+Tr <- as.logical(dig$badNYHA)
+match1 <- Match(Tr=Tr, X=X, M = 1, replace=FALSE, ties=FALSE)
+summary(match1)
+```
+
+## Using `cobalt` to build a "Love Plot" after Matching
+
+```{r }
+b <- bal.tab(match1, 
+             badNYHA ~ EJF_PER + female + AGE + white + 
+                 BMI + CREAT + HEARTRTE + SYSBP + DIABP +
+                 ANGINA + DIABETES + HYPERTEN + DIURETK +
+                 ped_pres + ped_past + rales_pres + 
+                 rales_past + ps + linps, 
+             data=dig, un = TRUE)
+b
+```
+
+### Building a Plot of Standardized Differences, with `cobalt`
+
+```{r }
+p <- love.plot(b, threshold = .1, size = 1.5,
+        var.order = "unadjusted",
+        title = "Standardized Differences and 1:1 Matching")
+p + theme_bw()
+```
+
+### Building a Plot of Variance Ratios, with `cobalt`
+
+```{r }
+p <- love.plot(b, stat = "v",
+               threshold = 1.25, size = 1.5,
+               var.order = "unadjusted",
+               title = "Variance Ratios and 1:1 Matching")
+p + theme_bw()
+```
+
+# Creating a New Data Frame, Containing the Matched Sample
+
+Now, we build a new matched sample data frame with 760 subjects in each group.
+
+```{r}
+matches <- factor(rep(match1$index.treated, 2))
+dig.matched <- cbind(matches, dig[c(match1$index.control, match1$index.treated),])
+```
+
+Some sanity checks:
+
+```{r}
+dig.matched %>% count(NYHA_f)
+head(dig.matched)
+```
+
+## Rubin's Rule 1 Before and After Matching
+
+Recall that our result without propensity matching (or any other adjustment) was 
+
+```{r}
+rubin1.unadj
+```
+
+To run this for our matched sample, we use:
+
+```{r}
+rubin1.match <- with(dig.matched,
+      abs(100*(mean(linps[badNYHA==1]) - 
+                   mean(linps[badNYHA==0])) / 
+              sd(linps)))
+rubin1.match
+```
+
+An enormous improvement.
+
+### Rubin's Rule 2 Before and After Matching
+
+Recall that our result without propensity matching (or any other adjustment) was 
+
+```{r}
+rubin2.unadj
+```
+
+To run this for our matched sample, we use:
+
+```{r}
+rubin2.match <- with(dig.matched, 
+                     var(linps[badNYHA==1]) / 
+                         var(linps[badNYHA==0]))
+rubin2.match
+```
+
+Still within our desired range of (4/5, 5/4). Looks good.
+
+# Task 3 Propensity-Matched Analysis
+
+We'll use the matched sample to perform a conditional logistic regression.
+
+```{r}
+matched.a <- clogit(HOSP ~ badNYHA + strata(matches), 
+                    data=dig.matched)
+summary(matched.a)
+```
+
+The odds ratio in the `exp(coef)` section above is the average causal effect estimate - it describes the odds of being hospitalized if you are a subject with a bad NYHA functional class as compared to the odds of hospitalization if you do not have a bad NYHA class.
+
+- Again, the result is highly statistically significant, according to our 95% confidence interval. 
+- Our estimate, after matching, is 1.51, with 95% CI (1.22, 1.88). 
+
+## Sensitivity Analysis
+
+Since we have a significant result, I'll run a sensitivity analysis. We have already used the Match function from the Matching package to develop a matched sample. We can do the analysis in two ways:
+
+### Rerun the match, including the outcome
+
+```{r}
+X <- dig$linps ## matching on the linear propensity score
+Y <- dig$HOSP
+Tr <- as.logical(dig$badNYHA)
+match1_withY <- Match(Y = Y, Tr=Tr, X=X, M = 1, replace=FALSE, ties=FALSE)
+```
+
+Once we've done this, we need only run the `binarysens` function from the `rbounds` package to obtain sensitivity results. 
+
+```{r}
+binarysens(match1_withY, Gamma = 1.5, GammaInc = 0.05)
+```
+
+With a two-sided hypothesis test at $\alpha$ = 0.05, we are insensitive to $\Gamma$ values up to 1.30 or so. We can use the Table in Rosenbaum, Chapter 9 (and the formulas therein) to see that, for example, this is a little higher than $\Gamma$ of 1.25, which corresponds to an unobserved covariate that doubles the odds of a bad NYHA class and doubles the odds of a positive difference in the hospitalization rates.
+
+### Using the Matched Sample to fit McNemar's Test
+
+The other approach we could take is to run McNemar's test on the matched sample.
+
+```{r}
+dig_a <- dig.matched %>% select(matches, NYHA_f, hosp_f)
+
+dig_a2 <- spread(dig_a, key = NYHA_f, value = hosp_f) 
+
+head(dig_a2)
+```
+
+```{r}
+addmargins(table(dig_a2$'III or IV', dig_a2$'I or II'))
+```
+
+```{r}
+binarysens(x = 140, y = 212, Gamma = 1.30, GammaInc = 0.03)
+```
+
+With this setup, we are insensitive up to a $\Gamma$ of 1.21. The two approaches use different assumptions about the outcome we're interested in, and there's probably some other issue, as well.
+
+# Task 4 Propensity Weighting Analysis
+
+I'll perform an ATT weighting analysis
+
+## ATT approach: Weight treated subjects as 1; control subjects as ps/(1-ps)
+
+```{r}
+dig$wts1 <- ifelse(dig$badNYHA==1, 1, dig$ps/(1-dig$ps))
+```
+
+Here is a plot of the resulting ATT (average treatment effect on the treated) weights:
+
+```{r}
+ggplot(dig, aes(x = ps, y = wts1, color = NYHA_f)) +
+    geom_point() + 
+    guides(color = FALSE) +
+    facet_wrap(~ NYHA_f) +
+    labs(x = "Estimated Propensity for NYHA Class III or IV",
+         y = "ATT weights for the dig sketch",
+         title = "ATT weighting structure: dig sketch")
+```
+
+### Balance Assessment before and after ATT weights
+
+```{r}
+dig_df <- data.frame(dig) # twang doesn't react well to tibbles
+
+covlist <- c("EJF_PER", "female", "AGE", "white", "BMI",
+             "CREAT", "HEARTRTE", "SYSBP", "DIABP", 
+             "ANGINA", "DIABETES", "HYPERTEN", "DIURETK", 
+             "ped_pres", "ped_past", "rales_pres", 
+             "rales_past", "ps", "linps")
+
+bal.wts1 <- dx.wts(x=dig_df$wts1, data=dig_df, vars=covlist, 
+                   treat.var="badNYHA", estimand="ATT")
+bal.wts1
+bal.table(bal.wts1)
+```
+
+The `std.eff.sz` shows the standardized difference, but as a proportion, rather than as a percentage. We'll create a data frame (tibble) so we can plot the data more easily.
+
+```{r }
+bal.before.wts1 <- bal.table(bal.wts1)[1]
+bal.after.wts1 <- bal.table(bal.wts1)[2]
+
+balance.att.weights <- data_frame(names = rownames(bal.before.wts1$unw), 
+                              pre.weighting = 100*bal.before.wts1$unw$std.eff.sz, 
+                              ATT.weighted = 100*bal.after.wts1[[1]]$std.eff.sz)
+balance.att.weights <- gather(balance.att.weights, timing, szd, 2:3)
+```
+
+OK - here is the plot of standardized differences before and after ATT weighting.
+
+```{r}
+ggplot(balance.att.weights, aes(x = szd, y = reorder(names, szd), color = timing)) +
+    geom_point() + 
+    geom_vline(xintercept = 0) +
+    geom_vline(xintercept = c(-10,10), linetype = "dashed", col = "blue") +
+    labs(x = "Standardized Difference", y = "", 
+         title = "Standardized Difference before and after ATT Weighting",
+         subtitle = "The dig sketch") 
+```
+
+Looks great.
+
+### Rubin's Rule 1
+
+```{r}
+balance.att.weights %>% filter(names == "linps")
+```
+
+The standardized difference of the linear propensity score is down (after weighting) from 52.8% to 1.1%. Excellent.
+
+### Rubin's Rule 2
+
+We can read off the standard deviations within the treated and control groups. We can then square each, to get the relevant variances, then take the ratio of those variances.
+
+```{r}
+bal.before.wts1$unw %>% select(tx.sd, ct.sd) %>% tail(1)
+```
+
+Before weighting, we had a variance ratio of 0.555^2 / 0.528^2 = 1.105. 
+
+
+```{r}
+bal.after.wts1[[1]] %>% select(tx.sd, ct.sd) %>% tail(1)
+```
+
+After weighting, the variance ratio us 0.555^2 / 0.539^2 = 1.060. Even better. We're well within the (4/5, 5/4) interval.
+
+## Build the Outcome Model using the weights
+
+```{r}
+dig.design <- svydesign(ids=~1, weights=~wts1, data=dig) 
+
+wtd_model <- svyglm(HOSP ~ badNYHA, design=dig.design, 
+                    family=quasibinomial())
+summary(wtd_model)
+exp(summary(wtd_model)$coef)
+exp(confint(wtd_model))
+```
+
+After weighting our odds ratio estimate is 1.49, with 95% CI (1.22, 1.81)
+
+\newpage
+
+# Task 5. Comparison of our Results
+
+Approach    | Odds Ratio | 95% Confidence Interval
+----------: | ---------: | ------------------------
+Unadjusted | 1.52 | (1.26, 1.83)
+Matching   | 1.51 | (1.22, 1.88)
+Weighting  | 1.49 | (1.22, 1.81)
+
+The impact of the propensity score matching or weighting is pretty modest here in terms of this hospitalization outcome. Both the matching and the weighting do an excellent job of attending to the imbalances we see in the covariates for the unadjusted approach.
+
+

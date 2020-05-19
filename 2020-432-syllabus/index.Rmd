@@ -1,0 +1,35 @@
+---
+title: "432 Spring 2020 Syllabus"
+author: "Thomas E. Love, Ph.D."
+date: "Version `r Sys.time()`"
+site: bookdown::bookdown_site
+documentclass: book
+output:
+  bookdown::gitbook: default
+  bookdown::pdf_book: default
+github-repo: thomaselove/2020-432-syllabus
+description: "Syllabus for Spring 2020 edition of PQHS/CRSP/MPHP 432"
+---
+
+```{r cwrulogo-fig, echo = FALSE, out.width = '20%'}
+knitr::include_graphics("figures/cwru-stacked-logo-blue-no-tag.jpg")
+```
+
+# Key Information {-}
+
+This is the Spring 2020 syllabus page for PQHS / CRSP / MPHP 432: Data Science for Biological, Medical and Health Research II, taught by Professor Thomas E. Love. The course is given on Tuesdays and Thursdays from 1:00 to 2:15 PM, in Room E321-323 in the Robbins building of the CWRU School of Medicine.
+
+## Course Home Page {-}
+
+The course home page, with links to everything you'll need, is at https://github.com/THOMASELOVE/2020-432. 
+
+- All class meetings, deadlines and assignments are listed in the [Course Calendar](https://github.com/THOMASELOVE/2020-432/blob/master/calendar.md).
+
+## Getting Help! {-}
+
+To get help for anything related to the course, email the Teaching Assistants and Dr. Love at `431 dot help at case dot edu`.
+
+- Dr. Love is available on Tuesdays and Thursdays at CWRU, by appointment. To make an appointment, email him directly at `thomas dot love at case dot edu`. His office is Wood WG-82 J.
+- If you have any special concerns about the course, need special accommodations or any other issues for Dr. Love, please email him, or speak with him before or after class.
+
+

@@ -1,0 +1,3 @@
+# Multiple Imputation and Logistic Regression
+
+Dr. Love may write a chapter on this subject. He's not sure. For now, this is just a placeholder.

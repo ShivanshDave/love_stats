@@ -1,0 +1,536 @@
+# Regression Diagnostics
+
+Some of this discussion comes from @BockVD.
+
+Multiple linear regression (also called ordinary least squares, or OLS) has four main assumptions that are derived from its model. 
+
+For a simple regression, the model underlying the regression line is $E(Y) = \beta_0 + \beta_1 x$
+
+- where E(Y) = the expectation (mean) of the outcome Y,
+- $\beta_0$ is the intercept, and
+- $\beta_1$ is the slope
+
+Now, if we have a multiple regression with three predictors $x_1, x_2$ and $x_3$, as we do in the `hydrate` case (`dose`, `age` and `height`), then the model becomes $E(Y) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3$.
+
+- As the simple regression model did, the multiple regression model predicts the mean of our outcome, for a subject (or group of subjects) with specific values of the predictors.
+- In the `hydrate` example, our model is E('recov.score') = $\beta_0 + \beta_{dose}$ `dose` + $\beta_{age}$ `age`  + $\beta_{weight}$ `weight`
+    - In a larger version of this study, we can imagine finding many kids with the same `age` and `weight` receiving the same `dose`, but they won't all have exactly the same `recov.score`. 
+    - Instead, we'd have many different recovery score values. 
+    - It is the mean of that distribution of recovery scores that the regression model predicts.
+
+Alternatively, we can write the model to relate individual y's to the x's by adding an individual error term: $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 + \epsilon$
+
+Of course, the multiple regression model is not limited to three predictors. We will often use *k* to represent the number of coefficients (slopes plus intercept) in the model, and will also use *p* to represent the number of predictors (usually *p* = *k* - 1). 
+
+## The Four Key Regression Assumptions
+
+The assumptions and conditions for a multiple regression model are nearly the same as those for simple regression. The key assumptions that must be checked in a multiple regression model are:
+
+- Linearity Assumption
+- Independence Assumption
+- Equal Variance (Constant Variance / Homoscedasticity) Assumption
+- Normality Assumption
+
+Happily, R is well suited to provide us with multiple diagnostic tools to generate plots and other summaries that will let us look more closely at each of these assumptions.
+
+## The Linearity Assumption
+
+We are fitting a linear model.
+
+- By *linear*, we mean that each predictor value, x, appears simply multiplied by its coefficient and added to the model. 
+- No x appears in an exponent or some other more complicated function.
+- If the regression model is true, then the outcome *y* is linearly related to each of the *x*'s.
+
+Unfortunately, assuming the model is true is not sufficient to prove that the linear model fits, so we check what @BockVD call the "Straight Enough Condition" 
+
+### Initial Scatterplots for the "Straight Enough" Condition
+
+- Scatterplots of y against each of the predictors are reasonably straight. 
+- The scatterplots need not show a strong (or any!) slope; we just check that there isn't a bend or other nonlinearity. 
+- Any substantial curve is indicative of a potential problem. 
+- Modest bends are not usually worthy of serious attention.
+
+For example, in the `hydrate` data, here are the relevant scatterplots (in practice, I would simply look at the scatterplot matrix produced earlier.) 
+
+```{r p26, echo=FALSE, fig.height=5}
+p1 <- ggplot(hydrate, aes(x = dose, y = recov.score)) +
+    geom_point() +
+    geom_smooth(method = "loess", se = FALSE) +
+    geom_smooth(method = "lm", se = FALSE, col = "tomato")
+p2 <- ggplot(hydrate, aes(x = age, y = recov.score)) +
+    geom_point() +
+    geom_smooth(method = "loess", se = FALSE) +
+    geom_smooth(method = "lm", se = FALSE, col = "tomato")
+p3 <- ggplot(hydrate, aes(x = weight, y = recov.score)) +
+    geom_point() +
+    geom_smooth(method = "loess", se = FALSE) +
+    geom_smooth(method = "lm", se = FALSE, col = "tomato")
+gridExtra::grid.arrange(p1, p2, p3, nrow=1)
+```
+
+Here, I've simply placed `recov.score` on the vertical (Y) axis, plotted against each of the predictors, in turn. I've added a straight line (OLS) fit [in tomato red] and a loess smooth [in blue] to each plot to guide your assessment of the "straight enough" condition. 
+
+- Each of these is "straight enough" for our purposes, in initially fitting the data. 
+- If one of these was not, we might consider a transformation of the relevant predictor, or, if all were problematic, we might transform the outcome Y.
+
+### Residuals vs. Predicted Values to Check for Non-Linearity
+
+The residuals should appear to have no pattern (no curve, for instance) with respect to the predicted (fitted) values. It is a very good idea to plot the residuals against the fitted values to check for patterns, especially bends or other indications of non-linearity. For a multiple regression, the fitted values are a combination of the x's given by the regression equation, so they combine the effects of the x's in a way that makes sense for our particular regression model. That makes them a good choice to plot against. We'll check for other things in this plot, as well. 
+
+When you ask R to plot the result of a linear model, it will produce up to five separate plots: the first of which is a plot of **residuals vs. fitted values**. To obtain this plot for the model including `dose`, `age` and `weight` that predicts `recov.score`, we indicate plot 1 using the `which` command within the `plot` function:
+
+```{r p27, fig.height=5, fig.width=5, fig.align="center"}
+plot(lm(recov.score ~ dose + age + weight, data = hydrate), which=1)
+```
+
+The loess smooth is again added to help you identify serious non-linearity. In this case, I would conclude that there were no serious problems with linearity in these data.
+
+The plot also, by default, identifies the three values\footnote{If you wanted to identify more or fewer points, you could, i.e. `plot(modelname, which=1, id.n = 2)`} with the largest (in absolute value) residuals.
+
+- Here, these are rows 12, 15 and 17, where 12 and 17 have positive residuals (i.e. they represent under-predictions by the model) and 15 has a negative residual (i.e. it represents a situation where the prediction was larger than the observed recovery score.)
+
+### Residuals vs. Predictors To Further Check for Non-Linearity
+
+If we do see evidence of non-linearity in the plot of residuals against fitted values, I usually then proceed to look at residual plots against each of the individual predictors, in turn, to try to identify the specific predictor (or predictors) where we may need to use a transformation. 
+
+The appeal of such plots (as compared to the initial scatterplots we looked at of the outcome against each predictor) is that they eliminate the distraction of the linear fit, and let us look more closely at the non-linear part of the relationship between the outcome and the predictor. 
+
+Although I don't think you need them here, here are these plots for the residuals from this model.
+
+```{r p28a, fig.height = 5}
+hydrate$recov.res <- residuals(lm(recov.score ~ dose + age + weight, data = hydrate))
+
+p1 <- ggplot(hydrate, aes(x = dose, y = recov.res)) +
+    geom_point() + geom_smooth(method = "loess", se = FALSE) +
+    geom_smooth(method = "lm", se = FALSE, col = "tomato")
+p2 <- ggplot(hydrate, aes(x = age, y = recov.res)) +
+    geom_point() + geom_smooth(method = "loess", se = FALSE) +
+    geom_smooth(method = "lm", se = FALSE, col = "tomato")
+p3 <- ggplot(hydrate, aes(x = weight, y = recov.res)) +
+    geom_point() + geom_smooth(method = "loess", se = FALSE) +
+    geom_smooth(method = "lm", se = FALSE, col = "tomato")
+gridExtra::grid.arrange(p1, p2, p3, nrow=1)
+```
+
+Again, I see no particularly problematic issues in the scatterplot here. The curve in the `age` plot is a bit worrisome, but it still seems pretty modest, with the few values of 3 and 11 for `age` driving most of the "curved" pattern we see: there's no major issue. If we're willing to assume that the multiple regression model is correct in terms of its specification of a linear model, we can move on to assessing other assumptions and conditions.
+
+## The Independence Assumption
+
+The errors in the true underlying regression model must be mutually independent, but there is no way to be sure that the independence assumption is true. Fortunately, although there can be many predictor variables, there is only one outcome variable and only one set of errors. The independence assumption concerns the errors, so we check the residuals.
+
+**Randomization condition.** The data should arise from a random sample, or from a randomized experiment.
+
+- The residuals should appear to be randomly scattered and show no patterns, trends or clumps when plotted against the predicted values.
+- In the special case when an x-variable is related to time, make sure that the residuals do not have a pattern when plotted against time.
+
+### Residuals vs. Fitted Values to Check for Dependence
+
+The `hydrate` children were not related in any way and were randomly assigned to dosages, so we can be pretty sure that their measurements are independent. The residuals vs. fitted values plot shows no clear trend, cycle or pattern which concerns us.
+
+```{r p29, fig.height=4.5, fig.width=4.5, fig.align="center"}
+plot(lm(recov.score ~ dose + age + weight, data = hydrate), which=1)
+```
+
+
+
+## The Constant Variance Assumption
+
+The variability of our outcome, y, should be about the same for all values of every predictor x. Of course, we can't check every combination of x values, so we look at scatterplots and check to see if the plot shows a "fan" shape - in essence, the **Does the plot thicken? Condition.** 
+
+- Scatterplots of residuals against each x or against the predicted values, offer a visual check. 
+- Be alert for a "fan" or a "funnel" shape showing growing/shrinking variability in one part of the plot. 
+
+Reviewing the same plots we have previously seen, I can find no evidence of substantial "plot thickening" in either the plot of residuals vs. fitted values or in any of the plots of the residuals against each predictor separately.
+
+### The Scale-Location Plot to Check for Non-Constant Variance
+
+R does provide an additional plot to help assess this issue as linear model diagnostic plot 3. This one looks at the square root of the standardized residual plotted against the fitted values. You want the loess smooth in this plot to be flat, rather than sloped.
+
+```{r p30, fig.height=4, fig.width=5, fig.align="center"}
+plot(lm(recov.score ~ dose + age + weight, data = hydrate), which=3)
+```
+
+### Assessing the Equal Variances Assumption
+
+It's helpful to see how this works in practice. Here are three sets of plots for two settings, where the left plots in each pair show simulated data that are homoscedastic (variance is constant across the levels of the predictor) and the right plots show data that are heteroscedastic (variance is not constant across predictor levels.) 
+
+```{r p31_fig, fig.height=7, echo=FALSE}
+set.seed(5)
+
+N  = 500
+b0 = 3
+b1 = 0.4
+
+s2 = 5
+g1 = 1.5
+g2 = 0.015
+
+x        = runif(N, min=0, max=100)
+y_homo   = b0 + b1*x + rnorm(N, mean=0, sd=sqrt(s2            ))
+y_hetero = b0 + b1*x + rnorm(N, mean=0, sd=sqrt(exp(g1 + g2*x)))
+
+mod.homo   = lm(y_homo~x)
+mod.hetero = lm(y_hetero~x)
+
+par(mfrow=c(3,2))
+plot(y_homo ~ x, main="Constant Variance")
+plot(y_hetero ~ x, main="Non-Constant Variance")
+plot(mod.homo, which=1)
+plot(mod.hetero, which=1)
+plot(mod.homo, which=3)
+plot(mod.hetero, which=3)
+par(mfrow=c(1,1))
+```
+
+Note the funnel shape for the upper two heteroscedastic plots, and the upward sloping loess line in the last one. *Source*: http://goo.gl/weMI0U [from stats.stackexchange.com]
+
+## The Normality Assumption
+
+If the plot is straight enough, the data are independent, and the plots don't thicken, you can now move on to the final assumption, that of Normality. 
+
+We assume that the errors around the idealized regression model at any specified values of the x-variables follow a Normal model. We need this assumption so that we can use a Student's t-model for inference. As with other times when we've used Student's t, we'll settle for the residuals satisfying the **Nearly Normal condition**. To assess this, we simply look at a histogram or Normal probability plot of the residuals. Note that the Normality Assumption also becomes less important as the sample size grows. 
+
+## Outlier Diagnostics: Points with Unusual Residuals
+
+A multiple regression model will always have a point which displays the most unusual residual (that is, the residual furthest from zero in either a positive or negative direction.) As part of our assessment of the normality assumption, we will often try to decide whether the residuals follow a Normal distribution by creating a Q-Q plot of standardized residuals.
+
+### Standardized Residuals
+
+Standardized residuals are scaled to have mean zero and a constant standard deviation of 1, as a result of dividing the original (raw) residuals by an estimate of the standard deviation that uses all of the data in the data set. 
+
+The `rstandard` function, when applied to a linear regression model, will generate the standardized residuals, should we want to build a histogram or other plot of the standardized residuals.
+
+If multiple regression assumptions hold, then the standardized residuals (in addition to following a Normal distribution in general) will also have mean zero and standard deviation 1, with approximately 95% of values between -2 and +2, and approximately 99.74% of values between -3 and +3. 
+
+A natural check, therefore, will be to identify the most extreme/unusual standardized residual in our data set, and see whether its value is within the general bounds implied by the Empirical Rule associated with the Normal distribution. If, for instance, we see a standardized residual below -3 or above +3, this is likely to be a very poorly fit point (we would expect to see a point like this about 2.6 times for every 1,000 observations.) 
+
+A very poorly fitting point, especially if it also has high influence on the model (a concept we'll discuss shortly), may be sufficiently different from the rest of the points in the data set to merit its removal before modeling. If we did remove such a point, we'd have to have a good reason for this exclusion, and include that explanation in our report.
+
+R's general plot set for a linear model includes (as plot 2) a Normal Q-Q plot of the standardized residuals from the model.
+
+### Checking the Normality Assumption with a Plot
+
+```{r p32, fig.height=5, fig.width=5, fig.align="center"}
+plot(lm(recov.score ~ dose + age + weight, data = hydrate), which=2)
+```
+
+In the `hydrate` data, consider our full model with all three predictors. The Q-Q plot of standardized residuals shows the most extreme three cases are in rows 12, 14 and 15. We see from the vertical axis here that none of these points are as large as 3 in absolute value, and only row 12 appears to be above +2 in absolute value.
+
+
+
+### Assessing the Size of the Standardized Residuals
+
+I'll begin by once again placing the details of my linear model into a variable called `modela`. Next, I'll extract, round (to two decimal places) and then sort (from lowest to highest) the standardized residuals from `modela`.
+
+```{r p34a}
+modela <- lm(recov.score ~ dose + age + weight, data = hydrate)
+sort(round(rstandard(modela),2))
+```
+
+We can see that the smallest residual is -1.73 (in row 14) and the largest is 2.31 (in row 12). Another option would be to look at these rows in terms of the absolute value of their standardized residuals...
+
+```{r p34b}
+sort(abs(round(rstandard(modela),2)))
+```
+
+### Assessing Standardized Residuals with an Outlier Test
+
+Is a standardized residual of 2.31 particularly unusual in a sample of 36 observations from a Normal distribution, supposedly with mean 0 and standard deviation 1? 
+
+No. The `car` library has a test called `outlierTest` which can be applied to a linear model to see if the most unusual studentized residual in absolute value is a surprise given the sample size (the studentized residual is very similar to the standardized residual - it simply uses a different estimate for the standard deviation for every point, in each case excluding the point it is currently studying) 
+
+```{r p34 outlier test}
+outlierTest(lm(recov.score ~ dose + age + weight, data = hydrate))
+```
+
+Our conclusion is that there's no serious problem with normality in this case, and no outliers with studentized (or for that matter, standardized) residuals outside the range we might reasonably expect given a Normal distribution of errors and 36 observations.
+
+## Outlier Diagnostics: Identifying Points with Unusually High Leverage
+
+An observation can be an outlier not just in terms of having an unusual residual, but also in terms of having an unusual combination of predictor values. Such an observation is described as having high leverage in a data set.
+
+- R will calculate leverage for the points included in a regression model using the `hatvalues` function as applied to the model.
+- The average leverage value is equal to k/n, where n is the number of observations included in the regression model, and k is the number of coefficients (slopes + intercept).
+- Any point with a leverage value greater than 2.5 times the average leverage of a point in the data set is one that should be investigated closely.
+
+For instance, in the `hydrate` data, we have 36 observations, so the average leverage will be 4/36 = 0.111 and a high leverage point would have leverage $\geq$ 10/36 or .278. We can check this out directly, with a sorted list of leverage values...
+
+```{r p35a}
+sort(round(hatvalues(lm(recov.score ~ dose + age + weight, data=hydrate)),3))
+```
+
+Two points - 4 and 24 - exceed our cutoff based on having more than 2.5 times the average leverage.
+
+
+
+Or we can look at a plot of residuals vs. leverage, which is diagnostic plot 5 for a linear model.
+
+```{r p35b, fig.height=5, fig.width=5, fig.align="center"}
+plot(lm(recov.score ~ dose + age + weight, data = hydrate), which=5)
+```
+
+We see that the most highly leveraged points (those furthest to the right in this plot) are in rows 4 and 24. They are also the two points that meet our 2.5 times the average standard.
+
+
+
+To see why points 4 and 24 are the most highly leveraged points, we remember that this just means that these points are unusual in terms of their predictor values.
+
+```{r p36a}
+hydrate %>%
+    filter(id %in% c(4, 24)) %>%
+    dplyr::select(id, dose, age, weight)
+```
+
+```{r p36b}
+# create indicator for high leverage points
+hydrate$hilev <- ifelse(hydrate$id %in% c(4,24), "Yes", "No")
+
+ggplot(hydrate, aes(x = weight, y = age, color = hilev)) +
+    geom_point() + 
+    scale_color_manual(values = c("black", "red")) +
+    guides(color = FALSE) +
+    annotate("text", x = 60, y = 11, label = "Point 24", col = "red") +
+    annotate("text", x = 72, y = 9, label = "Point 4", col = "red")
+```
+
+
+## Outlier Diagnostics: Identifying Points with High Influence on the Model
+
+A point in a regression model has high **influence** if the inclusion (or exclusion) of that point will have substantial impact on the model, in terms of the estimated coefficients, and the summaries of fit. The measure I routinely use to describe the level of influence a point has on the model is called **Cook's distance**.
+
+As a general rule, a Cook's distance greater than 1 indicates a point likely to have substantial influence on the model, while a point in the 0.5 to 1.0 range is only occasionally worthy of investigation. Observations with Cook's distance below 0.5 are unlikely to influence the model in any substantial way.
+
+### Assessing the Value of Cook's Distance
+
+You can obtain information on Cook's distance in several ways in R. 
+
+- My favorite is model diagnostic plot 5 (the residuals vs. leverage plot) which uses contours to indicate the value of Cook's distance. 
+    - This is possible because influence, as measured by Cook's distance, is a function of both the observation's standardized residual and its leverage.
+
+```{r cooks1, fig.height=5, fig.width=5, fig.align="center"}
+plot(lm(recov.score ~ dose + age + weight, data = hydrate), which=5)
+```
+
+
+
+### Index Plot of Cook's Distance
+
+Model Diagnostic Plot 4 for a linear model is an index plot of Cook's distance.
+
+```{r cooks2, fig.height=5, fig.width=5, fig.align="center"}
+plot(lm(recov.score ~ dose + age + weight, data = hydrate), which=4)
+```
+
+It is clear from this plot that the largest Cook's distance (somewhere between 0.15 and 0.2) is for the observation in row 24 of the data set.
+
+To see all of the Cook's distances, we can simply ask for them using the `cooks.distance` function.
+
+```{r cooks3}
+sort(round(cooks.distance(lm(recov.score ~ dose + age + weight, data=hydrate)),3))
+```
+
+
+
+## Running a Regression Model While Excluding A Point
+
+Suppose that we wanted to remove row 24, the point with the most influence over the model. We could fit a model to the data without row 24 to see the impact...
+
+Note that I have to specify the new data set as `hydrate[-24,]`: **the comma is often forgotten and crucial**.
+
+```{r p39a}
+summary(lm(recov.score ~ dose + age + weight, data=hydrate[-24,]))
+```
+
+Compare these results to those obtained with the full data set, shown below. 
+
+- How is the model affected by removing point 24? 
+- What is the impact on the slopes? 
+- On the summary measures? Residuals?
+
+
+
+```{r p 39b}
+summary(lm(recov.score ~ dose + age + weight, data=hydrate))
+```
+
+While it is true that we can sometimes improve the performance of the model in some ways by removing this point, there's no good reason to do so. We can't just remove a point from the data set without a good reason (and, to be clear, "I ran my model and it doesn't fit this point well" is NOT a good reason). Good reasons would include:
+
+- This observation was included in the sample in error, for instance, because the subject was not eligible.
+- An error was made in transcribing the value of this observation to the final data set.
+- And, sometimes, even "This observation is part of a meaningful subgroup of patients that I had always intended to model separately..." assuming that's true.
+
+
+
+## Summarizing Regression Diagnostics for 431
+
+1. Check the "straight enough" condition with scatterplots of the y variable (outcome) against each x-variable (predictor), usually via the top row of a scatterplot matrix.
+
+2. If the data are straight enough (that is, if it looks like the regression model is plausible), fit a regression model, to obtain residuals and influence measures.
+    - If not, consider using the Box-Cox approach to identify a possible transformation for the outcome variable, and then recheck the straight enough condition.
+ 
+**The `plot` function for a fitted linear model builds five diagnostic plots.**
+
+3. [**Plot 1**] A scatterplot of the residuals against the fitted values.
+    - This plot should look patternless. Check in particular for any bend (which would suggest that the data weren't all that straight after all) and for any thickening, which would indicate non-constant variance.
+    - If the data are measured over time, check especially for evidence of patterns that might suggest they are not independent. For example, plot the residuals against time to look for patterns.
+
+4. [**Plot 3**] A scale-location plot of the square root of the standardized residuals against the fitted values to look for a non-flat loess smooth, which indicates non-constant variance. Standardized residuals are obtained via the `rstandard(model)` function.
+
+5. [**Plot 2**] If the plots above look OK, then consider a Normal Q-Q plot of the standardized residuals to check the nearly Normal condition.
+
+6. [**Plot 5**] The final plot we often look at is the plot of residuals vs. leverage, with influence contours. Sometimes, we'll also look at [**Plot 4**] the index plot of the Cook's distance for each observation in the data set.
+    -	To look for points with substantial **leverage** on the model by virtue of having unusual values of the predictors -  look for points whose leverage is at least 2.5 times as large as the average leverage value.
+        - The average leverage is always k/n, where k is the number of coefficients fit by the model (including the slopes and intercept), and n is the number of observations in the model. 
+        - To obtain the leverage values, use the `hatvalues(model)` function.
+    -	To look for points with substantial **influence** on the model, that is, removing them from the model would change it substantially, consider the Cook's distance, plotted in contours in Plot 5, or in an index plot in Plot 4.
+        - Any Cook's d > 1 will likely have a substantial impact on the model.
+        - Even points with Cook's d > 0.5 may merit further investigation. 
+        - Find the Cook's distances using the `cooks.distance(model)` function.
+
+## Back to `hydrate`: Residual Diagnostics for Dose + Weight Model
+
+In class, we'll walk through all five plots produced for the DW model (the model for hydrate recovery score using dose and weight alone). 
+
+1. What do these 5 plots tell us about the assumption of linearity?
+2. What do these 5 plots tell us about the assumption of independence?
+3. What do these 5 plots tell us about the assumption of constant variance?
+4. What do these 5 plots tell us about the assumption of Normality?
+5. What do these 5 plots tell us about leverage of individual observations?
+6. What do these 5 plots tell us about influence of individual observations?
+
+```{r diagplotDW1, fig.height=5, fig.width=5.5, fig.align="center"}
+plot(lm(recov.score ~ dose + weight, data = hydrate), which=1)
+```
+
+```{r p41a, fig.height=6}
+par(mfrow=c(2,2))
+plot(lm(recov.score ~ dose + weight, data = hydrate), which=2:5)
+```
+
+```{r return parameters to normal, echo=FALSE}
+par(mfrow=c(1,1))
+```
+
+
+
+## Violated Assumptions: Problematic Residual Plots?
+
+So what do serious assumption violations look like, and what can we do about them?
+
+## Problems with Linearity
+
+Here is a simulated example that shows a clear problem with non-linearity.
+
+```{r violsim 1}
+set.seed(4311); x1 <- rnorm(n = 100, mean = 15, sd = 5)
+set.seed(4312); x2 <- rnorm(n = 100, mean = 10, sd = 5)
+set.seed(4313); e1 <- rnorm(n = 100, mean = 0, sd = 15)
+y <- 15 + x1 + x2^2 + e1
+viol1 <- data.frame(outcome = y, pred1 = x1, pred2 = x2) %>% tbl_df
+model.1 <- lm(outcome ~ pred1 + pred2, data = viol1)
+plot(model.1, which = 1)
+```
+
+In light of this, I would be looking for a potential transformation of outcome. Does the Box-Cox plot make any useful suggestions?
+
+```{r boxCox_1_violsim1}
+boxCox(model.1); powerTransform(model.1)
+```
+
+Note that if the outcome was negative, we would have to add some constant value to every outcome in order to get every outcome value to be positive, and Box-Cox to run. This suggests fitting a new model, using the square root of the outcome.
+
+```{r violsim_2}
+model.2 <- lm(sqrt(outcome) ~ pred1 + pred2, data = viol1)
+plot(model.2, which = 1)
+```
+
+This is meaningfully better in terms of curve, but now looks a bit fan-shaped, indicating a potential problem with heteroscedasticity. Let's look at the scale-location plot for this model.
+
+```{r violsim_2b}
+plot(model.2, which = 3)
+```
+
+This definitely looks like there's a trend down in this plot. So the square root transformation, by itself, probably hasn't resolved assumptions sufficiently well. We'll have to be very careful about our interpretation of the model.
+
+## Problems with Non-Normality: An Influential Point
+
+With 100 observations, a single value with a standardized residual above 3 is very surprising. In our initial model.1 here, we have a standardized residual value as large as 6, so we clearly have a problem with that outlier. 
+
+```{r violsim_2c}
+plot(model.1, which = 2)
+```
+
+Should we, perhaps, remove point 72, and try again? Only if we have a reason beyond "it was poorly fit" to drop that point. Is point 72 highly leveraged or influential?
+
+```{r violsim_5}
+plot(model.1, which = 5)
+```
+
+What if we drop this point (72) and fit our linear model again. Does this resolve our difficulty with the assumption of linearity?
+
+```{r viol_fit_without_72}
+model.1.no72 <- lm(outcome ~ pred1 + pred2, data = viol1[-72,])
+par(mfrow=c(1,2))
+plot(model.1, which = 1, caption = "With Point 72")
+plot(model.1.no72, which = 1, caption = "Without Point 72")
+par(mfrow=c(1,1))
+```
+
+No, it doesn't. But what if we combine our outcome transformation with dropping point 72?
+
+```{r viol_fit_without_72_1and3}
+model.2.no72 <- lm(sqrt(outcome) ~ pred1 + pred2, data = viol1[-72,])
+par(mfrow=c(1,2))
+plot(model.2.no72, which = c(1,3))
+par(mfrow=c(1,1))
+```
+
+Nope. That still doesn't alleviate the problem of heteroscedasticity very well. At least, we no longer have any especially influential points, nor do we have substantial non-Normality.
+
+```{r viol_fit_without_72_2and5}
+par(mfrow=c(1,2))
+plot(model.2.no72, which = c(2,5))
+par(mfrow=c(1,1))
+```
+
+At this point, I would be considering potential transformations of the predictors, quite possibly fitting some sort of polynomial term or cubic spline term in the predictors, but I'll leave that for discussion in 432.
+
+## Problems with Non-Normality: Skew
+
+```{r viol2sim}
+set.seed(4314); x1 <- rnorm(n = 100, mean = 15, sd = 5)
+set.seed(4315); x2 <- rnorm(n = 100, mean = 10, sd = 5)
+set.seed(4316); e2 <- rnorm(n = 100, mean = 3, sd = 5)
+y2 <- 50 + x1 + x2 + e2^2
+viol2 <- data.frame(outcome = y2, pred1 = x1, pred2 = x2) %>% tbl_df
+model.3 <- lm(outcome ~ pred1 + pred2, data = viol2)
+plot(model.3, which = 2)
+```
+
+Skewed residuals often show up in strange patterns in the plot of residuals vs. fitted values, too, as in this case.
+
+```{r viol2sim_model3plot1}
+plot(model.3, which = 1)
+```
+Clearly, we have some larger residuals on the positive side, but not on the negative side. Would an outcome transformation be suggested by Box-Cox?
+
+```{r viol2sim_model3plotboxcox}
+boxCox(model.3); powerTransform(model.3)
+```
+The suggested transformation is either the inverse or the inverse square of our outcome. Let's try the inverse. 
+
+```{r viol2sim_model4plot2}
+model.4 <- lm(1/outcome ~ pred1 + pred2, data = viol2)
+plot(model.4, which = 2)
+```
+
+OK. That's something of an improvement. How about the other residual plots with this transformation?
+
+```{r viol2sim_model4plot1}
+plot(model.4, which = 1)
+```
+
+The impact of the skew is reduced, at least. I might well be satisfied enough with this, in practice.
+
+
+

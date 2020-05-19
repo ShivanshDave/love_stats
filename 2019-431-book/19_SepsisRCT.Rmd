@@ -1,0 +1,178 @@
+# The Ibuprofen in Sepsis Trial {#Sepsis-RCT}
+
+## The Ibuprofen in Sepsis Randomized Clinical Trial
+
+We will be working with a sample from the Ibuprofen in Sepsis study, which is also studied in @Dupont. Quoting the abstract from @Bernard1997:
+
+> Ibuprofen has been shown to have effects on sepsis in humans, but because of their small samples (fewer than 30 patients), previous studies have been inadequate to assess effects on mortality. We sought to determine whether ibuprofen can alter rates of organ failure and mortality in patients with the sepsis syndrome, how the drug affects the increased metabolic demand in sepsis (e.g., fever, tachypnea, tachycardia, hypoxemia, and lactic acidosis), and what potential adverse effects the drug has in the sepsis syndrome. 
+
+In this study, patients meeting specific criteria (including elevated temperature) for a diagnosis of sepsis were recruited if they fulfilled an additional set of study criteria in the intensive care unit at one of seven participating centers. 
+
+The full trial involved 455 patients, of which our sample includes 300. 150 of our patients were randomly assigned to the Ibuprofen group and 150 to the Placebo group^[This was a *double-blind* study, where neither the patients nor their care providers know, during the execution of the trial, what intervention group was assigned to each patient.]. I picked the `sepsis` sample we will work with excluding patients with missing values for our outcome of interest, and then selected a random sample of 150 Ibuprofen and 150 Placebo patients from the rest of the group, and converted the temperatures and changes from Fahrenheit to Celsius.
+
+For the moment, we focus on two variables:
+
+- **treat**, which specifies the treatment group (intravenous Ibuprofen or intravenous Placebo), which was assigned via randomization to each patient, and
+- **temp_drop**, the outcome of interest, measured as the change from baseline to 2 hours later in degrees Celsius. Positive values indicate improvement, that is, a *drop* in temperature over the 2 hours following the baseline measurement.
+
+The `sepsis.csv` file also contains each subject's
+
+- *id*, which is just a code
+- *race* (three levels: White, AfricanA or Other)
+- *apache* = baseline APACHE II score, a severity of disease score ranging from 0 to 71 with higher scores indicating more severe disease and a higher mortality risk
+- *temp_0* = baseline temperature, degrees Celsius.
+
+but for the moment, we won't worry about those.
+
+```{r}
+sepsis <- sepsis %>%
+    mutate(treat = factor(treat),
+           race = factor(race))
+
+mosaic::favstats(temp_drop ~ treat, data = sepsis)
+```
+
+## Our Key Questions for an Independent Samples Comparison
+
+### What is the **population** under study?
+
+- All patients in the intensive care unit with sepsis who meet the inclusion and exclusion criteria of the study, at the entire population of health centers like the ones included in the trial.
+
+### What is the **sample**? Is it representative of the population?
+
+- The sample consists of 300 patients. It is a convenient sample from the population under study.
+- This is a randomized clinical trial. 150 of the patients were assigned to Ibuprofen, and the rest to Placebo. It is this treatment assignment that is randomized, not the selection of the sample as a whole.
+- In expectation, randomization of individuals to treatments, as in this study, should be expected to eliminate treatment selection bias.
+
+### Who are the subjects / **individuals** within the sample?
+
+- 150 patients who received Ibuprofen and a completely different set of 150 patients who received Placebo.
+- There is no match or link between the patients. They are best thought of as independent samples.
+
+### What **data** are available on each individual?
+
+- The key variables are the treatment indicator (Ibuprofen or Placebo) and the outcome (drop in temperature in the 2 hours following administration of the randomly assigned treatment.)
+
+### RCT Caveats
+
+The placebo-controlled, double-blind randomized clinical trial, especially if pre-registered, is often considered the best feasible study for assessing the effectiveness of a treatment. While that's not always true, it is a very solid design. The primary caveat is that the patients who are included in such trials are rarely excellent representations of the population of potentially affected patients as a whole.
+
+## Exploratory Data Analysis
+
+Consider the following boxplot with violin of the `temp_drop` data within each `treat` group. 
+
+```{r}
+ggplot(sepsis, aes(x = treat, y = temp_drop, fill = treat)) +
+    geom_violin() +
+    geom_boxplot(width = 0.3, fill = "white") +
+    scale_fill_viridis_d() +
+    guides(fill = FALSE) + 
+    labs(title = "Boxplot of Temperature Drop in Sepsis Patients",
+         x = "", y = "Drop in Temperature (degrees C)") + 
+    coord_flip() +
+    theme_bw()
+```
+
+Next, we'll consider faceted histograms of the data.
+
+```{r sepsis_temp_drop_by_treat_histograms}
+ggplot(sepsis, aes(x = temp_drop, fill = treat, color = treat)) +
+    geom_histogram(bins = 20) +
+    scale_fill_viridis_d() +
+    scale_color_viridis_d(direction = -1) +
+    guides(fill = FALSE, color = FALSE) + 
+    labs(title = "Histograms of Temperature Drop in Sepsis Patients",
+         x = "Drop in Temperature (degrees Celsius") +
+    theme_bw() +
+    facet_wrap(~ treat)
+```
+
+Here's a pair of Normal Q-Q plots. It's not hard to use a Normal model to approximate the Ibuprofen data, but such a model is probably not a good choice for the Placebo results.
+
+```{r}
+ggplot(sepsis, aes(sample = temp_drop)) +
+    geom_qq() + geom_qq_line(col = "red") +
+    theme_bw() +
+    facet_wrap(~ treat) + 
+    labs(y = "Temperature Drop Values (in degrees C)")
+```
+
+We'll could perhaps also look at a ridgeline plot.
+
+```{r}
+ggplot(sepsis, aes(x = temp_drop, y = treat, fill = treat)) +
+    ggridges::geom_density_ridges(scale = 0.9) +
+    guides(fill = FALSE) + 
+    labs(title = "Temperature Drop in Sepsis Patients",
+         x = "Drop in Temperature (degrees Celsius)", y = "") +
+    ggridges::theme_ridges()
+```
+
+The center of the ibuprofen distribution is shifted a bit towards the more positive (greater improvement) direction, it seems, than is the distribution for the placebo patients. This conclusion matches what we see in some key numerical summaries, within the treatment groups.
+
+```{r}
+mosaic::favstats(temp_drop ~ treat, data = sepsis)
+```
+
+## Estimating the Difference in Population Means
+
+Next, we will build a point estimate and 90% confidence interval for the difference between the mean `temp_drop` if treated with Ibuprofen and the mean `temp_drop` if treated with Placebo. We'll use a regression model with a single predictor (the `treat` group) to do this.
+
+```{r}
+model_sep <- lm(temp_drop ~ treat == "Ibuprofen", data = sepsis)
+
+tidy(model_sep, conf.int = TRUE, conf.level = 0.90) %>%
+    knitr::kable(digits = 3)
+```
+
+The point estimate for the "Ibuprofen - Placebo" difference in population means is 0.311 degrees C, and the 90% confidence interval is (0.191, 0.432) degrees C.
+
+We could also have run the model like this:
+
+```{r}
+model_sep2 <- lm(temp_drop ~ treat, data = sepsis)
+
+tidy(model_sep2, conf.int = TRUE, conf.level = 0.90) %>%
+    knitr::kable(digits = 3)
+```
+
+and would therefore conclude that the *Placebo - Ibuprofen* difference was estimated as -0.311, with 90% confidence interval (-0.432, -0.191), which is of course equivalent to our previous estimate.
+
+This is just one possible way for us to estimate the difference between population means. We'll see more in Chapter \@ref(CI-Indep-Sample-Means).
+
+## Categorizing the Outcome
+
+Suppose we were interested in comparing the percentage of patients in each arm of the trial (Ibuprofen vs. Placebo) that showed an improvement in their temperature (`temp_drop` > 0). To build the cross-tabulation of interest, we could create a new variable, called `dropped` which indicates whether the subject's temperature dropped, and then use `tabyl`.
+
+```{r}
+sepsis <- sepsis %>%
+    mutate(dropped = ifelse(temp_drop > 0, "Drop", "No Drop"))
+
+sepsis %>% tabyl(treat, dropped)
+```
+
+Our primary interest is in comparing the percentage of Ibuprofen patients whose temperature dropped to the percentage of Placebo patients whose temperature dropped.
+
+```{r}
+sepsis %>% tabyl(treat, dropped) %>% 
+    adorn_totals() %>%
+    adorn_percentages(denom = "row") %>%
+    adorn_pct_formatting(digits = 1) %>%
+    adorn_ns(position = "front")
+```
+
+## Estimating the Difference in Proportions
+
+In our sample, 71.3% of the Ibuprofen subjects, and 53.3% of the Placebo subjects, experienced a drop in temperature. So our *point estimate* of the difference in percentages would be 18.0 percentage points, but we will usually set this instead in terms of proportions, so that the difference is 0.180.
+
+Now, we'll find a confidence interval for that difference, which we can do in several ways, including the `twoby2` function in the `Epi` package.
+
+```{r}
+sepsis %$% table(treat, dropped) %>% Epi::twoby2(alpha = 0.10)
+```
+
+While there is a lot of additional output here, we'll look for now just at the Probability difference row, where we see the point estimate (0.180) and the 90% confidence interval estimate for the difference in proportions (0.088, 0.268) comparing Ibuprofen vs. Placebo for the outcome of Dropping in Temperature.
+
+More on estimation of the difference in population proportions will be found in Chapter \@ref(CI-Indep-Sample-Props).
+
+

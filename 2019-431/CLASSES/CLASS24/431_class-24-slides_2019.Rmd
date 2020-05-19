@@ -1,0 +1,794 @@
+---
+title: "431 Class 24"
+author: "Thomas E. Love"
+date: "2019-11-21"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    fonttheme: "structurebold"
+    colortheme: "whale"
+    fig_height: 5.5
+    fig_caption: false
+linkcolor: "yellow"
+---
+
+```{r set-options, echo=FALSE, cache=FALSE, message = FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+## Agenda for Today
+
+- Linear Regression for Prediction in our `dm431` data
+  - Pre-Modeling Considerations
+    - Consideration of Outcome Transformations
+    - (Simple) Imputation to deal with Missing Data
+    - Partitioning the Data (Development vs. Testing)
+  - Building the Model
+    - Evaluating Fit in the Development Sample
+    - Considering Regression Assumptions
+  - Post-Modeling Considerations
+    - Evaluating Prediction Quality (Test Sample)
+    - Back-Transformation of Outcome Predictions
+
+**In today's class, we will start with slide 48.**
+
+## Our R Setup
+
+```{r setup, message = FALSE}
+library(simputation) # for simple imputation
+library(car) # for Box-Cox plot
+library(GGally) # for scatterplot matrix
+
+library(here); library(magrittr)
+library(patchwork); library(janitor); library(broom)
+library(tidyverse) # always load tidyverse last
+
+theme_set(theme_bw()) # now all ggplots use theme_bw()
+```
+
+# Things discussed in Class 22 and 23
+
+## A change to the data!
+
+All this time, we've had an error in the `dm431` data, which I'll now call `dm431_old.Rds`. Can you spot it?
+
+```{r}
+dm431_old <- readRDS(here("data", "dm431_old.Rds"))
+
+head(dm431_old, 8)
+```
+
+## So what exactly is the problem?
+
+```{r}
+dm431_old %>% nrow()
+dm431_old %$% n_distinct(subject)
+```
+
+
+```{r}
+dm431_old %>% slice(6:7) %>% select(subject, age)
+```
+
+## Fixing the Problem
+
+```{r}
+dm431_fixed <- dm431_old %>%
+  mutate(subject = ifelse(subject == "S-006" & age == 49, 
+                          "S-007", subject))
+
+dm431_fixed %>% slice(6:7) %>% select(subject, age)
+```
+
+```{r}
+saveRDS(dm431_fixed, file = here("data", "dm431_fixed.Rds"))
+```
+
+## Focus on Four Variables (+ Subject)
+
+```{r}
+dm431 <- readRDS(here("data", "dm431_fixed.Rds"))
+
+dm_1 <- dm431 %>% 
+  select(a1c, a1c_old, age, income, subject)
+```
+
+## Summarizing the `dm_1` data set
+
+```{r}
+summary(dm_1)
+```
+
+## `dm_1 %>% skimr::skim()` results
+
+```{r, out.width = '95%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/skim_dm1.PNG")
+```
+
+## What roles will these variables play?
+
+`a1c` is our outcome, which we'll predict with ...
+
+1. Model 1: Use `a1c_old` alone to predict `a1c`
+2. Model 2: Use `a1c_old` and `age` together to predict `a1c`
+3. Model 3: Use `a1c_old`, `age`, and `income` together to predict `a1c`
+
+### What will we do about missing data?
+
+```{r}
+dm_1 %>% summarise_all(~ sum(is.na(.)))
+```
+
+- We're missing 3 values of `a1c`, our outcome
+- and 14 values of `a1c_old`, a predictor (Models 1-3)
+- and 4 values of `income`, another predictor (Model 3)
+
+## Dealing with outcome missingness
+
+I don't want to impute the outcome. We'll drop the 3 observations missing `a1c` from our data set.
+
+```{r}
+dm_2 <- dm_1 %>% filter(complete.cases(a1c))
+dm_2 %>% summarise_all(~ sum(is.na(.)))
+```
+
+How should we deal with the remaining missing values? 
+
+## Simple Imputation of Missing `a1c_old` Values
+
+We could use a robust linear model method to impute our quantitative `a1c_old` values on the basis of `age`, which is missing no observations in common with `a1c_old` (in fact, `age` is missing no observations.)
+
+```{r}
+dm_3a <- impute_rlm(dm_2, a1c_old ~ age)
+
+dm_3a %>% select(a1c_old, income) %>% summary()
+```
+
+## Simple Imputation of Missing `income` Values
+
+We could use a decision tree (CART) method to impute our missing categorical `income` values, on the basis of `age`.
+
+```{r}
+dm_3b <- impute_cart(dm_2, income ~ age)
+
+dm_3b %>% select(a1c_old, income) %>% summary()
+```
+
+## Chaining our Simple Imputations
+
+Or we could put all of our imputations together in a chain. I encourage you to try `rlm` for quantitative variables, and `cart` for categorical variables, for now.
+
+```{r}
+dm_4 <- dm_2 %>%
+  impute_rlm(a1c_old ~ age) %>%
+  impute_cart(income ~ age + a1c_old)
+
+dm_4 %>% select(a1c, a1c_old, income) %>% 
+  summarise_all(~(sum(is.na(.))))
+```
+
+What did we do? What is the result?
+
+## `dm_4 %>% skimr::skim()` results
+
+```{r, out.width = '95%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/skim_dm4.PNG")
+```
+
+OK. Ready to proceed?
+
+## How will we decide which of the models is "best"?
+
+Our goal is accurate prediction of `a1c` values.
+
+Which of these models gives us the "best" result? 
+
+1. Model 1: Use `a1c_old` alone to predict `a1c`
+2. Model 2: Use `a1c_old` and `age` together to predict `a1c`
+3. Model 3: Use `a1c_old`, `age`, and `income` together to predict `a1c`
+
+## How shall we be guided by our data?
+
+> It can scarcely be denied that the supreme goal of all theory is to make the irreducible basic elements as simple and as few as possible without having to surrender the adequate representation of a single datum of experience. (A. Einstein)
+
+- often this is reduced to "make everything as simple as possible but no simpler"
+
+> Entities should not be multiplied without necessity. (Occam's razor)
+
+- often this is reduced to "the simplest solution is most likely the right one"
+
+## George Box's aphorisms
+
+> On Parsimony: Since all models are wrong the scientist cannot obtain a "correct" one by excessive elaboration. On the contrary following William of Occam he should seek an economical description of natural phenomena. Just as the ability to devise simple but evocative models is the signature of the great scientist so overelaboration and overparameterization is often the mark of mediocrity.
+
+> On Worrying Selectively: Since all models are wrong the scientist must be alert to what is importantly wrong. It is inappropriate to be concerned about mice when there are tigers abroad.
+
+- and, the most familiar version...
+
+> ... all models are approximations. Essentially, all models are wrong, but some are useful. However, the approximate nature of the model must always be borne in mind.
+
+## 431 approach: Which model is "most useful"?
+
+1. Split the data into a model development (training) sample of about 70-80% of the observations, and a  model test (holdout) sample, containing the remaining observations.
+2. Develop candidate models using the development sample.
+3. Assess the quality of fit for candidate models within the development sample.
+4. Check adherence to regression assumptions in the development sample.
+5. When you have candidates, assess them based on the accuracy of the predictions they make for the data held out (and thus not used in building the models.) 
+6. Select a "final" model for use based on the evidence in steps 3, 4 and especially 5.
+
+# Split the data into a model development (training) sample of about 70-80% of the observations, and a  model test (holdout) sample, containing the remaining observations.
+
+## Partition the imputed data into development/test samples
+
+```{r}
+set.seed(20191114)
+
+dm4_dev <- sample_frac(dm_4, 0.75, replace = FALSE)
+
+dm4_test <- anti_join(dm_4, dm4_dev, by = "subject")
+```
+
+```{r}
+nrow(dm_4); nrow(dm4_dev); nrow(dm4_test)
+```
+
+# Develop candidate models using the development sample.
+
+## A look at the outcome (`a1c`) distribution
+
+We'll study the outcome variable (`a1c`) in the development sample, to consider whether a transformation might be in order.
+
+I did a little fancy work with the code (continues next slide)...
+
+```{r, eval = FALSE}
+p1 <- ggplot(dm4_dev, aes(x = a1c)) +
+  geom_histogram(binwidth = 0.5, 
+                 fill = "slateblue", col = "white")
+
+p2 <- ggplot(dm4_dev, aes(sample = a1c)) + 
+  geom_qq(col = "slateblue") + geom_qq_line(col = "red")
+
+p3 <- ggplot(dm4_dev, aes(x = "", y = a1c)) +
+  geom_violin(fill = "slateblue", alpha = 0.3) + 
+  geom_boxplot(fill = "slateblue", width = 0.3,
+               outlier.color = "red") +
+  labs(x = "") + coord_flip()
+```
+
+## A look at the outcome (`a1c`) distribution
+
+Putting the plots together, and titling them meaningfully...
+
+```{r, eval = FALSE}
+p1 + p2 - p3 +
+  plot_layout(ncol = 1, height = c(3, 2)) + 
+  plot_annotation(title = "Hemoglobin A1c values (%)",
+         subtitle = paste0("Model Development Sample: ", 
+                           nrow(dm4_dev), 
+                           " adults with diabetes"))
+```
+
+Result on the next slide...
+
+## Outcome (`a1c`): Model Development Sample
+
+```{r, echo = FALSE}
+p1 <- ggplot(dm4_dev, aes(x = a1c)) +
+  geom_histogram(binwidth = 0.5, 
+                 fill = "slateblue", col = "white")
+
+p2 <- ggplot(dm4_dev, aes(sample = a1c)) + 
+  geom_qq(col = "slateblue") + geom_qq_line(col = "red")
+
+p3 <- ggplot(dm4_dev, aes(x = "", y = a1c)) +
+  geom_violin(fill = "slateblue", alpha = 0.3) + 
+  geom_boxplot(fill = "slateblue", width = 0.3,
+               outlier.color = "red") +
+  labs(x = "") + coord_flip()
+
+p1 + p2 - p3 +
+  plot_layout(ncol = 1, height = c(3, 2)) + 
+  plot_annotation(title = "Hemoglobin A1c values (%)",
+         subtitle = paste0("Model Development Sample: ", 
+                           nrow(dm4_dev), 
+                           " adults with diabetes"))
+```
+
+## Why Transform the Outcome?
+
+We want to try to identify a good transformation for the conditional distribution of the outcome, given the predictors, in an attempt to make the linear regression assumptions of linearity, Normality and constant variance more appropriate.
+
+Ladder of Especially Useful (and often interpretable) transformations 
+
+Transformation | $y^2$ | y | $\sqrt{y}$ | log(y) | $1/y$ | $1/y^2$
+-------------: | ---: | ---: | ---: | ---: | ---: | ---: 
+$\lambda$       | 2 | 1 | 0.5 | 0 | -1 | -2
+
+- We see some sign of right skew in the `a1c` data. Let's try a log transformation.
+
+## Consider a log transformation?
+
+```{r, echo = FALSE}
+p1 <- ggplot(dm4_dev, aes(x = log(a1c))) +
+  geom_histogram(bins = 15, 
+                 fill = "slateblue", col = "white")
+
+p2 <- ggplot(dm4_dev, aes(sample = log(a1c))) + 
+  geom_qq(col = "slateblue") + geom_qq_line(col = "red")
+
+p3 <- ggplot(dm4_dev, aes(x = "", y = log(a1c))) +
+  geom_violin(fill = "slateblue", alpha = 0.3) + 
+  geom_boxplot(fill = "slateblue", width = 0.3,
+               outlier.color = "red") +
+  labs(x = "") + coord_flip()
+
+p1 + p2 - p3 +
+  plot_layout(ncol = 1, height = c(3, 2)) + 
+  plot_annotation(title = "Natural Logarithm of Hemoglobin A1c",
+         subtitle = paste0("Model Development Sample: ", 
+                           nrow(dm4_dev), 
+                           " adults with diabetes"))
+```
+
+## Using Box-Cox to help select a transformation?
+
+```{r}
+mod_0 <- lm(a1c ~ a1c_old + age + income, data = dm4_dev)
+
+boxCox(mod_0)
+```
+
+## Using Box-Cox to help select a transformation?
+
+
+```{r, warning = FALSE}
+summary(powerTransform(mod_0))
+```
+
+
+
+## Consider the inverse?
+
+```{r, echo = FALSE}
+p1 <- ggplot(dm4_dev, aes(x = (1/a1c))) +
+  geom_histogram(bins = 15, 
+                 fill = "slateblue", col = "white")
+
+p2 <- ggplot(dm4_dev, aes(sample = (1/a1c))) + 
+  geom_qq(col = "slateblue") + geom_qq_line(col = "red")
+
+p3 <- ggplot(dm4_dev, aes(x = "", y = (1/a1c))) +
+  geom_violin(fill = "slateblue", alpha = 0.3) + 
+  geom_boxplot(fill = "slateblue", width = 0.3,
+               outlier.color = "red") +
+  labs(x = "") + coord_flip()
+
+p1 + p2 - p3 +
+  plot_layout(ncol = 1, height = c(3, 2)) + 
+  plot_annotation(title = "Inverse of Hemoglobin A1c",
+         subtitle = paste0("Model Development Sample: ", 
+                           nrow(dm4_dev), 
+                           " adults with diabetes"))
+```
+
+## Scatterplot Matrix
+
+```{r, echo = FALSE}
+dm4_dev %>% 
+  mutate(inv_a1c = 1/a1c) %>%
+  select(inv_a1c, a1c_old, age, income) %>%
+  ggpairs(., 
+          title = "Scatterplots: Model Development Sample",
+          lower = list(combo = wrap("facethist", bins = 10)))
+```
+
+## Scatterplot Matrix (Code)
+
+```{r, eval = FALSE}
+dm4_dev %>% 
+  mutate(inv_a1c = 1/a1c) %>%
+  select(inv_a1c, a1c_old, age, income) %>%
+  ggpairs(., title = "Scatterplot Matrix for Model Development Sample",
+          lower = list(combo = wrap("facethist", bins = 10)))
+```
+
+Note that `ggpairs` comes from the `GGally` package.
+
+## Three Regression Models We'll Fit
+
+Remember we're using the model development sample here.
+
+```{r}
+mod_1 <- lm((1/a1c) ~ a1c_old, data = dm4_dev)
+
+mod_2 <- lm((1/a1c) ~ a1c_old + age, data = dm4_dev)
+
+mod_3 <- lm((1/a1c) ~ a1c_old + age + income, 
+            data = dm4_dev)
+```
+
+# Assess the quality of fit for candidate models within the development sample.
+
+## `summary(mod_1)` (edited to fit on screen)
+
+```{r, out.width = '95%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/summary_m1.PNG")
+```
+
+## Summary of Fit Quality (mod_1)
+
+```{r}
+g1 <- glance(mod_1) %>% 
+  mutate(name = "mod_1") %>%
+  select(name, r.squared, adj.r.squared, 
+         sigma, AIC, BIC) %>%
+  knitr::kable(digits = c(0, 3, 3, 3, 0, 0))
+
+g1
+```
+
+## Tidied coefficients (`mod_1`)
+
+```{r}
+tidy(mod_1, conf.int = TRUE, conf.level = 0.95) %>%
+  select(term, estimate, std.error, p.value, 
+         conf.low, conf.high) %>%
+  knitr::kable(digits = c(0, 4, 4, 4, 4, 4))
+```
+
+## `summary(mod_2)` (edited to fit on screen)
+
+```{r, out.width = '95%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/summary_m2.PNG")
+```
+
+## Summary of Fit Quality (mod_2)
+
+```{r}
+g2 <- glance(mod_2) %>% 
+  mutate(name = "mod_2") %>%
+  select(name, r.squared, adj.r.squared, 
+         sigma, AIC, BIC) %>%
+  knitr::kable(digits = c(0, 3, 3, 3, 0, 0))
+
+g2
+```
+
+## Tidied coefficients (`mod_2`)
+
+```{r}
+tidy(mod_2, conf.int = TRUE, conf.level = 0.95) %>%
+  select(term, estimate, std.error, p.value, 
+         conf.low, conf.high) %>%
+  knitr::kable(digits = c(0, 4, 4, 4, 4, 4))
+```
+
+## `summary(mod_3)` (edited to fit on screen)
+
+```{r, out.width = '95%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/summary_m3.PNG")
+```
+
+## Summary of Fit Quality (mod_3)
+
+```{r}
+g3 <- glance(mod_3) %>% 
+  mutate(name = "mod_3") %>%
+  select(name, r.squared, adj.r.squared, 
+         sigma, AIC, BIC) %>%
+  knitr::kable(digits = c(0, 3, 3, 3, 0, 0))
+
+g3
+```
+
+## Tidied coefficients (`mod_3`)
+
+```{r}
+tidy(mod_3, conf.int = TRUE, conf.level = 0.95) %>%
+  select(term, est = estimate, se = std.error, p = p.value, 
+         low95 = conf.low, high95 = conf.high) %>%
+  knitr::kable(digits = c(0, 4, 4, 3, 4, 4))
+```
+
+## Could we have fit other predictor sets?
+
+Perhaps an automated procedure like stepwise regression would suggest a better alternative?
+
+- Three predictor candidates, so we could have used any of these predictor sets:
+
+- `a1c_old` alone (our `mod_1`)
+- `age` alone
+- `income` alone
+- `a1c_old` and `age` (our `mod_2`)
+- `a1c_old` and `income`
+- `age` and `income`
+- `a1c_old`, `age` and `income` (our `mod_3`)
+
+```{r, eval = FALSE}
+step(mod_3)
+```
+
+## Stepwise Regression Results?
+
+```{r, out.width = '65%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/stepwise.PNG")
+```
+
+## Comparing Summary Measures of Fit
+
+in the development sample...
+
+```{r}
+bind_rows(glance(mod_1), glance(mod_2), glance(mod_3)) %>%
+  mutate(name = c("mod_1", "mod_2", "mod_3")) %>%
+  select(name, r2 = r.squared, adj_r2 = adj.r.squared, 
+         sigma, AIC, BIC, df, df_resid = df.residual) %>%
+  knitr::kable(digits = c(0, 4, 4, 4, 1, 0, 0, 0))
+```
+
+OK. What do we think?
+
+# Check adherence to regression assumptions in the development sample.
+
+## Checking Regression Assumptions
+
+Four key assumptions we need to think about:
+
+1. Linearity
+2. Constant Variance (Homoscedasticity)
+3. Normality
+4. Independence
+
+How do we assess 1, 2, and 3? Residual plots.
+
+## Residuals vs. Fitted Values Plot (Model `mod_1`)
+
+```{r}
+plot(mod_1, which = 1)
+```
+
+## Normal Q-Q of Standardized Residuals (`mod_1`)
+
+```{r}
+plot(mod_1, which = 2)
+```
+
+## Scale-Location: Non-constant variance check (`mod_1`)
+
+```{r}
+plot(mod_1, which = 3)
+```
+
+## Index plot of Cook's distance for influence (`mod_1`)
+
+```{r}
+plot(mod_1, which = 4)
+```
+
+## Residuals, Leverage and Influence plot (`mod_1`)
+
+```{r}
+plot(mod_1, which = 5)
+```
+
+## Residual Plots for Model `mod_1`
+
+```{r}
+par(mfrow = c(2,2)); plot(mod_1); par(mfrow = c(1,1))
+```
+
+## Residual Plots for Model `mod_2`
+
+```{r, echo = FALSE}
+par(mfrow = c(2,2)); plot(mod_2); par(mfrow = c(1,1))
+```
+
+## Residual Plots for Model `mod_3`
+
+```{r, echo = FALSE}
+par(mfrow = c(2,2)); plot(mod_3); par(mfrow = c(1,1))
+```
+
+## Conclusions so far?
+
+1. In-sample model predictions are about equally accurate for each of the three models. It's not clear yet that we need anything more than the simple regression on `a1c_old`.
+2. Residual plots look similarly reasonable for linearity, Normality and constant variance in all three models.
+3. Probably worth considering all three models further, but it would depend on the context.
+
+# When you have candidates, assess them based on the accuracy of the predictions they make for the data held out (and thus not used in building the models.) 
+
+## Calculate prediction errors for `mod_1` in test sample
+
+The `augment` function in the `broom` package will create predictions within our new sample, but we want to back-transform these predictions so that they are on the original scale (`a1c`, rather than our transformed regression outcome `1/a1c`). Since the way to back out of the inverse transformation is to take the inverse again, we will take the inverse of the fitted values provided by `augment` and then calculate residuals on the original scale, as follows...
+
+```{r}
+test_m1 <- augment(mod_1, newdata = dm4_test) %>%
+  mutate(name = "mod_1", fit_a1c = 1 / .fitted,
+         res_a1c = a1c - fit_a1c) 
+```
+
+## What does `test_m1` now include?
+
+```{r}
+test_m1 %>%
+  select(subject, a1c, fit_a1c, res_a1c, a1c_old, 
+         age, income) %>% 
+  head() %>%
+  knitr::kable(digits = c(0, 1, 2, 2, 1, 0, 0))
+```
+
+## Gather test-sample prediction errors for models 2, 3
+
+```{r}
+test_m2 <- augment(mod_2, newdata = dm4_test) %>%
+  mutate(name = "mod_2", fit_a1c = 1 / .fitted,
+         res_a1c = a1c - fit_a1c) 
+
+test_m3 <- augment(mod_3, newdata = dm4_test) %>%
+  mutate(name = "mod_3", fit_a1c = 1 / .fitted,
+         res_a1c = a1c - fit_a1c) 
+```
+
+## Combine test sample results from the three models
+
+```{r}
+test_comp <- bind_rows(test_m1, test_m2, test_m3) %>%
+  arrange(subject, name)
+
+test_comp %>% select(name, subject, a1c, fit_a1c, res_a1c, 
+                     a1c_old, age, income) %>% 
+  slice(1:3, 7:9) %>%
+  knitr::kable(digits = c(0, 0, 1, 2, 2, 1, 0, 0))
+```
+
+## What do we do to compare the test-sample errors?
+
+Given this tibble, including predictions and residuals from the three models on our test data, we can now:
+
+1. Visualize the prediction errors from each model.
+2. Summarize those errors across each model.
+3. Identify the "worst fitting" subject for each model in the test sample.
+
+## Visualize the prediction errors 
+
+```{r, eval = FALSE}
+ggplot(test_comp, aes(x = res_a1c, fill = name)) +
+  geom_histogram(bins = 20, col = "white") + 
+  facet_grid (name ~ .) + guides(fill = FALSE)
+```
+
+or maybe
+
+```{r, eval = FALSE}
+ggplot(test_comp, aes(x = name, y = res_a1c, fill = name)) +
+  geom_violin(alpha = 0.3) + 
+  geom_boxplot(width = 0.3, outlier.shape = NA) +
+  geom_jitter(height = 0, width = 0.1) +
+  guides(fill = FALSE)
+```
+
+## Test-Sample Prediction Errors
+
+```{r, echo = FALSE}
+p1 <- ggplot(test_comp, aes(x = res_a1c, fill = name)) +
+  geom_histogram(bins = 20, col = "white") + 
+  labs(x = "Prediction Errors on A1c scale", y = "") +
+  facet_grid (name ~ .) + guides(fill = FALSE)
+
+p2 <- ggplot(test_comp, aes(x = factor(name), y = res_a1c, 
+                            fill = name)) +
+  geom_violin(alpha = 0.3) + 
+  geom_boxplot(width = 0.3, notch = TRUE) +
+  scale_x_discrete(position = "top",
+                   limits = 
+                     rev(levels(factor(test_comp$name)))) +
+  guides(fill = FALSE) + 
+  labs(x = "", y = "Prediction Errors on A1c scale") +
+  coord_flip()
+
+p1 + p2 + plot_layout(ncol = 2)
+```
+
+## Table Comparing Model Prediction Errors
+
+Calculate the mean absolute prediction error (MAPE), the mean squared prediction error (MSPE) and the maximum absolute error across the predictions made by each model. 
+
+```{r}
+test_comp %>%
+  group_by(name) %>%
+  summarize(n = n(),
+            MAPE = mean(abs(res_a1c)), 
+            MSPE = mean(res_a1c^2),
+            max_error = max(abs(res_a1c)))
+```
+
+## Identify the largest errors
+
+Identify the subject(s) where that maximum prediction error was made by each model, and the observed and model-fitted values of `a1c` in each case.
+
+```{r, eval = FALSE}
+temp1 <- test_m1 %>% 
+  filter(abs(res_a1c) == max(abs(res_a1c)))
+
+temp2 <- test_m2 %>%
+  filter(abs(res_a1c) == max(abs(res_a1c)))
+
+temp3 <- test_m3 %>%
+  filter(abs(res_a1c) == max(abs(res_a1c)))
+```
+
+## Identify the largest errors (Results)
+
+Identify the subject(s) where that maximum prediction error was made by each model, and the observed and model-fitted values of `a1c` in each case.
+
+```{r, echo = FALSE}
+temp1 <- test_m1 %>% 
+  filter(abs(res_a1c) == max(abs(res_a1c)))
+
+temp2 <- test_m2 %>%
+  filter(abs(res_a1c) == max(abs(res_a1c)))
+
+temp3 <- test_m3 %>%
+  filter(abs(res_a1c) == max(abs(res_a1c)))
+```
+
+```{r}
+bind_rows(temp1, temp2, temp3) %>%
+  select(subject, a1c, fit_a1c, res_a1c)
+```
+
+## Line Plot of the Errors?
+
+Compare the errors that are made at each level of observed A1c?
+
+```{r, eval = FALSE}
+ggplot(test_comp, aes(x = a1c, y = res_a1c, 
+                      group = name)) +
+  geom_line(aes(col = name)) + 
+  geom_point(aes(col = name))
+```
+
+## Line Plot of the Errors?
+
+```{r, echo = FALSE}
+ggplot(test_comp, aes(x = a1c, y = res_a1c, 
+                      group = name)) +
+  geom_line(aes(col = name)) + 
+  geom_point(aes(col = name))
+```
+
+## What if we ignored S-002 for a moment?
+
+All three miss this subject substantially, but without S-002, we have:
+
+```{r}
+test_comp %>% filter(subject != "S-002") %>%
+  group_by(name) %>%
+  summarize(n = n(),
+            MAPE = mean(abs(res_a1c)), 
+            MSPE = mean(res_a1c^2),
+            max_error = max(abs(res_a1c)))
+```
+
+With the exception of subject S-002, the three models seem to make very similar errors in the test sample. 
+
+## Conclusions now?
+
+1. In-sample model predictions are about equally accurate for each of the three models. It's not clear yet that we need anything more than the simple regression on `a1c_old`. The addition of the other two predictors doesn't add predictive value that is statistically detectable.
+2. Residual plots look similarly reasonable for linearity, Normality and constant variance in all three models.
+3. Excluding a bad miss on one subject in the test sample, all three models do about equally well, with perhaps `mod_3` very slightly better according to all three metrics (MAPE, MSPE and max_error) in the test sample.
+
+So, what should our "most useful" model be?
+
+## Repeating our 431 Strategy
+
+Which model is "most useful" in a prediction context?
+
+1. Split the data into a model development (training) sample of about 70-80% of the observations, and a  model test (holdout) sample, containing the remaining observations.
+2. Develop candidate models using the development sample.
+3. Assess the quality of fit for candidate models within the development sample.
+4. Check adherence to regression assumptions in the development sample.
+5. When you have candidates, assess them based on the accuracy of the predictions they make for the data held out (and thus not used in building the models.) 
+6. Select a "final" model for use based on the evidence in steps 3, 4 and especially 5.
+

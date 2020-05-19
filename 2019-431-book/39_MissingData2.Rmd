@@ -1,0 +1,152 @@
+# Dealing with Missing Data
+
+So what we should have done at the start of our `wcgs` analysis was to identify any issues with missing values or whether any variables show unreasonably large or small values. 
+
+```{r create small set of variables from wcgs}
+wcgs.s <- wcgs %>%
+    dplyr::select(id, chol, age, bmi, sbp, dbp, smoke)
+```
+
+## Identifying Missingness
+
+If you just want a count of missing values, you can use `colSums` and `is.na`
+
+```{r counts of missing values in each variable}
+colSums(is.na(wcgs.s))
+```
+
+The `mice` package provides the `md.pattern` function to identify missingness patterns.
+
+```{r missing pattern in wcgs.s, message = FALSE}
+library(mice)
+md.pattern(wcgs.s)
+```
+
+Given the relatively small set of variables we're studying here, I would run the `describe` function from the `Hmisc` package on each variable (maybe skipping `id`) in order to identify missing and (potentially) unrealistic values through range checks. 
+
+```{r describe wcgs.s}
+Hmisc::describe(wcgs.s[-1]) # won't bother summarizing id
+```
+
+No values are outside the range of plausibility, and in any case, we see that we have 12 missing `chol` values in the full data set. Options?
+
+- We might choose to omit those rows before creating our test and training samples.
+    + If we're building a model where `chol` is the outcome, I would omit those cases, as (for 431, at least) I won't impute outcomes. This is R's default.
+- We might choose to impute missing values after we partition.
+
+## Complete Case Analysis: A model for `chol` 
+
+Suppose we want to build a model for `chol` using age, body-mass index and systolic blood pressure, using the entire `wcgs` data frame, except those subjects with a missing `chol` value. Note that this is the default approach R takes, regardless of whether `chol` is used as an outcome or predictor.
+
+```{r new lm for chol}
+model1 <- lm(chol ~ age + bmi + sbp, data = wcgs.s)
+summary(model1)
+```
+
+The notification under the residual standard error indicates that 12 observations (the 12 with missing `chol`, since no other variables in this group have missing data) were dropped before the model was fit. You can also tell this from the degrees of freedom. 
+
+- We have four coefficients to fit (intercept and slopes of `age`, `bmi` and `sbp`) so we have (4 - 1) = 3 numerator degrees of freedom.
+- The ANOVA F-statistic report also specifies 3138 denominator degrees of freedom. 
+- Total df is always one less than the total number of observations used in the model. 
+- That suggests we are using (3 + 3138) + 1 = 3142 subjects in this model. 
+- But `wcgs.s` actually contains 3,154 people so 12 were omitted.
+
+```{r dim wcgs}
+dim(wcgs.s)
+```
+
+### Removing all subjects with NA, via `na.omit`
+
+So, if we want to fit a complete case analysis, we don't, technically, have to do anything except specify the model. We can also make this explicit by first pruning all subjects with any missing values on any variables from our tibble.
+
+```{r create wcgs-s with no missing}
+wcgs.subnoNA <- dplyr::select(wcgs, id, chol, age, bmi, sbp) %>%
+    na.omit ## the na.omit function drops all cases with NA
+dim(wcgs.subnoNA)
+```
+
+### Removing subjects with NA on one particular variable
+
+If we wanted to specify that only subjects with missing `chol` should be removed from the data set (in case there were missing values in other variables), we could use the following approach. 
+
+Here, I'll work with a data set (`wcgs.s3`) that contains 12 missing `chol` values, and 2 missing `arcus` values, and build a new set (`wcgs.s3noNAchol`) that retains the subjects who have a `chol` value, regardless of whether they are also missing `arcus`, but not include the 12 subjects with missing `chol` data
+
+```{r create subset with no missing chol but retain missing arcus}
+wcgs.s3 <- dplyr::select(wcgs, id, chol, arcus)
+md.pattern(wcgs.s3)
+wcgs.s3noNAchol <- wcgs.s3 %>%
+    filter(!is.na(chol))
+md.pattern(wcgs.s3noNAchol)
+```
+
+
+
+## Using Multiple Imputation to fit our Regression Model
+
+Following the approach we outlined in the R-20 document\footnote{Also see https://stat.ethz.ch/education/semesters/ss2012/ams/paper/mice.pdf}, we'll try fitting the model while imputing the 12 cholesterol values, 100 times each, creating 100 new "complete" data sets.
+
+```{r mi for chol model, cache=TRUE}
+wcgs.sub <- wcgs %>% dplyr::select(id, chol, age, bmi, sbp)
+chol.mi <- mice(wcgs.sub, m = 100, maxit = 5, 
+                meth = "pmm", printFlag = FALSE, seed = 4314)
+```
+
+### Examining a Single Imputed Data Set
+
+We could look at any one of our 100 imputations in some detail, perhaps the 12th such imputation, as follows:
+
+```{r look at imp 12}
+imp12 <- mice::complete(chol.mi, 12)
+Hmisc::describe(imp12$chol)
+```
+
+Working with a particular imputation might allow us to produce plots of the imputed data, or of diagnostics after a regression model, but we'll focus our interpretation of regression results (in 431) on estimates of coefficients and of things like R^2^. For that, we want to use all 100 imputations, in a pooled approach.
+
+### Fitting a Pooled Regression Model across the Imputations
+
+Next, we'll fit a set of pooled regression model estimates across all 100 imputations, producing the following results. We'll even estimate both forms of R^2^.
+
+```{r running chol model with mi, cache = TRUE}
+model.1mi <- with(chol.mi, lm(chol ~ age + bmi + sbp))
+pool(model.1mi)
+round(summary(pool(model.1mi)),2)
+pool.r.squared(model.1mi, adjusted = FALSE)
+pool.r.squared(model.1mi, adjusted = TRUE)
+```
+
+- `fmi` in the output above contains the fraction of missing information.
+- `lambda` in that output is the proportion of the total variance that is attributable to the missing data.
+
+So, how do these estimates after imputation compare to our complete case analysis originally developed as `model1`, and re-summarized below?
+
+```{r complete case analysis}
+summary(model1)
+```
+
+## Comparing Two Models After Imputation with `pool.compare`
+
+Suppose we want to assess whether a model for `chol` with `age`, `bmi` and `sbp` is statistically significantly more effective than a model with `age` alone. As long as the models we want to compare are *nested* (so that one model is a proper subset of the other), then this can be done as follows, to produce a Wald test.
+
+```{r build two models and compare after imputation}
+model.1mi <- with(chol.mi, lm(chol ~ age + bmi + sbp))
+model.2mi <- with(chol.mi, lm(chol ~ age))
+comp1 <- pool.compare(model.1mi, model.2mi, method = "wald")
+```
+
+```{r comp1 details}
+comp1$qbar1 # pooled estimate of first (larger) model
+comp1$qbar0 # pooled estimate of second (smaller) model
+comp1$Dm # Wald test statistic comparing the models
+comp1$df1; comp1$df2 # degrees of freedom for Wald test
+comp1$pvalue # p value for Wald test
+```
+
+Practically, a significant value of the Wald test here suggests that the difference in predictive value between `model.1mi` and `model.2mi` is statistically significant, and thus, that you need the larger model. A non-significant Wald test would be consistent with a situation where you could use the model with `age` alone. 
+
+Here, we clearly want to retain `bmi` and `sbp` as compared to dropping them both from the model. This isn't a surprise, as we saw previously that *both* `bmi` and `sbp` had apparent predictive value (by the t test) even after all other variables were already in the model.
+
+To create the overall F test, we could compare our model to an intercept only model,
+`model.intmi <- with(chol.mi, lm(chol ~ 1))` but we'll skip that here.
+
+
+

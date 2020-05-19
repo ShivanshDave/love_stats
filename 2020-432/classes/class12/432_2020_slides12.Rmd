@@ -1,0 +1,552 @@
+---
+title: "432 Class 12 Slides"
+author: "github.com/THOMASELOVE/2020-432"
+date: "2020-02-25"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    colortheme: "lily"
+    fonttheme: "structurebold"
+    fig_caption: FALSE
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 60)
+```
+
+## Setup
+
+```{r, warning = FALSE, message = FALSE}
+library(magrittr); library(janitor); library(here)
+library(knitr)
+library(naniar)
+library(broom)
+
+library(mice) 
+  # mice = multiple imputation through chained equations
+
+library(tidyverse)
+
+theme_set(theme_bw())
+```
+
+## Today's Goals
+
+Use multiple imputation to deal with missing data in fitting:
+
+- linear regression with `lm`
+- logistic regression with `glm`
+
+using the `mice` package. (MICE = Multiple Imputation through Chained Equations)
+
+### Useful (if somewhat dated) Sources
+
+- https://thomasleeper.com/Rcourse/Tutorials/mi.html.
+- https://stats.idre.ucla.edu/r/faq/how-do-i-perform-multiple-imputation-using-predictive-mean-matching-in-r/
+
+# Multiple Imputation: Potential and Pitfalls
+
+## Sterne et al. 2009 *BMJ* 
+
+Multiple imputation for missing data in epidemiological and clinical research: potential and pitfalls
+
+> In this article, we review the reasons why missing data may lead to bias and loss of information in epidemiological and clinical research. We discuss the circumstances in which multiple imputation may help by reducing bias or increasing precision, as well as describing potential pitfalls in its application. Finally, we describe the recent use and reporting of analyses using multiple imputation in general medical journals, and suggest guidelines for the conduct and reporting of such analyses.
+
+- https://www.bmj.com/content/338/bmj.b2393
+- https://doi.org/10.1136/bmj.b2393
+
+## Types of Missing Data (from Sterne et al.)
+
+- **Missing completely at random** There are no systematic differences between the missing values and the observed values. For example, blood pressure measurements may be missing because of breakdown of an automatic sphygmomanometer.
+- **Missing at random** Any systematic difference between the missing values and the observed values can be explained by differences in observed data. For example, missing blood pressure measurements may be lower than measured blood pressures but only because younger people may be more likely to have missing blood pressure measurements.
+- **Missing not at random** Even after the observed data are taken into account, systematic differences remain between the missing values and the observed values. For example, people with high blood pressure may be more likely to miss clinic appointments because they have headaches
+
+"Missing at random" is an assumption that justifies the analysis, not a property of the data.
+
+## Pitfalls When Using Multiple Imputation (Sterne et al.)
+
+**Data that are missing not at random**
+
+- Some data are inherently missing not at random because it is not possible to account for systematic differences between the missing values and the observed values using the observed data. 
+- In such cases multiple imputation may give misleading results. Those results can be either more or less misleading than a complete case analysis. 
+- For example, consider a study investigating predictors of depression. If individuals are more likely to miss appointments because they are depressed on the day of the appointment, then it may be impossible to make the missing at random assumption plausible, even if a large number of variables is included in the imputation model.
+- Where complete cases and multiple imputation analyses give different results, the analyst should attempt to understand why, and this should be reported in publications.
+
+## Ways to Deal with Missing Data (from Sterne et al.)
+
+- There are circumstances in which analyses of **complete cases** will not lead to bias. Missing data in predictor variables do not cause bias in analyses of complete cases if the reasons for the missing data are unrelated to the outcome. Specialist methods to address missing data may lessen the loss of precision and power resulting from exclusion of individuals with incomplete predictor variables but are not required in order to avoid bias.
+- **Single Imputation** of missing values usually causes standard errors to be too small, since it fails to account for the fact that we are uncertain about the missing values.
+- If we assume data are missing at random, then unbiased and statistically more powerful analyses (compared with analyses based on complete cases) can generally be done by including individuals with incomplete data.
+
+## Multiple Imputation (from Sterne et al.)
+
+- Multiple imputation ... aims to allow for the uncertainty about the missing data by creating several different plausible imputed data sets and appropriately combining results obtained from each of them.
+
+- The first stage is to create multiple copies of the dataset, with the missing values replaced by imputed values. The imputation procedure must fully account for all uncertainty in predicting the missing values by injecting appropriate variability into the multiple imputed values; we can never know the true values of the missing data.
+
+## Multiple Imputation (from Sterne et al.)
+
+- The second stage is to use standard statistical methods to fit the model of interest to each of the imputed datasets. Estimated associations in each of the imputed datasets will differ because of the variation introduced in the imputation of the missing values, and they are only useful when averaged together to give overall estimated associations. Standard errors are calculated using Rubin's rules, which take account of the variability in results between the imputed datasets, reflecting the uncertainty associated with the missing values.
+    - Valid inferences are obtained because we are averaging over the distribution of the missing data given the observed data.
+
+## A Small Example (Sterne et al.)
+
+Consider, for example, a study investigating the association of systolic blood pressure with the risk of subsequent coronary heart disease, in which data on systolic blood pressure are missing for some people. 
+
+The probability that systolic blood pressure is missing is likely to:
+
+- decrease with age (doctors are more likely to measure it in older people), 
+- decrease with increasing body mass index, and 
+- decrease with history of smoking (doctors are more likely to measure it in people with heart disease risk factors or comorbidities). 
+
+If we assume that data are missing at random and that we have systolic blood pressure data on a representative sample of individuals within strata of age, smoking, body mass index, and coronary heart disease, then we can use multiple imputation to estimate the overall association between systolic blood pressure and coronary heart disease.
+
+## Today's Data
+
+```{r, message = FALSE}
+fram_raw <- read_csv(here("data/framingham.csv")) %>%
+    clean_names() 
+```
+
+See https://www.framinghamheartstudy.org/ for more details.
+
+This particular data set has been used by lots of people, in many different settings, and variations of it are all over the internet. I don't know who the originators were.
+
+## Data Cleanup
+
+```{r}
+fram_10 <- fram_raw %>%
+    mutate(educ = fct_recode(factor(education), 
+                          "Some HS" = "1",
+                          "HS grad" = "2",
+                          "Some Coll" = "3",
+                          "Coll grad" = "4")) %>%
+    mutate(obese = as.numeric(bmi >= 30)) %>%
+    rename(smoker = "current_smoker",
+           cigs = "cigs_per_day",
+           stroke = "prevalent_stroke",
+           highbp = "prevalent_hyp",
+           chol = "tot_chol",
+           sbp = "sys_bp", dbp = "dia_bp",
+           hrate = "heart_rate",
+           chd10 = "ten_year_chd") %>%
+    select(sbp, chd10, educ, smoker, cigs, bp_meds, 
+           chol, bmi, obese, glucose)
+```
+
+
+## Data Descriptions (variables we'll use today)
+
+The variables describe n = `r nrow(fram_10)` adult subjects who were examined at baseline and then followed for ten years to see if they developed incident coronary heart disease during that time. 
+
+Variable | Description
+-------: | ------------------------------------------------
+`educ` | four-level factor: educational attainment
+`smoker` | 1 = current smoker at time of examination, else 0
+`cigs`  | number of cigarettes smoked per day
+`bp_meds` | 1 = using anti-hypertensive medication at time of exam
+`chol` | total cholesterol (mg/dl)
+`sbp` | systolic blood pressure (mm Hg)
+`bmi` | body mass index in $kg/m^2$
+`obese` | 1 if subject's `bmi` is 30 or higher, else 0
+`glucose` | blood glucose level in mg/dl
+`chd10` | 1 = coronary heart disease in next 10 years
+
+## Which variables are missing data?
+
+```{r, fig.height = 5}
+gg_miss_var(fram_10)
+```
+
+## Counts of Missing Data, by Variable
+
+```{r}
+miss_var_summary(fram_10) %>% 
+    filter(n_miss > 0)
+```
+
+### Track missingness with shadow
+
+```{r}
+fram_10_sh <- bind_shadow(fram_10)
+```
+
+
+## Two Key Settings for Multiple Imputation
+
+- Use linear regression to predict `sbp` accounting for missingness via multiple imputation
+    - Predictors include `glucose`, `obese`, `educ`,  and `smoker`.
+- Use logistic regression to predict `chd10` accounting for missingness via multiple imputation
+    - Predictors include `glucose`, `bp_meds`, `chol`, `bmi`, `cigs` and `educ`
+
+# Setting 1: Linear Model for `sbp`
+
+## Model 2 (CC): Two-predictor model for `sbp`
+
+Suppose we ignore the missingness and just run the model on the data with complete information on `sbp`, `glucose` and `obese`.
+
+```{r}
+m2_cc <- fram_10_sh %$% lm(sbp ~ glucose + obese)
+
+tidy(m2_cc, conf.int = TRUE) %>% select(-statistic) %>%
+    kable(digits = 3)
+```
+
+## Edited Summary of Model 2 (CC)
+
+Suppose we ignore the missingness and just run the model.
+
+```
+Residual standard error: 21.42 on 3833 degrees of freedom
+  (402 observations deleted due to missingness)
+Multiple R-squared:  0.05857,	Adjusted R-squared:  0.05808 
+F-statistic: 119.2 on 2 and 3833 DF,  p-value: < 2.2e-16
+```
+
+```{r}
+glance(m2_cc) %>%
+    select(r.squared, adj.r.squared, AIC, BIC) %>%
+    kable(digits = c(4, 4, 0, 0))
+```
+
+## Model 4 (CC): Four-predictor model for `sbp`
+
+```{r}
+m4_cc <- fram_10_sh %$% 
+    lm(sbp ~ glucose + obese + smoker + educ)
+
+tidy(m4_cc, conf.int = TRUE) %>% select(-statistic) %>%
+    kable(digits = 3)
+```
+
+## Edited Summary of Model 4 (CC)
+
+Suppose we ignore the missingness and just run the model.
+
+```
+Residual standard error: 21.2 on 3733 degrees of freedom
+  (498 observations deleted due to missingness)
+Multiple R-squared:  0.08257,	Adjusted R-squared:  0.0811 
+F-statistic:    56 on 6 and 3733 DF,  p-value: < 2.2e-16
+```
+
+```{r}
+glance(m4_cc) %>%
+    select(r.squared, adj.r.squared, AIC, BIC) %>%
+    kable(digits = c(4, 4, 0, 0))
+```
+
+## Subset of Variables to be used in our models 2 and 4
+
+```{r}
+fram_sub <- fram_10 %>%
+    select(sbp, glucose, obese, educ, smoker)
+
+miss_var_summary(fram_sub)
+```
+
+## Create multiple imputations for this subset
+
+```{r}
+set.seed(4322020)
+fram_mice24 <- mice(fram_sub, m = 20)
+```
+
+## Summary Information about Imputation Process
+
+```{r}
+summary(fram_mice24)
+```
+
+## Run Model 2 on each imputed data frame
+
+```{r}
+m2_mods <- with(fram_mice24, lm(sbp ~ glucose + obese))
+summary(m2_mods)
+```
+
+## Pool Results across the 20 imputations
+
+```{r}
+m2_pool <- pool(m2_mods)
+summary(m2_pool, conf.int = TRUE, conf.level = 0.95)
+```
+
+## Model 2 (Complete Cases vs. Multiple Imputation)
+
+```{r}
+tidy(m2_cc, conf.int = TRUE) %>% kable(digits = 3)
+```
+
+```{r}
+summary(m2_pool, conf.int = TRUE, conf.level = 0.95) %>%
+    select(-df) %>% kable(digits = 3)
+```
+
+## More Details on Multiple Imputation Modeling
+
+```{r}
+m2_pool
+```
+
+- `fmi` = fraction of missing information due to nonresponse
+
+## Model 4 run on each imputed data frame
+
+```{r}
+m4_mods <- with(fram_mice24, lm(sbp ~ glucose + 
+                              obese + smoker + educ))
+summary(m4_mods)
+```
+
+## Pool Results across the five imputations
+
+```{r}
+m4_pool <- pool(m4_mods)
+summary(m4_pool, conf.int = TRUE, conf.level = 0.95)
+```
+
+## Complete Cases Result (Model 4)
+
+```{r}
+tidy(m4_cc, conf.int = TRUE) %>% select(-statistic) %>% 
+    kable(digits = 3)
+```
+
+## Multiple Imputation Result (Model 4)
+
+```{r}
+summary(m4_pool, conf.int = TRUE) %>% 
+  select(-statistic, -df) %>% kable(digits = 3)
+```
+
+## More Details on Multiple Imputation Modeling
+
+```{r}
+m4_pool
+```
+
+- `fmi` = fraction of missing information due to nonresponse
+
+## Estimate $R^2$ or adjusted $R^2$?
+
+```{r}
+pool.r.squared(m2_mods)
+pool.r.squared(m2_mods, adjusted = TRUE)
+
+pool.r.squared(m4_mods)
+pool.r.squared(m4_mods, adjusted = TRUE)
+```
+
+## Compare Model 4 to Model 2 after imputation
+
+The models must be nested for this to be appropriate. We'll use the Wald test after a linear regression fit.
+
+```{r}
+fit4 <- with(fram_mice24, 
+          expr = lm(sbp ~ glucose + obese + smoker + educ))
+fit2 <- with(fram_mice24, 
+          expr = lm(sbp ~ glucose + obese))
+
+pool.compare(fit4, fit2, method = "wald")$pvalue
+```
+
+# Setting 2: Logistic Model for `chd10`
+
+## Model 3 (CC): Three-predictor model for `chd10`
+
+Suppose we ignore the missingness and just run the model on the data with complete information on `glucose`, `bp_meds` and `cigs`.
+
+```{r}
+m3_cc <- fram_10_sh %$% glm(chd10 ~ glucose + bp_meds + cigs,
+                         family = binomial)
+
+tidy(m3_cc, exponentiate = TRUE, conf.int = TRUE) %>% 
+    select(-statistic) %>% kable(digits = 3)
+```
+
+## Model 6 (CC): Six-predictor model for `chd10`
+
+```{r}
+m6_cc <- fram_10_sh %$% glm(chd10 ~ glucose + bp_meds + cigs +
+                             educ + chol + bmi,
+                         family = binomial)
+
+tidy(m6_cc, exponentiate = TRUE, conf.int = TRUE) %>% 
+    select(-statistic) %>% kable(digits = 3)
+```
+
+## Subset of Variables to be used in our models 3 and 6
+
+```{r}
+fram_sub36 <- fram_10_sh %>%
+    select(chd10, glucose, bp_meds, cigs, educ, chol, bmi)
+
+miss_var_summary(fram_sub36)
+```
+
+## Create multiple imputations for this subset
+
+```{r}
+set.seed(432202036)
+fram_mice36 <- mice(fram_sub36, m = 10)
+```
+
+## Summary information about Imputation Process
+
+```{r}
+summary(fram_mice36)
+```
+
+## Run Model 3 on each imputed data frame
+
+```{r}
+m3_mods <- with(fram_mice36, 
+                glm(chd10 ~ glucose + bp_meds + cigs,
+                    family = binomial))
+summary(m3_mods)
+```
+
+## Pool Results across the 10 imputations
+
+```{r}
+m3_pool <- pool(m3_mods)
+summary(m3_pool, exponentiate = TRUE, 
+        conf.int = TRUE, conf.level = 0.95) %>% 
+    select(-df) %>% kable(digits = c(3, 3, 2, 2, 3, 3))
+```
+
+
+## Comparing Model 3 Results
+
+### Complete Cases
+
+```{r, echo = FALSE}
+tidy(m3_cc, exponentiate = TRUE, conf.int = TRUE) %>% 
+    select(-statistic) %>% kable(digits = 3)
+```
+
+### After Multiple Imputation
+
+```{r, echo = FALSE}
+summary(m3_pool, exponentiate = TRUE, 
+        conf.int = TRUE, conf.level = 0.95) %>% 
+    select(-statistic, -df) %>% kable(digits = 3)
+```
+
+## Run Model 6 on each imputed data frame
+
+```{r}
+m6_mods <- with(fram_mice36, glm(chd10 ~ glucose + 
+               bp_meds + cigs + educ + chol + bmi,
+                    family = binomial))
+summary(m6_mods)
+```
+
+## Pool Results across the 10 imputations
+
+```{r}
+m6_pool <- pool(m6_mods)
+summary(m6_pool, exponentiate = TRUE, 
+        conf.int = TRUE, conf.level = 0.95) %>% 
+    select(-df) %>% kable(digits = c(3, 3, 2, 2, 3, 3))
+```
+
+
+## Comparing Model 6 Results
+
+### Complete Cases
+
+```{r, echo = FALSE}
+tidy(m6_cc, exponentiate = TRUE, conf.int = TRUE) %>% 
+    select(-statistic) %>% kable(digits = 3)
+```
+
+## Comparing Model 6 Results
+
+### After Multiple Imputation
+
+```{r, echo = FALSE}
+summary(m6_pool, exponentiate = TRUE, 
+        conf.int = TRUE, conf.level = 0.95) %>% 
+    select(-statistic, -df) %>% kable(digits = 3)
+```
+
+## Compare Model 6 to Model 3 after imputation
+
+Again, these models need to be nested. We'll use the likelihood ratio test after a logistic regression fit.
+
+```{r}
+fit6 <- with(fram_mice36, 
+          expr = glm(chd10 ~ glucose + bp_meds + cigs + 
+                     educ + chol + bmi, family = binomial))
+fit3 <- with(fram_mice36, 
+          expr = glm(chd10 ~ glucose + bp_meds + cigs, 
+                     family = binomial))
+
+pool.compare(fit6, fit3, method = "likelihood")$pvalue
+```
+
+## Pitfalls When Using Multiple Imputation (Sterne et al.)
+
+**Omitting the outcome variable from the imputation procedure**
+
+Often an analysis explores the association between one or more predictors and an outcome but some predictors have missing values. 
+
+- Here, the outcome carries information about the missing values of the predictors and this information must be used.
+- Consider a model relating systolic blood pressure to time to coronary heart disease, fitted to data that have some missing values of systolic blood pressure. 
+    - When missing systolic blood pressure values are imputed, individuals who develop coronary heart disease should have larger values, on average, than those who remain disease free. 
+    - Failure to include the coronary heart disease outcome and time to this outcome when imputing the missing systolic blood pressure values would falsely weaken the association between systolic blood pressure and coronary heart disease.
+    
+## Pitfalls When Using Multiple Imputation (Sterne et al.)
+
+**Dealing with non-normally distributed variables**
+
+Many multiple imputation procedures assume that data are normally distributed, so including non-normally distributed variables may introduce bias. 
+
+- A pragmatic approach here is to transform such variables to approximate normality before imputation and then transform the imputed values back to the original scale. 
+- Different problems arise when data are missing in binary or categorical variables. Some procedures handle these types of missing data better than others.
+
+## Options within `mice` for imputation approaches
+
+Default methods include:
+
+- `pmm` predictive mean matching (default choice for quantitative variables)
+- `logreg` logistic regression (default for binary categorical variables)
+- `polyreg` polytomous logistic regression (for nominal multi-categorical variables)
+- `polr` proportional odds logistic regression (for ordinal categories)
+
+but there are `cart` methods and many others available, too.
+
+## Pitfalls When Using Multiple Imputation (Sterne et al.)
+
+**Plausibility of missing at random assumption**
+
+- For example, the missing at random assumption may be reasonable if a variable that is predictive of missing data in a covariate of interest is included in the imputation model, but not if the variable is omitted from the model. 
+- Multiple imputation analyses will avoid bias only if enough variables predictive of missing values are included in the imputation model. 
+- It is sensible to include a wide range of variables in imputation models, including all variables in the substantive analysis, plus, as far as computationally feasible, all variables predictive of the missing values themselves and all variables influencing the process causing the missing data.
+
+## Guidelines for reporting, I (Sterne et al.)
+
+How should we report on analyses potentially affected by missing data?
+
+- Report the number of missing values for each variable of interest, or the number of cases with complete data for each important component of the analysis. Give reasons for missing values if possible, and indicate how many individuals were excluded because of missing data when reporting the flow of participants through the study. If possible, describe reasons for missing data in terms of other variables (rather than just reporting a universal reason such as treatment failure.)
+- Clarify whether there are important differences between individuals with complete and incomplete data—for example, by providing a table comparing the distributions of key exposure and outcome variables in these different groups
+- Describe the type of analysis used to account for missing data (eg, multiple imputation), and the assumptions that were made (eg, missing at random)
+
+## Guidelines for reporting, II (Sterne et al.)
+
+How should we report on analyses that involve multiple imputation?
+
+- Provide details of the imputation modeling (software used, key settings, number of imputed datasets, variables included in imputation procedure, etc.)
+- If a large fraction of the data is imputed, compare observed and imputed values.
+- Where possible, provide results from analyses restricted to complete cases, for comparison with results based on multiple imputation. If there are important differences between the results, suggest explanations.
+- It is also desirable to investigate the robustness of key inferences to possible departures from the missing at random assumption, by assuming a range of missing not at random mechanisms in sensitivity analyses. 
+
+## Next Up
+
+- Minute Paper after Class 12 due Wednesday at 2 PM
+- For those of you who still need to do work on your proposal, the next revision deadline is 9 AM Wednesday
+- You'll have access to Quiz 1 at 5 PM Wednesday
+- No class Thursday. Next Tuesday's class will be about ridge regression and the lasso.

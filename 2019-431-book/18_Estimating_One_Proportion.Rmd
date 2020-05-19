@@ -1,0 +1,264 @@
+# Estimating a Population Proportion {#One-Proportion}
+
+We've focused on creating statistical inferences about a population mean, or difference between means, where we care about a quantitative outcome. Now, we'll tackle **categorical** outcomes, by estimating a confidence interval around a population proportion.
+
+## A First Example: Serum Zinc in the "Normal" Range?
+
+Recall that in the serum zinc study, we have 462 teenage male subjects, of whom 395 (or 85.5%) fell in the "normal range" of 66 to 110 micrograms per deciliter.
+
+```{r}
+serzinc <- serzinc %>% 
+  mutate(in_range = ifelse(zinc >= 66 & zinc <= 110, 1, 0))
+
+serzinc %>% tabyl(in_range) %>% 
+  adorn_totals() %>% adorn_pct_formatting()
+```
+
+### A 100(1-$\alpha$)% Confidence Interval for a Population Proportion
+
+Suppose we want to estimate a confidence interval for an unknown population proportion, $\pi$, on the basis of a random sample of n observations from that population which yields a sample proportion of p. Note that this p is the sample proportion -- it's not a *p* value.
+
+- In our serum zinc example, we have n = 462 observations, with a sample proportion ("in range") of p = 0.855.
+
+A 100(1-$\alpha$)% confidence interval for the population proportion $\pi$ can be created by using the standard normal distribution, the sample proportion, p, and the standard error of a sample proportion, which is defined as the square root of p multiplied by (1-p) divided by the sample size, n. 
+
+- So the standard error is estimated in our serum zinc example as:
+
+$$
+\sqrt{\frac{p (1-p)}{n}} = \sqrt{\frac{0.855(1-0.855)}{462}} = \sqrt{0.000268} = 0.016
+$$
+
+And thus, our confidence interval is $p \pm Z_{\alpha/2} \sqrt{\frac{p(1-p)}{n}}$
+
+where $Z_{\alpha/2}$ = the value from a standard Normal distribution cutting off the top $\alpha/2$ of the distribution, obtained in R by substituting the desired $\alpha/2$ value into the following command: `qnorm(alpha/2, lower.tail=FALSE)`.
+
+*Note*: This interval is reasonably accurate so long as np and n(1-p) are each at least 5.
+
+- For the serum zinc data, we have np = (462)(0.855) = 395 and n(1-p) = 462(1 - 0.855) = 67, so this should be ok.
+
+- For $\alpha$ = 0.05, we have $Z_{\alpha/2}$ = 1.96, approximately.
+
+```{r}
+qnorm(0.025, lower.tail = FALSE)
+```
+
+- Thus, for the serum zinc estimate, this confidence interval would be:
+
+$$
+p \pm Z_{\alpha/2} \sqrt{\frac{p(1-p)}{n}} = 
+\frac{395}{462} \pm 1.96 \sqrt{\frac{0.855(1-0.855)}{462}} = 0.855 \pm 0.032
+$$
+
+or (0.823, 0.887).
+
+I am aware of at least three different procedures for estimating a confidence interval for a population proportion using R. All have minor weaknesses: none is importantly different from the others in many practical situations.
+
+### The `prop.test` approach (Wald test)
+
+The `prop.test` function can be used to establish a very similar confidence interval to the one we calculated above, based on something called the Wald test.
+
+Here, we specify the `x` and `n` values. `n` is the total number of observations, and `x` is the number where the event of interest (in this case, serum zinc levels in the normal range) occurs. So `x` = 395 and `n` = 462.
+
+```{r}
+prop.test(x = 395, n = 462)
+```
+
+The 95% confidence interval by this method is (0.819, 0.885), which is close, but not quite the same, to our original estimate of (0.823, 0.887).
+
+The difference from our calculated interval is attributable to differences in rounding, plus the addition of something called a *continuity correction*, since we are using a Normal approximation to the exact binomial distribution to establish our margin for error. R, by default, includes this continuity correction for the Wald test in `prop.test` but we didn't include it in our original calculation.
+
+For most purposes, when using `prop.test`, I'll use `tidy` from the `broom` package to present the results.
+
+```{r}
+prop.test(x = 395, n = 462, conf.level = 0.95) %>% tidy()
+```
+
+
+### The `binom.test` approach (Clopper and Pearson "exact" test)
+
+The `binom.test` command can be used to establish an "exact" confidence interval. This uses the method of Clopper and Pearson from 1934, and is exact in the sense that it guarantees, for instance, that the confidence level associated with the interval is at least as large as the nominal level of 95%, but not that the interval isn't wider than perhaps it needs to be.
+
+```{r}
+binom.test(x = 395, n = 462)
+```
+
+The 95% confidence interval by this method is (0.820, 0.886), which is in the same general range as our previous estimates.
+
+For most purposes, when using `binom.test`, I'll again use `tidy` from the `broom` package to present the results.
+
+```{r}
+binom.test(x = 395, n = 462, conf.level = 0.95) %>% tidy()
+```
+
+### SAIFS: single augmentation with an imaginary failure or success
+
+SAIFS stands for "single augmentation with an imaginary failure or success" and the method I'll describe is one of several similar approaches. The next subsection describes the R code for calculating the relevant confidence interval.
+
+An approach I like for the estimation of a confidence interval for a single population proportion/rate\footnote{See Borkowf CB (2006) Constructing binomial confidence intervals with near nominal coverage by adding a single imaginary failure or success. Statistics in Medicine. 25(21): 3679-3695. doi: 10.1002/sim.2469, or get the whole PDF of the paper at http://onlinelibrary.wiley.com/doi/10.1002/sim.2469/pdf} is to estimate the lower bound of a confidence interval with an imaginary failure added to the observed data, and estimate the upper bound of a confidence interval with an imaginary success added to the data.
+
+Suppose we have X successes in n trials, and we want to establish a confidence interval for the population proportion of successes.
+
+Let $p_1 = (X+0)/(n+1), p_2 = (X+1)/(n+1), q_1 = 1 - p_1, q_2 = 1 - p_2$
+
+- The lower bound of a 100(1-$\alpha$)% confidence interval for the population proportion of successes using the SAIFS procedure is then $LB_{SAIFS}(x,n,\alpha) = p_1 - t_{\alpha/2, n-1}\sqrt{\frac{p_1 q_1}{n}}$
+
+- The upper bound of that same 100(1-$\alpha$)% confidence interval for the population proportion of successes using the SAIFS procedure is $UB_{SAIFS}(x,n,\alpha) = p_2 + t_{\alpha/2, n-1}\sqrt{\frac{p_2 q_2}{n}}$
+
+Returning to the serum zinc example, we've got 395 "successes" (value in the normal range) out of 462 "trials" (values measured), so that X = 395 and n = 462 
+
+So we have $p_1 = \frac{X + 0}{n + 1} = \frac{395}{463} = 0.8531$, $p_2 = \frac{X + 1}{n + 1} = \frac{396}{463} = 0.8553$, and $q_1 = 1 - p_1 = 0.1469$ and $q_2 = 1 - p_2 = 0.1447$
+
+We have $n = 462$ so if we want a 95% confidence interval ($\alpha = 0.05$), then we have $t_{\alpha/2, n-1} = t_{0.025, 461} = 1.9651$, which I determined using R's `qt` function:
+
+```{r}
+qt(0.025, df = 461, lower.tail=FALSE)
+```
+
+- Thus, our lower bound for a 95% confidence interval is $p_1 - t_{\alpha/2, n-1}\sqrt{\frac{p_1 q_1}{n}}$, or $0.8531 - 1.9651 \sqrt{\frac{0.8531(0.1469)}{462}}$, which is 0.8531 - 0.0324 or 0.8207.
+- Our upper bound is $p_2 + t_{\alpha/2, n-1}\sqrt{\frac{p_2 q_2}{n}}$, or $0.8553 - 1.9651 \sqrt{\frac{0.8553(0.1447)}{462}}$, which is 0.8553 + 0.0323, or 0.8876.
+
+So the 95% SAIFS confidence interval estimate for the population proportion, $\pi$, of teenage males whose serum zinc levels fall within the "normal range" is (0.821, 0.888).
+
+### A Function in R to Calculate the SAIFS Confidence Interval
+
+I built an R function, called `saifs.ci` and contained in the Markdown for this document as well as the `Love-boost.R` script on the web site, which takes as its arguments a value for X = the number of successes, n = the number of trials, and conf.level = the confidence level, and produces the sample proportion, the SAIFS lower bound and upper bound for the specified two-sided confidence interval for the population proportion, using the equations above. 
+
+Here, for instance, are 95%, 90% and 99% confidence intervals for the population proportion $\pi$ that we have been studying in the serum zinc data. 
+
+```{r}
+saifs.ci(x = 395, n = 462)
+
+saifs.ci(x = 395, n = 462, conf=0.9)
+
+saifs.ci(x = 395, n = 462, conf=0.99, dig=5)
+```
+
+Note that in the final interval, I asked the machine to round to five digits rather than the default of three. On my desktop (and probably yours), doing so results in this output:
+
+```
+Sample Proportion             0.005             0.995 
+          0.85498           0.81054           0.89763 
+```
+
+I've got some setting wrong in my `bookdown` work so that this doesn't show up above when the function is called. Sorry!
+
+### The `saifs.ci` function in R
+
+```{r saifs.ci_function, eval=FALSE}
+`saifs.ci` <- 
+  function(x, n, conf.level=0.95, dig=3)
+  {
+    p.sample <- round(x/n, digits=dig)
+    
+    p1 <- x / (n+1)
+    p2 <- (x+1) / (n+1)
+    
+    var1 <- (p1*(1-p1))/n
+    se1 <- sqrt(var1)
+    var2 <- (p2*(1-p2))/n
+    se2 <- sqrt(var2)
+    
+    lowq = (1 - conf.level)/2
+    tcut <- qt(lowq, df=n-1, lower.tail=FALSE)
+    
+    lower.bound <- round(p1 - tcut*se1, digits=dig)
+    upper.bound <- round(p2 + tcut*se2, digits=dig)
+    res <- c(p.sample, lower.bound, upper.bound)
+    names(res) <- c('Sample Proportion',lowq, 1-lowq)
+    res
+  }
+```
+
+
+## A Second Example: Ebola Mortality Rates through 9 Months of the Epidemic
+
+The World Health Organization's Ebola Response Team published an article\footnote{WHO Ebola Response Team (2014) Ebola virus disease in West Africa: The first 9 months of the epidemic and forward projections. {\it New Engl J Med} 371: 1481-1495 doi: 10.1056/NEJMoa1411100} in the October 16, 2014 issue of the New England Journal of Medicine, which contained some data I will use in this example, focusing on materials from their Table 2.
+
+As of September 14, 2014, a total of 4,507 confirmed and probable cases of Ebola virus disease (EVD) had been reported from West Africa. In our example, we will look at a set of 1,737 cases, with definitive outcomes, reported in Guinea, Liberia, Nigeria and Sierra Leone.
+
+Across these 1,737 cases, a total of 1,229 cases led to death. Based on these sample data, what can be said about the case fatality rate in the population of EVD cases with definitive outcomes for this epidemic?
+
+### Working through the Ebola Virus Disease Example
+
+We have n = 1,737 subjects, of whom we observed death in 1,229, for a sample proportion of $p = \frac{1229}{1737} = 0.708$. The standard error of that sample proportion will be
+
+$SE(p) = \sqrt{\frac{p(1-p)}{n}} = \sqrt{\frac{0.708(1-0.708)}{1737}} = 0.011$
+
+And our 95% confidence interval (so that we'll use $\alpha$ = 0.05) for the true population proportion, $\pi$, of EVD cases with definitive outcomes, who will die is
+$p \pm Z_{.025} \sqrt{\frac{p(1-p)}{n}}$, or 0.708 $\pm$ 1.96(0.011) = $0.708 \pm 0.022$, or (0.686, 0.730)
+
+Note that I simply recalled from our prior work that $Z_{0.025} = 1.96$, but we can verify this:
+
+```{r z for 0.025}
+qnorm(0.025, lower.tail=FALSE)
+```
+
+Since both np=(1737)(0.708)=1230 and n(1-p)=(1737)(1-0.708)=507 are substantially greater than 5, this should be a reasonably accurate confidence interval.
+
+We are 95% confident that the true population proportion is between 0.686 and 0.730. Equivalently, we could say that we're 95% confident that the true case fatality rate expressed as a percentage rather than a proportion, is between 68.6% and 73.0%.
+
+### Using R to estimate the CI for our Ebola example
+
+```{r}
+pt <- prop.test(x = 1229, n = 1737)
+tidy(pt, conf.int = 0.95) %>%
+  knitr::kable(digits = 3)
+```
+
+The 95% confidence interval by this method is (0.685, 0.729), which is close, but not quite the same, to our original estimate of (0.686, 0.730.)
+
+```{r}
+bt <- binom.test(x = 1229, n = 1737)
+tidy(bt, conf.int = 0.95) %>%
+  knitr::kable(digits = 3)
+```
+
+```{r}
+saifs.ci(x = 1229, n = 1737, conf.level=0.95)
+```
+
+### Comparing the Confidence Intervals for the Ebola Virus Disease Example
+
+These three approaches give the following results:
+
+Approach | 95% CI for Population Proportion
+--------:|:--------------------------------:
+`prop.test` (Wald) | (0.685, 0.729)
+`binom.test` (Clopper \& Pearson) | (0.686, 0.729)
+`saifs.ci` (Borkowf) | (0.686, 0.729)
+
+So in this case, it really doesn't matter which one you choose. With a smaller sample, we may not come to the same conclusion about the relative merits of these different approaches.
+
+## Can the Choice of Confidence Interval Method Matter?
+
+The SAIFS approach will give a substantially different confidence interval than either the Wald or Clopper-Pearson approaches with a small sample size, and a probability of "success" that is close to either 0 or 1. For instance, suppose we run 10 trials, and obtain a single success, then use these data to estimate the true proportion of success, $\pi$.
+
+The 95% confidence intervals under this circumstance are very different.
+
+Method | R Command | 95% CI for $\pi$
+------:|:---------:|----------------:
+Wald | `prop.test(x = 1, n = 10)` | `r round(prop.test(x = 1, n = 10)$conf.int,3)`
+Clopper-Pearson | `binom.test(x = 1, n = 10)` | `r round(binom.test(x = 1, n = 10)$conf.int,3)`
+SAIFS | `saifs.ci(x = 1, n = 10)` | `r saifs.ci(x = 1, n = 10)[2:3]`
+
+Note that the Wald and Clopper-Pearson procedures at least force the confidence interval to appear in the (0, 1) range. The SAIFS approach gives us some impossible values, and is thus a bit hard to take seriously -- in reporting the result, we'd probably have to report the SAIFS interval as (0, 0.458).
+
+If instead, we consider a situation where our null hypothesis is that the true proportion $\pi$ is 0.10 (or 10%), and we run each of these three methods to obtain a 95% confidence interval, then we will come to somewhat different conclusions depending on the choice of method, if we observe 4 successes in 100 trials.
+
+Method | R Command | 95% CI for $\pi$
+------:|:---------:|----------------:
+Wald | `prop.test(x = 4, n = 100)` | `r round(prop.test(x = 4, n = 100)$conf.int,3)`
+Clopper-Pearson | `binom.test(x = 4, n = 100)` | `r round(binom.test(x = 4, n = 100)$conf.int,3)`
+SAIFS | `saifs.ci(x = 4, n = 100)` | `r saifs.ci(x = 4, n = 100)[2:3]`
+
+Now, the Wald test suggests we retain the null hypothesis, the Clopper-Pearson test suggests we reject it (barely) and the SAIFS interval is more convinced that we should reject $H_0: \pi = 0.10$ in favor of $H_A: \pi \neq 0.10$.
+
+**None of these three approaches is always better than any of the others.** When we have a sample size below 100, or the sample proportion of success is either below 0.10 or above 0.90, caution is warranted, although in many cases, the various methods give similar responses.
+
+Data | Wald 95% CI | Clopper-Pearson 95% CI | SAIFS 95% CI
+----:|:-----------:|:----------------------:|:------------:
+10 successes in 30 trials  | `r round(prop.test(x = 10, n = 30)$conf.int,3)` | `r round(binom.test(x = 10, n = 30)$conf.int,3)` | `r saifs.ci(x = 10, n = 30)[2:3]`
+10 successes in 50 trials  | `r round(prop.test(x = 10, n = 50)$conf.int,3)` | `r round(binom.test(x = 10, n = 50)$conf.int,3)` | `r saifs.ci(x = 10, n = 50)[2:3]`
+90 successes in 100 trials | `r round(prop.test(x = 90, n = 100)$conf.int,3)` | `r round(binom.test(x = 90, n = 100)$conf.int,3)` | `r saifs.ci(x = 90, n = 100)[2:3]`
+95 successes in 100 trials | `r round(prop.test(x = 95, n = 100)$conf.int,3)` | `r round(binom.test(x = 95, n = 100)$conf.int,3)` | `r saifs.ci(x = 95, n = 100)[2:3]`
+

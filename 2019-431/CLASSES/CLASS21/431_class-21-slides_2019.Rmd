@@ -1,0 +1,693 @@
+---
+title: "431 Class 21"
+author: "github.com/THOMASELOVE/2019-431"
+date: "2019-11-12"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    fonttheme: "structurebold"
+    colortheme: "whale"
+    fig_height: 5.5
+    fig_caption: false
+---
+
+```{r set-options, echo=FALSE, cache=FALSE, message = FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+## Today's Agenda 
+
+Analysis of Variance adjusting for a covariate (intro to Part C)
+
+- Fitting the model
+- Interpreting the result
+- Checking assumptions
+
+On Contingency Tables (Chapter 29) 
+
+- Building a $J \times K$ Table
+- $\chi^2$ Tests of Independence
+    - Cochran Conditions and Checking Assumptions
+- Stratifying a Table by a Third Categorical Variable
+    - The Cochran-Mantel-Haenszel Test for a Three-Way Table
+    - The Woolf test to check assumptions
+
+## Today's Setup
+
+```{r load_packages, message = FALSE}
+library(vcd) # new today
+
+library(here); library(magrittr); library(janitor)
+library(patchwork); library(broom); library(tidyverse)
+
+source(here("R", "Love-boost.R"))
+dm431 <- readRDS(here("data", "dm431.Rds"))
+```
+
+# Running a Regression Model to Compare Means
+
+## Returning to `dm431` data
+
+We want to compare systolic blood pressure levels for four groups, defined by insurance.
+
+```{r, echo = FALSE}
+ggplot(dm431, aes(x = insurance, y = sbp, fill = insurance)) +
+    geom_violin(alpha = 0.3) +
+    geom_boxplot(width = 0.3, notch = TRUE) +
+    theme_bw() +
+    guides(fill = FALSE) + coord_flip() + 
+    labs(x = "", y = "Systolic Blood Pressure (in mm Hg)")
+```
+
+## Analysis of Variance Table
+
+```{r}
+model_1 <- lm(sbp ~ insurance, data = dm431)
+
+anova(model_1)
+```
+
+- Model 1 $\eta^2 = \frac{3403}{3403+144089} = \frac{3403}{147492} = 0.023$
+
+## Summary of Model One (edited to fit the screen)
+
+```
+Call: lm(formula = sbp ~ insurance, data = dm431)
+
+Residuals:     Min      1Q  Median      3Q     Max  
+           -38.421 -11.844  -2.421   9.579  72.970 
+
+Coefficients:      Estimate Std. Error t value Pr(>|t|)    
+(Intercept)         128.421      1.434  89.527  < 2e-16 ***
+insuranceMedicaid     6.609      2.331   2.836  0.00479 ** 
+insuranceMedicare     2.238      2.191   1.021  0.30769    
+insuranceUninsured    6.579      3.119   2.110  0.03548 *  
+---
+Sig. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 18.37 on 427 degrees of freedom
+Multiple R-squared:  0.02307,	Adjusted R-squared:  0.01621 
+F-statistic: 3.362 on 3 and 427 DF,  p-value: 0.01874
+```
+
+## What if we adjusted for `SBP` two years ago?
+
+```{r}
+model_2 <- lm(sbp ~ insurance + sbp_old, data = dm431)
+
+anova(model_2)
+```
+
+- Model 2 $\eta^2 = \frac{3403 + 13958}{3403+13958+130131} = \frac{17361}{147492}= 0.118$
+
+## This ANOVA table runs tests sequentially
+
+```{r}
+model_2rev <- lm(sbp ~ sbp_old + insurance, data = dm431)
+
+anova(model_2rev)
+```
+
+- Model 2 $\eta^2 = \frac{14994 + 2367}{14994+2367+130131} = \frac{17361}{147492}= 0.118$
+
+## Summary of Model Two (edited to fit the screen)
+
+```{r, eval = FALSE}
+summary(model_2)
+```
+
+```
+Call: lm(formula = sbp ~ insurance + sbp_old, data = dm431)
+
+Residuals:     Min      1Q  Median      3Q     Max 
+           -41.030 -11.737  -2.301  10.386  74.136 
+
+Coefficients:      Estimate Std. Error t value Pr(>|t|)    
+(Intercept)         86.9253     6.2886  13.823  < 2e-16 ***
+insuranceMedicaid    5.5800     2.2227   2.510   0.0124 *  
+insuranceMedicare    1.7207     2.0861   0.825   0.4099    
+insuranceUninsured   5.3081     2.9733   1.785   0.0749 .  
+sbp_old              0.3245     0.0480   6.760 4.57e-11 ***
+
+Residual standard error: 17.48 on 426 degrees of freedom
+Multiple R-squared:  0.1177,	Adjusted R-squared:  0.1094 
+F-statistic: 14.21 on 4 and 426 DF,  p-value: 6.785e-11
+```
+
+## Comparing Model 1 to Model 2
+
+```{r}
+g1 <- glance(model_1) %>% mutate(model = "Model 1")
+g2 <- glance(model_2) %>% mutate(model = "Model 2")
+
+bind_rows(g1, g2) %>% 
+    select(model, r.squared, adjr2 = adj.r.squared, sigma, 
+           df, anova_F = statistic, p.value, AIC) %>% 
+    knitr::kable(digits = c(0, 3, 3, 2, 0, 2, 3, 1))
+```
+
+## Model 2 Assumption Checking: Residual Plot 1 
+
+- Residuals vs. Fitted (predicted) values should show fuzzy football...
+
+```{r}
+plot(model_2, which = 1)
+```
+
+## Model 2 Assumption Checking: Residual Plots 
+
+- Normal Q-Q plot of Standardized Residuals...
+
+```{r}
+plot(model_2, which = 2)
+```
+
+
+
+
+# New Topic: Larger Contingency Tables
+
+## A $2 \times 3$ contingency table
+
+This table displays the count of patients who show *complete*, *partial*, or *no response* after treatment with either **active** medication or a **placebo** in our study of 100 patients...
+
+Group | None | Partial | Complete
+-----:| :---:| :----: | :-----:
+Active | 8 | 24 | 20
+Placebo | 12 | 26 | 10
+
+Is there a statistically detectable association here, at $\alpha = 0.10$? 
+
+- $H_0$: Response Distribution is the same, regardless of Treatment.
+- $H_A$: There is an association between Treatment and Response.
+
+## The Pearson Chi-Square Test
+
+The Pearson $\chi^2$ test assumes the null hypothesis is true (rows and columns are independent.) That is a model for our data. How does it work? Here's the table, with marginal totals added.
+
+-- | None | Partial | Complete | **TOTAL**
+-------- | ------: | -----: | -----: | -----:
+Active   | 8 | 24 | 20 | **52**
+Placebo  | 12 | 26 | 10 | **48**
+**TOTAL** | **20** | **50** | **30** | **100**
+
+The test needs to estimate the expected frequency in each of the six cells under the assumption of independence. If the rows and columns are in fact independent of each other, then what is the expected number of subjects that will fall in the Active/None cell?
+
+## The Independence Model
+
+The independence model means the overall rate of "Response = None" or "Partial" or "Complete" applies to both "Active" and "Placebo" subjects.
+
+-- | None | Partial | Complete | **TOTAL**
+---------: | ------: | -----: | -----: | -----:
+Active | -- | -- | -- | **52**
+Placebo | -- | -- | -- | **48**
+**TOTAL** | **20** | **50** | **30** | **100**
+
+If the rows and columns were independent, then: 
+
+- 20/100 or 20% of subjects would have the response "None"
+    - That means 20% of the 52 Active, and 20% of the 48 Placebo subjects.
+- 50% would have a "Partial" response in each exposure group, and 
+- 30% would have a "Complete" response in each group.
+
+So, can we fill in the expected frequencies under our independence model?
+
+## Observed (*Expected*) Cell Counts
+
+-- | None | Partial | Complete | **TOTAL**
+-------- | :------: | :-----: | :-----: | -----:
+Active   | 8 (*10.4*) | 24 (*26.0*) | 20 (*15.6*) | **52**
+Placebo  | 12 (*9.6*) | 26 (*24.0*) | 10 (*14.4*) | **48**
+**TOTAL** | **20** | **50** | **30** | **100**
+
+### General Formula for Expected Frequencies under Independence
+
+$$ 
+\mbox{Expected Frequency} = \frac{\mbox{Row total} \times \mbox{Column total}}{\mbox{Grand Total}}
+$$
+
+This assumes that the independence model holds: the probability of being in a particular column is exactly the same in each row, and vice versa.
+
+## Chi-Square Assumptions
+
+- Expected Frequencies: We assume that the expected frequency, under the null hypothesized model of independence, will be **at least 5** (and ideally at least 10) in each cell. If that is not the case, then the $\chi^2$ test is likely to give unreliable results. The *Cochran conditions* require us to have no cells with zero and at least 80% of the cells in our table with expected counts of 5 or higher. That's what R uses to warn you of trouble.
+- Don't meet the standards? Consider collapsing categories.
+
+### Observed (**Expected**) Cell Counts
+
+-- | None | Partial | Complete | **TOTAL**
+-------- | :------: | :-----: | :-----: | -----:
+Active   | 8 (**10.4**) | 24 (**26.0**) | 20 (**15.6**) | 52
+Placebo  | 12 (**9.6**) | 26 (**24.0**) | 10 (**14.4**) | 48
+TOTAL | 20 | 50 | 30 | 100
+
+## Getting the Table into R
+
+We'll put the table into a matrix in R. Here's one approach...
+
+```{r}
+T1 <- matrix(c(8, 24, 20, 12, 26, 10), 
+             ncol=3, nrow=2, byrow=TRUE)
+rownames(T1) <- c("Active", "Placebo")
+colnames(T1) <- c("None", "Partial", "Complete")
+T1
+```
+
+## Chi-Square Test Results in R
+
+- $H_0$: Response Distribution is the same, regardless of Treatment.
+    - Rows and Columns of the table are *independent*
+- $H_A$: There is an association between Treatment and Response.
+    - Rows and Columns of the table are *associated*.
+
+```{r}
+chisq.test(T1)
+```
+
+What is the conclusion?
+
+## Does Sample Size Affect The $\chi^2$ Test?
+
+- T1 results were: $\chi^2$ = 4.0598, df = 2, *p* = 0.1313
+- What if we had the same pattern, but twice as much data?
+
+```{r}
+T1_doubled <- T1*2
+T1_doubled
+```
+
+```{r}
+chisq.test(T1_doubled)
+```
+
+## Can we run Fisher's exact test instead?
+
+Yes, but ... if the Pearson assumptions don't hold, then the Fisher's test is not generally an improvement. 
+
+```{r}
+fisher.test(T1)
+```
+
+- It's also really meant more for square tables, with the same number of rows as columns, and relatively modest sample sizes.
+
+## OK. Back to `dm431`
+
+What am I plotting here?
+
+```{r, eval = FALSE, fig.height = 4}
+p1 <- ggplot(dm431, aes(x = insurance)) + geom_bar() + 
+    theme_bw() + 
+    geom_text(aes(label = ..count..), stat = "count", 
+              vjust = 1.5, col = "white")
+
+p2 <- ggplot(dm431, aes(x = tobacco)) + geom_bar() + 
+    theme_bw() + 
+    geom_text(aes(label = ..count..), stat = "count", 
+              vjust = 1.5, col = "white")
+
+p1 + p2 # requires patchwork package
+```
+
+## dm431: Two Categorical Variables of interest
+
+```{r, echo = FALSE, fig.height = 4}
+p1 <- ggplot(dm431, aes(x = insurance)) + geom_bar() + 
+    theme_bw() + 
+    geom_text(aes(label = ..count..), stat = "count", 
+              vjust = 1.5, col = "white")
+
+p2 <- ggplot(dm431, aes(x = tobacco)) + geom_bar() + 
+    theme_bw() + 
+    geom_text(aes(label = ..count..), stat = "count", 
+              vjust = 1.5, col = "white")
+
+p1 + p2 # requires patchwork package
+```
+
+## A $4 \times 3$ table with the `dm431` data
+
+```{r}
+dm431 %>% 
+    tabyl(insurance, tobacco) %>%
+    adorn_totals(where = c("row", "col"))
+```
+
+## Plotting a Cross-Tabulation?
+
+```{r}
+ggplot(dm431, aes(x = insurance, y = tobacco)) +
+    geom_count() + theme_bw()
+```
+
+## Tobacco Bar Chart faceted by Insurance
+
+```{r, fig.height = 4}
+ggplot(dm431, aes(x = tobacco, fill = tobacco)) + 
+    geom_bar() + theme_bw() + facet_wrap(~ insurance) +
+    guides(fill = FALSE) + 
+    geom_text(aes(label = ..count..), stat = "count", 
+              vjust = 1, col = "black")
+```
+
+## Tobacco Status and Insurance in `dm431`
+
+- $H_0$: Insurance type and Tobacco status are independent
+- $H_A$: Insurance type and Tobacco status have a detectable association
+
+Pearson $\chi^2$ results?
+
+```{r}
+dm431 %>% tabyl(insurance, tobacco) %>% chisq.test()
+```
+
+Can we check our expected frequencies?
+
+## Tobacco Status and Insurance in `dm431`
+
+Checking Assumptions:
+
+```{r}
+res <- dm431 %>% tabyl(insurance, tobacco) %>% chisq.test()
+
+res$observed
+res$expected
+```
+
+## Mosaic Plot for Cross-Tabulation
+
+Each rectangle's area is proportional to the number of cases in that cell.
+
+```{r}
+dm431 %$% plot(insurance, tobacco, ylab = "", xlab = "")
+```
+
+## Mosaic Plot from the `vcd` package (highlighting)
+
+```{r, fig.height = 4, fig.width = 7}
+mosaic(~ tobacco + insurance, data = dm431, 
+       highlighting = "tobacco", 
+       highlighting_fill = c("red", "gray50", "gray80"))
+```
+
+## Mosaic Plot from the `vcd` package (with $\chi^2$ shading)
+
+```{r}
+mosaic(~ tobacco + insurance, data = dm431, shade = TRUE)
+```
+
+# Working with Three-Way Tables (Cochran-Mantel-Haenszel Procedure) in the Treatment of Kidney Stones
+
+## Kidney Stone Treatment Example
+
+Suppose we compare the success rates of two treatments for kidney stones.
+
+- Treatment A (all open surgical procedures): 273/350 patients (78%) had a successful result.
+- Treatment B (percutaneous nephrolithotomy - less invasive): 289/350 were successful (83%).
+
+Kidney Stones | Successful Outcome | Bad Outcome 
+------------: | -----------------: | -----------:
+A (open surgery) | 273 (78%) | 77 (22%) | 350
+B (less invasive) | 289 (83%) | 61 (17%) | 350
+
+Which approach would you choose?
+
+- Sources: [\color{blue}{Wikipedia}](https://en.wikipedia.org/wiki/Simpson%27s_paradox) and
+Charig CR et al. (1986) PMID 3083922.
+
+## Kidney Stones, `twobytwo` results
+
+```{r, eval = FALSE}
+twobytwo(273, 77, 289, 61, "A", "B", "Success", "Bad")
+```
+
+```
+2 by 2 table analysis: 
+-------------------------------------------------- 
+Outcome   : Success        Comparing : A vs. B 
+
+  Success Bad    P(Success) 95% conf. interval
+A     273  77        0.7800    0.7336   0.8203
+B     289  61        0.8257    0.7823   0.8620
+
+                                95% conf. interval
+         Relative Risk:  0.9446    0.8776   1.0168
+     Sample Odds Ratio:  0.7483    0.5146   1.0883
+Probability difference: -0.0457   -0.1045   0.0133
+
+Exact P-value: 0.154    Asymptotic P-value: 0.1292 
+--------------------------------------------------
+```
+
+## Kidney Stones: A Third Variable
+
+But this comparison may be misleading.
+
+Some kidney stones are small, and some are large.
+
+- Open Surgery (A) used in 87 small stones, and 263 large ones.
+- Less Invasive (B) used in 270 small stones, and 80 large ones.
+
+Could that bias our results? 
+
+- Should we account for this difference in "size mix"?
+
+## Kidney Stone results stratified by stone size
+
+- For small stones, the odds ratio for a successful outcome comparing A to B is 2.08 (95% CI 0.84, 5.11)
+
+**Small** Stones | Successful Outcome | Bad Outcome 
+------------: | -----------------: | -----------:
+A (open surgery) | 81 (93%) | 6 (7%) | 87
+B (less invasive) | 234 (87%) | 36 (13%) | 270
+
+- For large stones, that odds ratio is 1.23 (95% CI 0.71, 2.12)
+
+**Large** Stones | Successful Outcome | Bad Outcome 
+------------: | -----------------: | -----------:
+A (open surgery) | 192 (73%) | 71 (27%) | 263
+B (less invasive) | 55 (69%) | 25 (31%) | 80
+
+### Aggregated Data: % with Successful Outcome
+
+- 78% of Treatment A subjects, 83% of Treatment B
+
+## What We Have Here is a Three-Way Table
+
+- rows: which treatment was received (A or B)
+- columns: was the outcome Successful or Bad?
+- *strata* or *layers*: was the stone Small or Large?
+
+```
+Size  Treatment  Good  Bad  Total  % Good
+----- ---------  ----  ---  -----  ------
+Small     A        81    6     87     93
+Small     B       234   36    270     87
+Large     A       192   71    263     73
+Large     B        55   25     80     69
+```
+
+We'll talk about three-way and larger contingency tables more in 432, but in 431, we focus on the situation where a 2x2 table is repeated over multiple strata (categories in a third variable.)
+
+## Cochran-Mantel-Haenszel Test
+
+The Cochran-Mantel-Haenszel test is designed to test whether the rate of a successful (Good) outcome is the same across the two levels of the treatment (i.e. A or B.) 
+
+- We *could* do this by simply adding up the results across the stone sizes, but that wouldn't be wise, because the stone size is likely to be related to the outcome and the choice of procedure.
+- But we can account for the differences between stone sizes to some extent by adjusting for stone size as a stratifying variable in a CMH test.
+- The big assumption we'll have to make, though, is that the odds ratio for a good outcome for treatment A versus treatment B is the same for small stones and large stones. Is this reasonable here? We'll use a Woolf test to decide.
+
+But first, let's get the data into a useful form.
+
+## Building the Three-Way Table
+
+```{r}
+stone <- c(rep("Small", 4), rep("Large", 4))
+treat <- c(rep(c("A", "A", "B", "B"), 2))
+result <- c(rep(c("Good", "Bad"), 4))
+counts <- c(81, 6, 234, 36, 192, 71, 55, 25)
+
+kidney_dat <- tibble(stone, treat, result, counts)
+```
+
+## What do we have so far?
+
+```{r}
+kidney_dat
+```
+
+## The Three-Way Table
+
+```{r}
+big.tab <- xtabs(counts ~ treat + result + stone, 
+                 data = kidney_dat)
+big.tab
+```
+
+## Three-Way Table as a "Flat" Table
+
+```{r}
+ftable(big.tab)
+```
+
+## Can we assume a Common Odds Ratio?
+
+- Recall the sample odds ratio in small stones was 2.08 and in large stones was 1.23
+
+The Woolf test checks a key assumption for the Cochran-Mantel-Haenszel test. The Woolf test assesses the null hypothesis of a common odds ratio across the two stone sizes.
+
+```{r}
+woolf_test(big.tab)
+```
+
+Our conclusion from the Woolf test is that we are able to retain the null hypothesis of homogeneous odds ratios. So it's not crazy to fit a test that requires that all of the odds ratios be the same in the population.
+
+## Running the Cochran-Mantel-Haenszel test
+
+So, we can use the Cochran-Mantel-Haenszel test to make inferences about the population odds ratio (for revascularization given niacin rather than placebo) accounting for the five studies. We'll use a 90% confidence interval, and the results appear on the next slide.
+
+```{r, eval = FALSE}
+mantelhaen.test(big.tab, conf.level = .90)
+```
+
+## Complete CMH output (Edited to fit on the screen)
+
+```{r, eval = FALSE}
+mantelhaen.test(big.tab, conf.level = .90)
+```
+
+```
+Mantel-Haenszel chi-squared test with continuity correction
+
+data:  big.tab
+Mantel-Haenszel X-squared = 2.0913, df = 1, p-value = 0.1481
+
+alt. hypothesis: true common odds ratio is not equal to 1
+
+90 percent confidence interval: 0.4708539 1.0145392
+sample estimates: common odds ratio 0.6911583  
+```
+
+What can we conclude in this case?
+
+# OK. That's everything for Part B of the course, and that's everything that you need to complete Project Study A.
+
+## Bonus: The Niacin and Heart Disease Meta-Analysis
+
+Duggal et al (2010) did a meta-analysis\footnote{Duggal JK et al. 2010. Effect of niacin therapy on cardiovascular outcomes in patients with coronary artery disease. J Cardiovasc Pharmacology \& Therapeutics 15: 158-166. My Source: \color{blue}{http://www.biostathandbook.com/cmh.html}} of 5 placebo-controlled studies (AFREGS, ARBITER2, CLAS1, FATS and HATS) of niacin and heart disease, where the primary outcome was the need to do a coronary artery revascularization procedure. 
+
+For example, the FATS study had these results:
+
+FATS      | Revascularization | No Revasc. 
+--------: | :-----------: | :----------:
+Niacin    |  2 | 46  
+Placebo   | 11 | 41
+
+FATS is just one of the five studies, and this table exists in each!
+
+## Exploring the FATS study
+
+FATS      | Revascularization | No Revasc. 
+--------: | :-----------: | :----------:
+Niacin    |  2 | 46  
+Placebo   | 11 | 41
+
+- Pr(revascularization | Niacin) = $\frac{2}{2+46}$ = `r round(2/48,3)`
+- Odds(revascularization | Niacin) = $\frac{2}{46}$ = `r round(2/46,3)`
+- Pr(revascularization | Placebo) = $\frac{11}{11+41}$ = `r round(11/52, 3)` 
+- Odds(revascularization | Placebo) = $\frac{11}{41}$ = `r round(11/41,3)`
+
+and so the Odds Ratio = $\frac{2*41}{11*46}$ = `r round((2*41)/(11*46), 2)`.
+
+But that is just the result for the FATS study.
+
+## Building the Meta-Analysis Table
+
+```{r data for meta analysis}
+study <- c(rep("FATS", 4), rep("AFREGS", 4), 
+           rep("ARBITER2", 4), rep("HATS", 4), 
+           rep("CLAS1", 4))
+treat <- c(rep(c("Niacin", "Niacin", 
+                 "Placebo", "Placebo"),5))
+outcome <- c(rep(c("Revasc.", "No Rev."), 10))
+counts <- c(2, 46, 11, 41, 4, 67, 12, 60, 1, 86, 
+            4, 76, 1, 37, 6, 32, 2, 92, 1, 93)
+meta <- data.frame(study, treat, outcome, counts) %>% tbl_df
+meta$treat <- fct_relevel(meta$treat, "Niacin")
+meta$outcome <- fct_relevel(meta$outcome, "Revasc.")
+meta.tab <- xtabs(counts ~ treat + outcome + study, 
+                  data = meta)
+```
+
+## Five Studies in the Meta-Analysis
+
+```{r ftable for meta.tab}
+ftable(meta.tab)
+```
+
+The three variables we are studying are: 
+
+- `treat` (2 levels: Niacin/Placebo), 
+- `outcome` (2 levels: Revascularization or No Revascularization) across 
+- `study` (5 levels: AFREGS, ARBITER2, CLAS1, FATS, HATS) 
+
+## Cochran-Mantel-Haenszel Test
+
+The Cochran-Mantel-Haenszel test is designed to test whether the rate of revascularization is the same across the two levels of the treatment (i.e. Niacin or Placebo). 
+
+- We *could* do this by simply adding up the results across the five studies, but that wouldn't be wise, because the studies used different populations and looked for revascularization after different lengths of time.
+- But we can account for the differences between studies to some extent by adjusting for study as a stratifying variable in a CMH test.
+- The big assumption we'll have to make, though, is that the odds ratio for  revascularization given Niacin instead of Placebo does not change across the studies. Is this reasonable in our case?
+
+## Looking at the Study-Specific Odds Ratios
+
+We'll calculate the odds ratios, comparing revascularization odds with niacin vs. placebo, within each separate study. 
+
+Study   | Rev N | Rev P | NoRev N | NoRev P | Odds Ratio
+------: | ---: | ---: | ---: | ---: | :------------------:
+AFREGS  | 4 | 67 | 12 | 60 | $\frac{4*60}{67*12}$ = `r round((4*60)/(67*12), 2)`
+ARBITER2  | 1 | 86 | 4 | 76 | `r round((1*76)/(86*4), 2)`
+CLAS1  | 2 | 92 | 1 | 93 | `r round((2*93)/(92*1), 2)`
+FATS  | 2 | 46 | 11 | 41 | `r round((2*41)/(46*11), 2)`
+HATS  | 1 | 37 | 6 | 32 | `r round((1*32)/(37*6), 2)`
+
+The table shows patient counts for the categories in each of the respective two-by-two tables (Rev N = Revascularization and Niacin, NoRev P = No Revascularization and Placebo, etc.)
+
+## Can we assume a Common Odds Ratio?
+
+The Woolf test checks a key assumption for the Cochran-Mantel-Haenszel test. The Woolf test assesses the null hypothesis of a common odds ratio across the five studies.
+
+```{r}
+woolf_test(meta.tab)
+```
+
+Our conclusion from the Woolf test is that we are able to retain the null hypothesis of homogeneous odds ratios. So it's not crazy to fit a test that requires that all of the odds ratios be the same in the population.
+
+## Running the Cochran-Mantel-Haenszel test
+
+So, we can use the Cochran-Mantel-Haenszel test to make inferences about the population odds ratio (for revascularization given niacin rather than placebo) accounting for the five studies. We'll use a 90% confidence interval, and the results appear on the next slide.
+
+```{r, eval = FALSE}
+mantelhaen.test(meta.tab, conf.level = .90)
+```
+
+## Complete CMH output
+
+```{r CMH for meta.tab code only, eval=FALSE}
+mantelhaen.test(meta.tab, conf.level = .90)
+```
+
+```
+Mantel-Haenszel chi-squared test with continuity correction
+
+data:  meta.tab
+Mantel-Haenszel 
+X-squared = 12.746, df = 1, p-value = 0.0003568
+
+alt. hypothesis: true common odds ratio is not equal to 1
+
+90 percent confidence interval: 0.1468942 0.4968686
+sample estimates: common odds ratio 0.2701612 
+```
+
+What can we conclude in this case?

@@ -1,0 +1,202 @@
+# Study B Task 2. The Study B Proposal {#task2b}
+
+In Study B Task 2 you will develop and propose a meaningful summary of your ideas and research question for Study B. Your research question needs to clearly relate to modeling and prediction of a quantitative outcome on the basis of a set of predictor variables. You will also identify and register the data set you will use to address your proposed research question.
+
+## The Task
+
+1. You will present a proposal **summary** (< 300 words) for Study B in this Task. 
+2. you will identify and present (register) a detailed description of a data set that is 
+    - appropriate for use in this project, and
+    - likely to lead to an answer to the research question you proposed in your summary.
+
+## Building The Summary
+
+Eventually, you will be building a multiple linear regression model, and using it to predict your outcome of interest. 
+
+Your summary should begin with a title for your Study B. Take the time to come up with a good, interesting title. You are going to work hard on this thing; please resist the temptation to murder our interest at the start by calling it "431 Statistics Project" or anything else that shows a similar lack of effort.
+
+Provide me a very brief summary of what you're trying to accomplish - specifically, what your research question is, and what you hypothesize will happen.
+
+The summary ends with a statement of the research question or questions (you may have one, or possibly two.) An excellent question conveys the main objective of the study in terms that allow us to apply statistical models to describe an association between one or more predictors and a quantitative outcome.  Your research question describes your outcome, your key predictor and other predictors, and the population of interest. It is probably easiest to follow one of these formats^[You are welcome to move the clauses around to make for a clearer question.].
+
+- What is the effect of `*your key predictor*` on `*your outcome*` adjusting for `*your list of other predictors*` in `*your population of subjects*`?
+- How effectively can `*specify your predictors*` predict `*your outcome*` in `*your population of subjects*`? 
+
+It should be possible for me to explain your study accurately just by reading this summary. If it's not possible, it will come back to you for a REDO. 
+
+- Statistics is a details business. Get the details right.
+- The summary should be less than 300 words.
+- Use complete English sentences. Write in plain language. Use words we all know. Avoid jargon. 
+- Review the general [suggestions about writing](https://thomaselove.github.io/2019-431-syllabus/on-writing-presenting-communicating.html) in the Course Syllabus.
+- Please review the specific advice about research questions in the [Study A Task 2](#task2a) instructions.
+
+## The five most important things to do in the summary are:
+
+The summary is the heart of the early Tasks in Study B, and requires some care. You will need to convince us that your topic is interesting, your data are relevant, and building a model and making predictions of a quantitative outcome using the predictors available to you will be worthwhile.
+
+1. Write clearly. My best advice is to finish the summary as soon as you can, and then give it to someone else to read, who can criticize it for lack of clarity in the writing. 
+2. Specify the topic of interest, and motivate your study of it.
+3. Explicitly specify your key research question, which should be stated as a question, and which should clearly and naturally lead to a prediction model for a quantitative outcome.
+4. Explain what you hypothesize will happen, and
+5. Explicitly link your key research question to the data set you describe in the rest of this Task.
+
+## Research Questions for Study B that worked in the past
+
+For Study B, your research questions will need to fit within the confines of a regression model, where a quantitative outcome is predicted using a series of at least four predictor variables. In many cases, a key predictor will be of primary interest, with other predictors serving to "adjust" away noise and generate fairer comparisons. Here are a few examples from past classes:
+
+- "Is the presence of elevated hemoglobin A1c predictive of cognitive impairment (as defined by the Digit Symbol Substitution Test) in patients over the age of 60 years, after adjusting for age, education, and depression?"
+- "What is the effect of thyroid dysfunction on LDL level after adjusting for age, sex, and level of physical activity in the population of patients at XXXXXXXX location who are 40 years-old and above?"
+- "Do conscientiousness and openness predict more conservative or liberal attitudes about government spending and whether and how much wasteful spending exists, after accounting for age, income and professional status?"
+- "Does overweight or obesity (defined by body mass index) predict insulin resistance (measured by the homeostasis model assessment of insulin resistance (HOMA-IR)) in young adults with first-time acute coronary syndrome after adjusting for age, sex, race/ethnicity and severity of (several comorbid conditions)?"
+
+## The Data Description
+
+Your data description can be as long as it needs to be, although two pages is usually more than enough. It should include:
+
+1. Your data source, which can be an online source (in which case include a working link), a published paper or journal article (in which case I need a link and a PDF copy of the paper), or unpublished data (in which case I need the details of how the data were gathered).
+
+2. A thorough description of the data collection process, with complete details as to the nature of the variables, the setting for data collection, and complete details of any apparatus you used which may affect results.
+
+3. Specification of the people and methods involved.
+    + Who are the subjects under study? 
+    + When were the data gathered? By whom?
+    + How many subjects are included?
+    + What caused subjects to be included or excluded from the study?
+
+4. Your planned **quantitative** outcome, which must relate directly to the research question you specified above. Provide a complete definition, including specifying the exact wording of the question or details of the measurement procedure used to obtain the outcome. If available, you can also include descriptions of secondary **quantitative** outcomes. Your outcomes must be quantitative in Study B.
+
+5. Your predictors of interest, which should also relate to the research question in an obvious way. Again, define the variables carefully, as you did with the outcome.
+
+6. If you already have the data, tell me that. If you don't, specify any steps you must still take in order to get the data, and specify the date by which you will have your data (must be no later than November 1.)
+
+## Data Specifications
+
+Study B data sets MUST 
+
+- contain between 250 and 2,500 distinct observations,
+    - if you have an interesting data set that is larger, you'll sample down to a maximum of 2,500 rows for this project.
+- contain at least one quantitative outcome variable,
+- contain at least four predictor variables, one of which may be identified as the "key" predictor of interest,
+- include at least one quantitative predictor variable, and at least one categorical predictor variable, 
+- include a complete description of how the data were gathered, so that information must be publicly available,
+- be in your hands no later than November 1, 
+- be shared with a statistician (Professor Love) following [Jeff Leek's guide to sharing data with a statistician](https://github.com/jtleek/datasharing). This means you need to have access to the data in the raw, and it means that I have to be able to have access to it in the raw (after it is de-identified), as well. - be capable of being fully cited for any and all data elements, including a complete codebook, as this must be provided as part of your proposal.
+
+While there are some great resources available to some people in this class by virtue of their affiliation with one of the health systems in town, I can do nothing to get you access to health system specific data as part of your project for this class or for 432, and in general, data from those sources are not especially appropriate because of issues with protected health information.
+
+If you have a partner, you will work on the same data set and questions as they do. Otherwise, I allow no two students/pairs to work on the same question for the same data. 
+
+## What Else Shouldn't You Do?
+
+1. Don't use hierarchical, multi-level data. That's not what we need in 431.
+2. Don't use a categorical outcome variable, or plan a logistic regression model. That's for 432, not 431.
+3. Don't assume Professor Love knows anything at all about wet lab biology work or genomics.
+4. I am not interested in you using pre-cleaned data from an educational repository, such as:
+
+- [this one at the Cleveland Clinic](http://www.lerner.ccf.org/qhs/datasets/), or [this one at Vanderbilt University](http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets), or [this one at UCLA](http://www.stat.ucla.edu/projects/datasets/), or [this one at the University of Florida](http://www.stat.ufl.edu/~winner/datasets.html), or [this one at Florida State University](http://people.sc.fsu.edu/~jburkardt/datasets/datasets.html), or
+- [StatLib at Carnegie-Mellon University](http://lib.stat.cmu.edu/datasets/), or [the Journal of Statistics Education Data Archive](http://www.amstat.org/publications/jse/jse_data_archive.htm), or 
+- the data sets gathered in the fivethirtyeight package, the mosaic package, the cars package, the datasets package, or any other R package designed primary for teaching, or 
+- the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php), where I will reject data posted prior to 2018 and may reject stuff before that, or
+- the [Tidy Tuesday repository](https://github.com/rfordatascience/tidytuesday), or
+- [StatSci.org's repository of textbook examples and ready for teaching data](http://www.statsci.org/datasets.html), or
+- any of the many textbook-linked repositories of data sets, like [this one for Statistics: Unlocking the Power of Data](http://www.lock5stat.com/datapage.html), or
+- https://www.kaggle.com/ Kaggle competition data sets are attractive to students occasionally, but I've seen a lot of them before and don't really want to see them again, or
+- any similar repository Professor Love deems to be inappropriate
+
+## A Few Potentially Useful Data Sources
+
+The ideal choice of data source for this project is a public-use version of a meaningful data set without access restrictions. With 60+ students in the class, I cannot be responsible for supervising your work with restricted data personally. Some appealing sources to explore include:
+
+- the new [Google Datasets Search](https://toolbox.google.com/datasetsearch)
+- https://www.data.gov/ The home of the U.S. Government's open data
+- http://www.census.gov/data.html The U.S. Census Bureau has many interesting data sets, including the [Current Population Survey](http://www.census.gov/programs-surveys/cps.html)
+- http://www.healthdata.gov/ 125 years of U.S. Health Care Data
+- http://www.cdc.gov/nchs/nhanes/index.htm National Health and Nutrition Examination Survey. 
+    + Lots of people choose to use NHANES data, and it is a great resource, but if you do use it, I will require you to look at data collected in at least three different survey forms, so that you'll have to do some merging, and I don't allow you to use data exclusively from the 2009-10 and 2011-12 waves, so that you cannot just use the `NHANES` package. You may want to look at [the nhanesA package in R](https://cran.r-project.org/web/packages/nhanesA/vignettes/Introducing_nhanesA.html) to help with this work.
+- http://dashboard.healthit.gov/datadashboard/data.php Office of the National Coordinator for Health IT's dashboard
+- http://www.icpsr.umich.edu/icpsrweb/ ICSPR (Inter-university Consortium for Political and Social Research) is a source for many public-use data sets
+    + This includes the [Health and Medical Care data archive of the Robert Wood Johnson Foundation](http://www.icpsr.umich.edu/icpsrweb/HMCA/)
+- [General Social Survey](http://gss.norc.org/) at NORC/U of Chicago
+- http://www.bls.gov/data/ Bureau of Labor Statistics
+- http://nces.ed.gov/surveys/ National Center for Education Statistics
+- http://www.odh.ohio.gov/healthstats/dataandstats.aspx Ohio Department of Health
+- http://open.canada.ca/en Canada Open Data
+- http://digital.nhs.uk/home Health data sets from the UK National Health Service.
+- http://www.who.int/en/ World Health Organization
+- http://www.unicef.org/statistics/ UNICEF has some available data on women and children
+- http://www.pewinternet.org/datasets/ Pew Research Center's Internet Project
+- http://portals.broadinstitute.org/cgi-bin/cancer/datasets.cgi Broad Institute's Cancer Program
+- http://www.kdnuggets.com/datasets/index.html is a big index of lots of available data repositories
+- [Health Policy Institute of Ohio's 2019 Health Value Dashboard](https://www.healthpolicyohio.org/2019-health-value-dashboard/)
+- [County Health Rankings](https://www.countyhealthrankings.org/) from the Robert Wood Johnson Foundation
+- [500 Cities: Local Data for Better Health](https://www.cdc.gov/500cities/)
+- Hadley Wickham's Github repository of data from the [National Electronic Injury Surveillance System](https://github.com/hadley/neiss)
+- [DREAM Challenges](http://dreamchallenges.org/) DREAM Challenges invite participants to propose solutions to fundamental biomedical questions - see in particular the upcoming EHR Dream Challenge, and its predecessors.
+    - [This article](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5130083/) uses data from the Prostate Cancer DREAM Challenge.
+- [National Health Interview Survey](https://www.cdc.gov/nchs/nhis/index.htm) at CDC
+- [New York City Housing and Vacancy Survey](https://www1.nyc.gov/site/hpd/about/nychvs-asa-data-challenge-expo.page) data from the 2019 ASA Data Challenge Expo
+- [Ohio Department of Health Explore Data & Stats page](https://odh.ohio.gov/wps/portal/gov/odh/explore-data-and-stats)
+- [HealthMeasures Dataverse at Harvard](https://dataverse.harvard.edu/dataverse/HealthMeasures), and its [more general dataverse](https://dataverse.harvard.edu/dataverse/harvard)
+- Washington Post Github Site: [Database of School Shootings in the United States since Columbine](https://github.com/washingtonpost/data-school-shootings)
+    - The main article (with interactives) is at https://wapo.st/school-shootings
+- [Request Page from NHLBI for the National Longitudinal Mortality Study](https://biolincc.nhlbi.nih.gov/studies/nlms/) 
+- [Open Source Data from BuzzFeed News](https://github.com/BuzzFeedNews) github repository
+- [Opioid data trove from the Washington Post](https://t.co/W4zgzRJWUI?amp=1) (registration required) with [a twitter post](https://twitter.com/aleszubajak/status/1152311687317479424?s=11) and [R script to dig into your state's data](https://gist.github.com/aleszu/c13bb718a0b1d7de429900ab5f8004f3).
+- [Ohio Department of Health data portal](https://odh.ohio.gov/wps/portal/gov/odh/explore-data-and-stats)
+- [Fixed Broadband Deployment data from the Federal Communications Commission](https://broadbandmap.fcc.gov/#/)
+- [MEPS: Medical Expenditure Panel Survey](https://www.meps.ahrq.gov/mepsweb/) from AHRQ
+- [Health and Retirement Study](http://hrsonline.isr.umich.edu/): A Public Resource for data on aging in America since 1990
+- [SEER: (Surveillance, Epidemiology and End Results) Data and Software](https://seer.cancer.gov/data-software/) from National Cancer Institute
+- [Hospital Compare data](https://www.medicare.gov/hospitalcompare/Data/Data-Updated.html#)
+- [Nursing Home Compare data](https://data.medicare.gov/data/nursing-home-compare)
+- [National Survey of Family Growth](https://www.cdc.gov/nchs/nsfg/index.htm)
+
+I cannot guarantee the quality of any of the data sets available at these sites, but I've spent at least a little time at many of them.
+
+## Using Unpublished Data?
+
+If you are planning to use data you have collected, or that you are working on as part of another course or your research work, that is probably going to work out better in 432 than 431. At a minimum, you will need to be able to convince me that the data you will provide is completely free of any restrictions (after de-identification and compliance with all HIPAA and other security standards), contains NO protected information of any kind, and can be shared freely with the general public. You will need to write a statement asserting that all of this is true for me to approve your proposal.
+
+If you're trying to, for instance, use this project as an opportunity to do the work for your thesis, that's not going to work in 431. It might partially work in my other courses, but this is too regimented.
+
+- An extremely useful link for those of you **building a spreadsheet to store data** is [Karl Broman's tutorial](http://kbroman.org/dataorg/) on the subject. No one was born knowing this stuff - take a look.
+
+## Deadline and Submission information
+
+The deadline is **2019-10-08 at 5 PM** for Study B Task 2. Note that the same deadline applies to Study A Task 2.
+
+Study B Task 2 should be submitted to Canvas. 
+
+- You will submit a Word, PDF or HTML document containing your responses to the task.
+- You don't need to write this Task using R Markdown.
+
+- *If you are working with a partner*, one of you should submit the document to Canvas (be sure that both partners' names are on the top of the document) and the other should submit a one-page Word document stating "My partner, INSERT NAME OF PARTNER, has submitted the work on Task 2 for Study B for us."
+
+After your name and the title of your Study B, your submission should include these two sections, labeled as:
+
+```
+A. Proposal Summary 
+B. Data Set Description
+```
+
+Use as many subheadings as you feel will be helpful.
+
+### "Grading"
+
+The 431 Teaching Assistants will review all Study B proposals initially, will suggest revisions to these materials as quickly as possible, and will assign an initial grade of OK or REDO.
+
+- Should the TA deem your work as falling in the OK category, Dr. Love will then review the document to see if he agrees. If he does, then you will receive the feedback from the TA and Dr. Love, and your work on Study B Task 2 will be done. If he doesn't, he'll specify what you need to do in a revision, and post it as a REDO.
+
+- Should the TA require a REDO, you will get that feedback from the TA directly, without Dr. Love reviewing your work in this first iteration. 
+
+- Once you receive a REDO request (and this will be posted to Canvas, as well as sent to you via email), you will need to complete your revision within 24 hours, and resubmit to Canvas.
+
+- Dr. Love will then review all resubmitted REDOs, and iterate through the process until he is satisfied with your Study B proposal. Subsequent REDO requests will also be due within 24 hours of you receiving email notification.
+
+- The vast majority of projects will require at least one revision, and many will require two. Few will require more than two revisions.
+
+Once your group receives a grade of OK, you are done with Study B Task 2. Successful completion of Task 2 is required to proceed forward to the remaining project Tasks.
+
+You will receive 15 points once you have successfully completed Tasks 2, 3, 4 and 5 for Study B in a timely fashion.
+
+

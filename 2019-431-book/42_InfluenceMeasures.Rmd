@@ -1,0 +1,117 @@
+# Influence Measures for Multiple Regression
+
+R can output a series of **influence measures** for a regression model. Let me show you all of the available measures for model 1, but just for three of the data points - #1 (which is not particularly influential) and #12 and #16 (which are).
+
+First, we'll look at the raw data:
+
+```{r p68}
+gala[c(1,12,16),]
+```
+
+And then, we'll gather the output available in the `influence.measures` function.
+
+```{r p68b, eval=FALSE}
+influence.measures(model1)
+```
+
+Here's an edited version of this output...
+```
+Influence measures of
+lm(formula = species ~ area + elevation + nearest + scruz + adjacent, 
+data = gala) :
+
+     dfb.1_  dfb.area  dfb.elvt dfb.nrst  dfb.scrz  dfb.adjc
+1  -0.15064   0.13572 -0.122412  0.07684  0.084786  1.14e-01
+12  0.16112   0.16395 -0.122578  0.03093 -0.059059 -8.27e-01
+16 -1.18618 -20.87453  4.885852  0.36713 -1.022431 -8.09e-01
+
+     dffit   cov.r   cook.d    hat inf
+1   -0.29335  1.0835 1.43e-02 0.0787    
+12  -1.24249 25.1101 2.68e-01 0.9497   *
+16 -29.59041  0.3275 6.81e+01 0.9685   *
+```
+This output presents dfbetas for each coefficient, followed by dffit statistics, covariance ratios, Cook's distance and leverage values (`hat`) along with an indicator of influence.
+
+We'll consider each of these elements in turn.
+
+
+
+## DFBETAs
+
+The first part of the influence measures output concerns what are generally called `dfbetas` ...
+
+id | island | dfb.1_ | dfb.area | dfb.elvt | dfb.nrst | dfb.scrz | dfb.adjc
+-:| :-: | -:| -:| -:| -:| -:| -:
+1 | Baltra | -0.151 | 0.136 | -0.122 |  0.077 | 0.085 | 0.114
+12 | Fernandina | 0.161 | 0.164 | -0.123 | 0.031 | -0.059 | -0.827
+16 | Isabela | -1.186 | -20.875 |  4.886 | 0.367 | -1.022 | -0.809
+
+The `dfbetas` look at a standardized difference in the estimate of a coefficient (slope) that will occur if the specified point (here, `island`) is removed from the data set. 
+
+- Positive values indicate that deleting the point will yield a smaller coefficient. 
+- Negative values indicate that deleting the point will yield a larger coefficient. 
+- If the absolute value of the dfbeta is greater than $2 / \sqrt{n}$, where $n$ is the sample size, then the `dfbeta` is considered to be large. 
+
+In this case, our cutoff would be $2 / \sqrt{30}$ or 0.365, so that the Isabela `dfbeta` values are all indicative of large influence. Essentially, if we remove Isabela from the data, and refit the model, our regression slopes will change a lot (see below). Fernandina has some influence as well, especially on the `adjacent` coefficient.
+
+Predictor | Coefficient (*p*) **all 30 islands** | Coefficient (*p*) **without Isabela**
+--------: | ------------------------------------:| ------------------------------------:
+Intercept | 7.07 (*p* = 0.72) | 22.59 (*p* = 0.11)
+`area` | -0.02 (*p* = 0.30) | 0.30 (*p* < 0.01)
+`elevation` | 0.32 (*p* < 0.01) | 0.14 (*p* < 0.01)
+`nearest` | 0.01 (*p* = 0.99) | -0.26 (*p* = 0.73)
+`scruz` | -0.24 (*p* = 0.28) | -0.09 (*p* = 0.55)
+`adjacent` | -0.08 (*p* < 0.01) | -0.07 (*p* < 0.01)
+
+## Other Available Influence Measures
+
+After the dfbetas, the `influence.measures` output presents `dffit`, covariance ratios, Cook's distance and leverage values (`hat`) for each observation, along with an indicator of influence.
+
+```
+id  island         dffit   cov.r   cook.d    hat inf
+1   Baltra      -0.29335  1.0835 1.43e-02 0.0787    
+12  Fernandina  -1.24249 25.1101 2.68e-01 0.9497   *
+16  Isabela    -29.59041  0.3275 6.81e+01 0.9685   *
+```
+
+### Cook's d or Cook's Distance
+
+The main measure of influence is Cook's Distance, also called Cook's d. Cook's d provides a summary of the influence of a particular point on all of the regression coefficients. It is a function of the standardized residual and the leverage. 
+
+- Cook's distance values greater than 1 are generally indicators of high influence.
+- Obviously, Isabela (with a value of Cook's d = 68.1) is a highly influential observation by this measure.
+
+### Plotting Cook's Distance
+
+As one of its automated regression diagnostic plots, R will produce an index plot of the Cook's distance values. Note the relatively enormous influence for island 16 (Isabela).
+
+```{r model 1 diagnostic 4}
+plot(model1, which = 4)
+```
+
+### DFFITS 
+
+A similar measure to Cook's distance is called `DFFITS`. The `DFFITS` value describes the influence of the point on the fitted value. It's the number of standard deviations that the fitted value changes if the observation is removed. This is defined as a function of the studentized residual and the leverage. 
+
+- If the absolute value of `DFFITS` is greater than 2 times $\sqrt{p / n-p}$, where *p* is the number of predictors (not including the intercept), we deem the observation influential.
+- For the `gala` data, we'd consider any point with `DFFITS` greater than 2 x $\sqrt{5 / (30-5)}$ = 0.894 to be influential by this standard, since n = 30 and we are estimating p = 5 slopes in our model. This is true of both Fernandina and Isabela.
+
+### Covariance Ratio 
+
+The covariance ratio `cov.r` indicates the role of the observation on the precision of estimation. If `cov.r` is greater than 1, then this observation improves the precision, overall, and if it's less than 1, the observation drops the precision of estimation, and these are the points about which we'll be most concerned.
+
+- As with most of our other influence measures, Isabela appears to be a concern.
+
+### Leverage 
+
+The `hat` value is a measure of leverage. Specifically, this addresses whether or not the point in question is unusual in terms of its combination of predictor values. 
+
+- The usual cutoff for a large leverage value is 2.5 times the average leverage across all observations, where the average leverage is equal to k/n, where n is the number of observations included in the regression model, and k is the number of model coefficients (slopes plus intercept).
+- In the `gala` example, we'd regard any observation with a hat value larger than 2.5 x 6/30 = 0.5 to have large leverage. This includes Fernandina and Isabela.
+
+### Indicator of Influence
+
+The little asterisk indicates an observation which is influential according to R's standards for any of these measures. You can take the absence of an asterisk as a clear indication that a point is NOT influential. Points with asterisks may or may not be influential in an important way. In practice, I usually focus on the Cook's distance to make decisions about likely influence, when the results aren't completely clear.
+
+
+

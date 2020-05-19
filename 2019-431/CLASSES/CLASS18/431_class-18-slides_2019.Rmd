@@ -1,0 +1,353 @@
+---
+title: "431 Class 18"
+author: "github.com/THOMASELOVE/2019-431"
+date: "2019-10-31"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    fonttheme: "structurebold"
+    colortheme: "whale"
+    fig_height: 5.5
+    fig_caption: false
+---
+
+```{r set-options, echo=FALSE, cache=FALSE, message = FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+
+## Today's Setup and Data
+
+```{r load_packages, message = FALSE}
+library(exact2x2); library(PropCIs) # new today
+
+library(Epi)
+library(magrittr); library(janitor) 
+library(here); library(tidyverse)
+
+source(here("R", "Love-boost.R"))
+
+dm431 <- readRDS(here("data", "dm431.Rds"))
+```
+
+## Example B: Statin use in Medicaid vs. Uninsured
+
+In the `dm431` data, suppose we want to know whether statin prescriptions are more common among Medicaid patients than Uninsured subjects. So, we want a two-way table with "Medicaid", "Statin" in the top left.
+
+```{r}
+dm431 %>% 
+  filter(insurance %in% c("Medicaid", "Uninsured")) %>%
+  tabyl(insurance, statin)
+```
+
+But we want the tabyl just to show the levels of insurance we're studying...
+
+## Obtaining a 2x2 Table from a data frame
+
+We want to know whether statin prescriptions are more common among Medicaid patients than Uninsured subjects.. So, we want a two-way table with "Medicaid", "Uninsured" in the top left.
+
+```{r}
+dm431 %>% 
+  filter(insurance %in% c("Medicaid", "Uninsured")) %>%
+  droplevels() %>%
+  tabyl(insurance, statin)
+```
+
+But we want Medicaid in the top row (ok) and "statin = yes" in the left column (must fix)...
+
+## Building and Releveling Factors in the data frame
+
+```{r}
+exampleB <- dm431 %>%
+  filter(insurance %in% c("Medicaid", "Uninsured")) %>%
+  droplevels() %>%
+  mutate(insur_f = fct_relevel(insurance, "Medicaid"),
+         statin_f = fct_recode(factor(statin), 
+                        on_statin = "1", no_statin = "0"),
+         statin_f = fct_relevel(statin_f, "on_statin"))
+
+exampleB %>% tabyl(insur_f, statin_f)
+```
+
+Since Medicaid was already on top, we didn't *have to* set `insur_f`.
+
+## Adorning the `tabyl` with % using row as denominator
+
+```{r}
+exampleB %>% tabyl(insur_f, statin_f) %>%
+  adorn_totals(where = c("row", "col")) %>%
+  adorn_percentages(denom = "row") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns(position = "front") %>%
+  adorn_title(row = "Insurance", col = "Statin Status")
+```
+
+## Running `twoby2` against a data set
+
+The `twoby2` function from the `Epi` package can operate with tables (but not, alas, `tabyl`s) generated from data.
+
+**Original Data**
+
+```{r, eval = FALSE}
+twoby2(exampleB %$% table(insur_f, statin_f))
+```
+
+(output on next slide)
+
+**With Bayesian Augmentation**
+
+```{r, eval = FALSE}
+twoby2(exampleB %$% table(insur_f, statin_f) + 1)
+```
+
+(output on the slide after that)
+
+## Complete `twoby2` for Example B
+
+```{r, out.width = '95%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/exampleB_2by2.png")
+```
+
+## `twoby2` for Example B (with Bayesian augmentation)
+
+```{r, out.width = '95%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/exampleB_2by2_plus.png")
+```
+
+# Comparing Proportions using Paired Samples (Course Notes Chapter 24)
+
+## `dm431` Example C.
+
+Among the current Commercially insured subjects, compare the proportion with A1c below 8 to the proportion for the same patients two years ago.
+
+```{r}
+dm431 %>% filter(insurance == "Commercial") %>%
+    count(a1c_old < 8, a1c < 8)
+```
+
+- How might we rearrange this information? Exposure? Outcome?
+
+## How many subjects do we have?
+
+- How many commercial subjects provide us with A1c values at each time point?
+
+```{r}
+dm431 %>% filter(complete.cases(a1c_old, a1c)) %>% 
+  filter(insurance == "Commercial") %>% nrow()
+```
+
+- How many A1c values did we obtain from those subjects?
+
+## What is our design here?
+
+- Here are four of the subjects in this group:
+
+```{r, echo = FALSE}
+dm431 %>% filter(insurance == "Commercial") %>%
+  select(subject, insurance, a1c, a1c_old) %>%
+  slice(c(1:2, 5:6))
+```
+
+- What is our outcome?
+- What are the two exposure groups?
+- Are these samples paired or independent?
+
+## `dm431` Example C, rearranged
+
+```{r}
+dm431 %>% filter(insurance == "Commercial") %>%
+    mutate(now_stat = ifelse(a1c < 8, 
+                       "below_8_now", "high_now"),
+           old_stat = ifelse(a1c_old < 8, 
+                       "old_below_8", "old_high")) %>%
+    tabyl(now_stat, old_stat)
+```
+
+- What should we do about the missingness?
+
+## `dm431` Example C (dropping the missing data)
+
+```{r}
+tableC <- dm431 %>% filter(insurance == "Commercial") %>%
+    filter(complete.cases(a1c, a1c_old)) %>%
+    mutate(now_stat = ifelse(a1c < 8, 
+                       "below_8_now", "high_now"),
+           old_stat = ifelse(a1c_old < 8, 
+                       "old_below_8", "old_high")) %>%
+    tabyl(old_stat, now_stat) 
+
+tableC %>% 
+    adorn_totals(where = c("row", "col"))
+```
+
+## Concordant and Discordant Pairs
+
+```{r}
+tableC
+```
+
+When the same result is observed in the old and new data, we call that *concordant*. When there's a change, we call that *discordant*.
+
+We have 82 + 31 = 113 subjects with concordant results here, and 15 + 30 = 45 subjects with discordant results. Each subject provides a pair of A1c results.
+
+It turns out that the discordant pairs, generally, will be of maximum interest to us, as they give us an indication of the relatively likelihood of A1c increasing vs. A1c decreasing, while the concordant results don't allow us to make any meaningful progress in building our comparison.
+
+## The McNemar Odds Ratio
+
+```{r, echo = FALSE}
+tableC
+```
+
+The general paired data 2x2 table is:
+
+```
+a  b
+c  d
+```
+
+- We have b = 30 subjects with good results two years ago but high ones (A1c >= 8) now.
+- We have c = 15 subjects with high results two years ago but good ones (A1c < 8) now.
+
+The McNemar odds ratio is the larger of the two ratios (either c/b or b/c) that we can form with these data.
+
+So in our case, it is 30/15 = 2.0
+
+## Cohen's g statistic
+
+```{r, echo = FALSE}
+tableC
+```
+
+Cohen's g statistic is also measured using the discordant counts. First, we identify the larger of $\frac{b}{b+c}$ and $\frac{c}{b+c}$. Cohen's g is that value minus 0.5. In our case, 
+
+- b = 30 subjects with good results two years ago but high ones (A1c >= 8) now, and 
+- c = 15 subjects with high results two years ago but good ones (A1c < 8) now.
+
+$$
+g = \frac{30}{45} - 0.5 = 0.167
+$$
+
+Cohen's g is just a simple function of the McNemar odds ratio, so we'll focus on that.
+
+## Estimating the CI for the McNemar Odds Ratio
+
+To estimate the CI for the McNemar odds ratio, we use the `exact2x2` function from the `exact2x2` package.
+
+```{r, eval = FALSE}
+dm431 %>% filter(insurance == "Commercial") %>%
+    filter(complete.cases(a1c, a1c_old)) %>%
+    mutate(now_stat = ifelse(a1c < 8, 
+                       "below_8_now", "high_now"),
+           old_stat = ifelse(a1c_old < 8, 
+                       "old_below_8", "old_high")) %$%
+    exact2x2(old_stat, now_stat, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.95)
+```
+
+Results on the next slide...
+
+## 95% CI for the McNemar Odds Ratio
+
+```{r, echo = FALSE}
+dm431 %>% filter(insurance == "Commercial") %>%
+    filter(complete.cases(a1c, a1c_old)) %>%
+    mutate(now_stat = ifelse(a1c < 8, 
+                       "below_8_now", "high_now"),
+           old_stat = ifelse(a1c_old < 8, 
+                       "old_below_8", "old_high")) %$%
+    exact2x2(old_stat, now_stat, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.95)
+```
+
+## Estimating the Difference in Proportions
+
+> Among current Commercial subjects, compare the proportion with A1c below 8 to the proportion for the same patients two years ago.
+
+```{r, echo = FALSE}
+dm431 %>% filter(insurance == "Commercial") %>%
+    filter(complete.cases(a1c, a1c_old)) %>%
+    mutate(now_stat = ifelse(a1c < 8, 
+                       "below_8_now", "high_now"),
+           old_stat = ifelse(a1c_old < 8, 
+                       "old_below_8", "old_high")) %>%
+    tabyl(old_stat, now_stat) %>% 
+    adorn_totals(where = c("row", "col"))
+```
+
+- Now, 97/158 (0.614) have A1c below 8.
+- Two years ago, 112/158 (0.709) had A1c below 8.
+- The sample difference is -0.095
+
+Can we build a confidence interval for the difference of those two proportions that takes the pairing into account? **Yes**, using some tools from the `PropCIs` package.
+
+## Wald confidence interval approach
+
+```{r}
+diffpropci.Wald.mp(b = 30, c = 15, n = 158, conf.level = 0.95)
+```
+
+Be careful to compare the right things. This is the difference between the rate of success (A1c < 8) now, and the rate of success (A1c < 8) two years ago. The current rate appears to be a bit lower.
+
+## Agresti-Min confidence interval approach
+
+It's also possible to run an Agresti-Min approach, although I usually stick with the Wald method.
+
+```{r}
+diffpropci.mp(b = 30, c = 15, n = 158, conf.level = 0.95)
+```
+
+The two intervals produce slightly different point and interval estimates, because they are making different sorts of approximations.
+
+## What if we looked at all subjects?
+
+This table includes all subjects, not just those with commercial insurance.
+
+```{r, echo = FALSE}
+dm431 %>% filter(complete.cases(a1c, a1c_old)) %>%
+    mutate(now_stat = ifelse(a1c < 8, 
+                       "below_8_now", "high_now"),
+           old_stat = ifelse(a1c_old < 8, 
+                       "old_below_8", "old_high")) %>%
+    tabyl(old_stat, now_stat) %>%
+    adorn_totals(where = c("row", "col")) %>%
+    adorn_title()
+```
+
+## McNemar Odds Ratio 95% Confidence Interval
+
+```{r}
+dm431 %>% filter(complete.cases(a1c, a1c_old)) %>%
+    mutate(now_stat = ifelse(a1c < 8, 
+                       "below_8_now", "high_now"),
+           old_stat = ifelse(a1c_old < 8, 
+                       "old_below_8", "old_high")) %$%
+    exact2x2(old_stat, now_stat, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.95)
+```
+
+## Comparing % meeting A1c < 8 then and now
+
+```{r, echo = FALSE}
+dm431 %>% filter(complete.cases(a1c, a1c_old)) %>%
+    mutate(now_stat = ifelse(a1c < 8, 
+                       "below_8_now", "high_now"),
+           old_stat = ifelse(a1c_old < 8, 
+                       "old_below_8", "old_high")) %>%
+    tabyl(old_stat, now_stat) %>% 
+    adorn_totals(where = c("row", "col"))
+```
+
+Across all insurance groups,
+
+- Now, 274/416 (0.659) have A1c below 8.
+- Two years ago, 283/416 (0.680) had A1c below 8.
+- The sample difference is -0.022.
+- The Wald 95% CI for that difference is (-0.069, 0.026)
+
+## Coming Soon
+
+- Comparing More than 2 Means with Independent Samples: Analysis of Variance
+- Power and Sample Size Ideas
+- Working with Larger Contingency Tables (Chi-Square Tests of Independence)
+- Mantel-Haenszel Procedures for Three-Way Tables

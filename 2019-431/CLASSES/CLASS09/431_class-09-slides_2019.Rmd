@@ -1,0 +1,924 @@
+---
+title: "431 Class 09"
+author: "github.com/THOMASELOVE/2019-431"
+date: "2019-09-24"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    fonttheme: "structurebold"
+    colortheme: "whale"
+    fig_height: 5.5
+    fig_caption: false
+---
+
+```{r set-options, echo=FALSE, cache=FALSE, message = FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+## Today's Agenda (Notes, Chapters 11-13)
+
+1. Building Linear Models
+    - Fundamental Summaries of a Regression Model
+    - Understanding Regression Residuals
+2. Measuring Association with Correlations
+    - Pearson and Spearman approaches
+    - Thinking about the impact of transformations
+3. Adding a categorical predictor (factor) to a model
+    - Using `fct_recode` from `forcats` (tidyverse)
+    - Interpreting an indicator variable regression
+
+## What will we hear about today?
+
+- The central role of linear regression in understanding associations between quantitative variables.
+- The interpretation of a regression model as a prediction model.
+- Assessment of key regression summaries, including residuals.
+- Using `tidy`, `glance` and `augment` from `broom` to summarize a model.
+- Measuring association through correlation coefficients.
+- How we might think about "adjusting" for the effect of a categorical predictor on a relationship between two quantitative ones.
+- How a transformation might help us "linearize" the relationship shown in a scatterplot.
+
+
+## Installing the `patchwork` package
+
+I'll be using the `patchwork` package today (and in the future) to build composite plots from `ggplot`. To install the `patchwork` package on your system, use the following code:
+
+```{r, eval = FALSE}
+devtools::install_github("thomasp85/patchwork")
+```
+
+- Visit https://github.com/thomasp85/patchwork for more on `patchwork`.
+- Other ways to compose plots include `grid.arrange()` from `gridExtra` and `plot_grid()` from `cowplot`.
+
+## Today's Packages and Loading the `VHL` Data
+
+```{r load_packages, message = FALSE}
+library(magrittr); library(janitor); library(patchwork)
+library(broom); library(tidyverse)
+```
+
+```{r load_data, message = FALSE}
+VHL <- read_csv("vonHippel-Lindau.csv") 
+```
+
+### `VHL` Variables
+
+- `p.ne` = plasma norepinephrine (pg/ml)
+- `tumorvol` = tumor volume (ml)
+- `disease` = 1 for patients with multiple endocrine neoplasia type 2
+- `disease` = 0 for patients with von Hippel-Lindau disease
+
+# A Simple Linear Regression
+
+## model1: A Linear Model for `p.ne` based on `tumorvol`
+
+```{r first_model}
+model1 <- lm(p.ne ~ tumorvol, data = VHL)
+model1
+```
+
+The (simple regression / prediction / ordinary least squares) model is 
+
+- `p.ne` = `r round(coef(model1)[1],1)` + `r round(coef(model1)[2],2)` * `tumorvol`.
+
+## Linear model using ordinary least squares (OLS).
+
+```{r scatter3, echo=FALSE}
+ggplot(VHL, aes(x = tumorvol, y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", col = "red") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of p.ne with tumor volume",
+       x = "Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+
+## Summary of our Linear (OLS) Model
+
+```{r summ1-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/model1summary.png")
+```
+
+
+## Key Elements of the Summary (1)
+
+```{r summ1b-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/model1b.png")
+```
+
+- The straight line model for these data fitted by ordinary least squares is p.ne = `r signif(coef(lm(p.ne ~ tumorvol, data = VHL))[1],3)` + `r signif(coef(lm(p.ne ~ tumorvol, data = VHL))[2],3)` `tumorvol`.
+- The slope of `tumorvol` is positive, which indicates that as `tumorvol` increases, we expect that `p.ne` will also increase. 
+- Specifically, we expect that for every additional ml of `tumorvol`, the `p.ne` is increased by `r signif(coef(lm(p.ne ~ tumorvol, data = VHL))[2],3)` pg/ml.
+
+
+## Tidying the Model Coefficients
+
+```{r}
+model1 <- lm(p.ne ~ tumorvol, data = VHL)
+
+tidy(model1, conf.int = TRUE, conf.level = 0.90) %>% 
+  knitr::kable(digits = 2)
+```
+
+## Key Elements of the Summary (2)
+
+```{r summ1a-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/model1a.png")
+```
+
+- Here, the **outcome** is `p.ne`, and the **predictor** is `tumorvol`.
+- The **residuals** are the observed `p.ne` values minus the model's predicted `p.ne`. The sample residuals are the prediction errors.
+  - The biggest miss is for a subject whose observed `p.ne` was 1,811 pg/nl higher than the model predicts based on the subject's tumor volume.
+  - The mean residual will always be zero in an OLS model.
+
+
+## Understanding Regression Residuals (A)
+
+```{r resid1a-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/resid1a.png")
+```
+
+## Understanding Regression Residuals (B)
+
+```{r resid1b-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/resid1b.png")
+```
+
+## Understanding Regression Residuals (C)
+
+```{r resid1c-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/resid1c.png")
+```
+
+## Understanding Regression Residuals (D)
+
+```{r resid1d-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/resid1d.png")
+```
+
+## Do the residuals follow a Normal model well?
+
+```{r}
+model1$residuals %>% round(digits = 1)
+```
+
+## Residuals from `model1`
+
+```{r}
+model1_aug <- broom::augment(model1)
+
+head(model1_aug,3)
+```
+
+## `model1` residuals: Normally distributed?
+
+```{r, fig.height = 2, fig.width = 2, fig.align = 'center'}
+ggplot(model1_aug, aes(sample = .resid)) +
+  geom_qq() + geom_qq_line(col = "red") + theme_bw()
+```
+
+## Residuals vs. Fitted Values plot
+
+```{r, eval = FALSE}
+ggplot(model1_aug, aes(x = .fitted, y = .resid)) +
+  geom_point(shape = 1, size = 3) +
+  geom_smooth(method = "lm", se = FALSE, col = "black") +
+  theme_bw() +
+  labs(title = "Residuals vs. Fitted, Model1")
+```
+
+## Residuals vs. Fitted Values plot
+
+```{r, echo = FALSE}
+ggplot(model1_aug, aes(x = .fitted, y = .resid)) +
+  geom_point(shape = 1, size = 3) +
+  geom_smooth(method = "lm", se = FALSE, col = "black") +
+  theme_bw() +
+  labs(title = "Residuals vs. Fitted, Model1")
+```
+
+## Key Elements of the Summary (3)
+
+```{r summ1c-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/model1c.png")
+```
+
+- The multiple R-squared (squared correlation coefficient) is `r signif(summary(lm(p.ne ~ tumorvol, data = VHL))$r.squared,3)`, which implies that `r 100*signif(summary(lm(p.ne ~ tumorvol, data = VHL))$r.squared,3)`% of the variation in `p.ne` is explained using this linear model with `tumorvol`. 
+- It also implies that the Pearson correlation between `p.ne` and `tumorvol` is the square root of `r signif(summary(lm(p.ne ~ tumorvol, data = VHL))$r.squared,3)`, or `r round(cor(VHL$p.ne, VHL$tumorvol),3)`.
+
+```{r Pearson correlation}
+cor(VHL$p.ne, VHL$tumorvol)
+```
+
+## Model 1, summarized at a glance, with `broom`
+
+```{r}
+broom::glance(model1)
+```
+
+### Key Elements of `glance` for us now...
+
+```{r}
+glance(model1) %>% 
+  select(r.squared, adj.r.squared, sigma) %>%
+  knitr::kable(digits = 3)
+```
+
+# Measuring Correlation between Quantities
+
+## Correlation Coefficients
+
+Two key types of correlation coefficient to describe an association between quantities. 
+
+- The one most often used is called the *Pearson* correlation coefficient, symbolized r or sometimes rho ($\rho$).
+- Another is the Spearman rank correlation coefficient, also symbolized by $\rho$, or sometimes $\rho_s$.
+
+```{r correlations}
+cor(VHL$p.ne, VHL$tumorvol)
+cor(VHL$p.ne, VHL$tumorvol, method = "spearman")
+```
+
+## Meaning of Pearson Correlation
+
+The Pearson correlation coefficient assesses how well the relationship between X and Y can be described using a linear function. 
+
+- The Pearson correlation is dimension-free. 
+- It falls between -1 and +1, with the extremes corresponding to situations where all the points in a scatterplot fall exactly on a straight line with negative and positive slopes, respectively. 
+- A Pearson correlation of zero corresponds to the situation where there is no linear association.
+- Unlike the estimated slope in a regression line, the sample correlation coefficient is symmetric in x and y, so it does not depend on labeling one of them (y) the response variable, and one of them (x) the predictor.
+
+\[
+r_{XY} = \frac{1}{n-1} \Sigma_{i=1}^n (\frac{x_i - \bar{x}}{s_x}) (\frac{y_i - \bar{y}}{s_y}) 
+\]
+
+## Simulated Example 1
+
+```{r ex1withcorrandequation, echo = FALSE}
+set.seed(431912)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 21)
+y <- -2*x + 300 + e
+
+frame1 <- tibble(id = 1:100, x, y) 
+
+ggplot(frame1, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 260, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame1$x, frame1$y),3))) +
+  annotate("text", x = 32, y = 160, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame1))[1],1))) +
+  annotate("text", x = 32, y = 150, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame1))[2],1)))
+```
+
+## Simulated Example 2
+
+```{r ex2withcorrandequation, echo = FALSE}
+set.seed(431912)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 45.3)
+y <- -2*x + 300 + e
+
+frame2 <- tibble(id = 1:100, x, y) 
+
+ggplot(frame2, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 340, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame2$x, frame2$y),3))) +
+  annotate("text", x = 32, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame2))[1],1))) +
+  annotate("text", x = 32, y = 65, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame2))[2],1)))
+```
+
+## Simulated Example 3
+
+```{r ex3withcorrandequation, echo = FALSE}
+set.seed(431912)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 129)
+y <- -2*x + 400 + e
+
+frame3 <- tibble(id = 1:100, x, y) 
+
+ggplot(frame3, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 580, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame3$x, frame3$y),3))) +
+  annotate("text", x = 32, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame3))[1],1))) +
+  annotate("text", x = 32, y = 40, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame3))[2],1)))
+```
+
+## Simulated Example 4
+
+```{r ex4withcorrandequation, echo = FALSE}
+set.seed(431933)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 9.8)
+y <- - 2.2*x + 180 + e
+
+frame4 <- tibble(id = 1:100, x, y) 
+
+ggplot(frame4, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 100, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame4$x, frame4$y),3))) +
+  annotate("text", x = 32, y = 50, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame4))[1],1))) +
+  annotate("text", x = 32, y = 40, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame4))[2],1)))
+```
+
+## Calibrate Yourself on Correlation Coefficients
+
+```{r set_of_4_examples, echo = FALSE}
+p1 <- ggplot(frame1, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") + 
+  annotate("text", x = 65, y = 250, col = "blue", size = 7, 
+           label = paste0("r = ", round(cor(frame1$x, frame1$y),2)))
+
+p2 <- ggplot(frame2, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") + 
+  annotate("text", x = 65, y = 300, col = "blue", size = 7, 
+           label = paste0("r = ", round(cor(frame2$x, frame2$y),2)))
+
+p3 <- ggplot(frame3, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") + 
+  annotate("text", x = 65, y = 600, col = "blue", size = 7, 
+           label = paste0("r = ", round(cor(frame3$x, frame3$y),2)))
+
+p4 <- ggplot(frame4, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") + 
+  annotate("text", x = 65, y = 100, col = "blue", size = 7, 
+           label = paste0("r = ", round(cor(frame4$x, frame4$y),2)))
+
+gridExtra::grid.arrange(p1, p2, p3, p4, nrow = 2)
+```
+
+## Simulated Example 5
+
+```{r ex5withcorrandequation, echo = FALSE}
+set.seed(431933)
+
+x <- rnorm(100, 50, 10)
+y <- rnorm(100, 200, 50)
+
+frame5 <- tibble(id = 1:100, x, y) 
+
+ggplot(frame5, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 350, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame5$x, frame5$y),3))) +
+  annotate("text", x = 65, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame5))[1],1))) +
+  annotate("text", x = 65, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame5))[2],1)))
+```
+
+## Simulated Example 6
+
+```{r example6, echo = FALSE}
+set.seed(43191)
+
+x <- rnorm(100, 50, 10)
+e <- rnorm(100, 0, 25)
+y <- -3*x + 300 + e
+
+frame6 <- tibble(id = 1:100, x, y) 
+
+frame6$x[14] <- 25
+frame6$y[14] <- 75
+
+frame6$y[90] <- 225
+frame6$x[90] <- 80
+
+ggplot(frame6, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("text", x = 65, y = 225, col = "red", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6$x, frame6$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6))[2],1)))
+```
+
+
+## Example 6: What would happen if we omit Point A?
+
+```{r ex6withpointA, echo = FALSE}
+ggplot(frame6, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("label", x = 25, y = 75, label = "A", size = 6, fill = "yellow") +
+  annotate("text", x = 65, y = 225, col = "red", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6$x, frame6$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6))[2],1))) + 
+  labs(title = "Summaries with Point A included")
+```
+
+## Example 6: Result if we omit Point A
+
+```{r ex6withoutA, echo = FALSE}
+frame6noA <- filter(frame6, id != 14)
+
+ggplot(frame6noA, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  geom_abline(intercept = 264.1, slope = -2.3, col = "purple") +
+  annotate("label", x = 25, y = 75, label = "A", size = 6, fill = "purple", col = "white") +
+  annotate("text", x = 65, y = 225, col = "red", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6noA$x, frame6noA$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6noA))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6noA))[2],1))) + 
+  labs(title = "Summaries, Model Results without Point A",
+       subtitle = "Original Line with Point A included is shown in Purple")
+```
+
+## Example 6: What would happen if we omit Point B?
+
+```{r ex6withpointB, echo = FALSE}
+ggplot(frame6, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  annotate("label", x = 80, y = 225, label = "B", size = 6, fill = "yellow") +
+  annotate("text", x = 65, y = 225, col = "red", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6$x, frame6$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6))[2],1))) + 
+  labs(title = "Summaries with Point B included")
+```
+
+## Example 6: Result if we omit Point B
+
+```{r ex6withoutB, echo = FALSE}
+frame6noB <- filter(frame6, id != 90)
+
+ggplot(frame6noB, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "red") +
+  geom_abline(intercept = 264.1, slope = -2.3, col = "purple") +
+  annotate("label", x = 80, y = 225, label = "B", size = 6, fill = "purple", col = "white") +
+  annotate("text", x = 65, y = 225, col = "red", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6noB$x, frame6noB$y),3))) +
+  annotate("text", x = 40, y = 80, col = "red", size = 6,
+           label = paste0("OLS: intercept = ", round(coef(lm(y ~ x, data = frame6noB))[1],1))) +
+  annotate("text", x = 40, y = 60, col = "red", size = 6,
+           label = paste0("OLS: slope = ", round(coef(lm(y ~ x, data = frame6noB))[2],1))) + 
+  labs(title = "Summaries, Model Results without Point B",
+       subtitle = "Original Line with Point B included is shown in Purple")
+```
+
+## Example 6: What if we omit Point A AND Point B?
+
+```{r ex6withAandB, echo = FALSE}
+ggplot(frame6, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "blue") +
+  annotate("label", x = 25, y = 75, label = "A", size = 6, fill = "yellow") +
+  annotate("label", x = 80, y = 225, label = "B", size = 6, fill = "yellow") +
+  annotate("text", x = 65, y = 225, col = "blue", size = 6, 
+           label = paste0("Pearson r = ", round(cor(frame6$x, frame6$y),3))) +
+  labs(title = "Summaries with Points A and B included")
+```
+
+## Example 6: Result if we omit Points A and B
+
+```{r ex6withoutAB, echo = FALSE}
+frame6noAB <- frame6 %>%
+  filter(id != 90,
+         id != 14)
+
+ggplot(frame6noAB, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, col = "blue") +
+  geom_abline(intercept = 264.1, slope = -2.3, col = "purple") +
+  annotate("label", x = 25, y = 75, label = "A", size = 6, fill = "purple", col = "white") +
+  annotate("label", x = 80, y = 225, label = "B", size = 6, fill = "purple", col = "white") +
+  annotate("text", x = 65, y = 240, col = "blue", size = 6, 
+           label = paste0("A and B out: r = ", round(cor(frame6noAB$x, frame6noAB$y),3))) +
+  annotate("text", x = 65, y = 220, col = "purple", size = 6, 
+           label = paste0("With A and B: r = ", round(cor(frame6$x, frame6$y),3))) +
+  labs(title = "Summaries, Model Results without A or B",
+       subtitle = "Original Line with Points A and B included is shown in Purple")
+```
+
+## The Spearman Rank Correlation
+
+The Spearman rank correlation coefficient assesses how well the association between X and Y can be described using a **monotone function** even if that relationship is not linear. 
+
+- A monotone function preserves order - that is, Y must either be strictly increasing as X increases, or strictly decreasing as X increases.
+- A Spearman correlation of 1.0 indicates simply that as X increases, Y always increases.
+- Like the Pearson correlation, the Spearman correlation is dimension-free, and falls between -1 and +1.
+- A positive Spearman correlation corresponds to an increasing (but not necessarily linear) association between X and Y, while a negative Spearman correlation corresponds to a decreasing (but again not necessarily linear) association.
+
+## Monotone Association (Source: Wikipedia)
+
+```{r spearmanpic1-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/spearmanpic1.png")
+```
+
+## Spearman correlation reacts less to outliers
+
+```{r spearmanpic4-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/spearmanpic4.png")
+```
+
+## Our Key Scatterplot again
+
+```{r scatter_2_with_correlations, echo=FALSE}
+ggplot(VHL, aes(x = tumorvol, y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method="lm", se=FALSE, col = "red") +
+  theme(text = element_text(size = 14)) +
+  annotate("text", x = 550, y = 2700, col = "red", size = 6,
+           label = paste("Pearson r = ", signif(cor(VHL$tumorvol, VHL$p.ne),2))) +
+  annotate("text", x = 550, y = 2500, col = "blue", size = 6,
+           label = paste("Spearman r = ", signif(cor(VHL$tumorvol, VHL$p.ne, method="spearman"),2))) +
+  labs(title = "Association of p.ne with tumor volume",
+       x = "Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+## Smoothing using loess, instead
+
+```{r, echo=FALSE}
+ggplot(VHL, aes(x = tumorvol, y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "loess", col = "navy") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of p.ne with tumor volume",
+       x = "Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+# Can we transform X or Y to get to something more linear?
+
+## Using the Log transform to spread out the Volumes
+
+```{r scatter4, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "loess", col = "navy") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of p.ne with log(tumor volume)",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+## Does a Log-Log model seem like a good choice?
+
+```{r scatter_of_log-log, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = log(p.ne))) +
+  geom_point(size = 3) +
+  geom_smooth(method = "loess", col = "navy") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of log(p.ne) with log(tumorvol)",
+       x = "Log of Tumor Volume (ml)", y = "Log of Plasma Norepinephrine (pg/ml)")
+```
+
+## Linear Model for p.ne using log(tumor volume)
+
+```{r scatter_4_with_lm, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", col = "red") +
+  theme(text = element_text(size = 14)) +
+  labs(title = "Association of p.ne with log(tumorvol)",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)")
+```
+
+## Fitting that model (p.ne using log(tumorvol))
+
+```{r}
+m1log <- lm(p.ne ~ log(tumorvol), data = VHL)
+
+tidy(m1log, conf.int = TRUE, conf.level = 0.90) %>% 
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 2)
+```
+
+## Glancing at the model fit
+
+```{r}
+m1log <- lm(p.ne ~ log(tumorvol), data = VHL)
+
+glance(m1log) %>%
+  select(r.squared, adj.r.squared, sigma) %>% 
+  knitr::kable(digits = 3)
+```
+
+## Summarizing the model's fit
+
+```{r m1log-fig, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/m1log.png")
+```
+
+## Residuals from `m1log`
+
+```{r}
+m1log_aug <- augment(m1log)
+
+head(m1log_aug,3)
+```
+
+## `m1log` residuals: Normally distributed?
+
+```{r, echo = FALSE, fig.align = 'center'}
+p1 <- ggplot(model1_aug, aes(sample = .resid)) +
+  geom_qq(col = "salmon") + geom_qq_line(col = "red") + 
+  theme_bw() + 
+  labs(title = "Original Model 1", y = "model1 residuals")
+
+p2 <- ggplot(m1log_aug, aes(sample = .resid)) +
+  geom_qq(col = "slateblue") + geom_qq_line(col = "red") + 
+  theme_bw() + 
+  labs(title = "Model m1log", y = "m1log residuals")
+
+p3 <- ggplot(model1_aug, aes(x = "", y = .resid)) +
+  geom_violin() + 
+  geom_boxplot(width = 0.3, fill = "salmon") +
+  theme_bw() + coord_flip() +
+  labs(title = "Original Model 1", 
+                    y = "model1 residuals")
+
+p4 <- ggplot(m1log_aug, aes(x = "", y = .resid)) +
+  geom_violin() + 
+  geom_boxplot(width = 0.3, fill = "slateblue") +
+  theme_bw() + coord_flip() +
+  labs(title = "Model m1log", 
+                    y = "m1log residuals")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, nrow = 2)
+```
+
+## Residuals vs. Fitted plots (model1 and m1log)
+
+```{r, echo = FALSE}
+p1 <- ggplot(model1_aug, aes(x = .fitted, y = .resid)) +
+  geom_point(shape = 1, size = 3) +
+  geom_smooth(method = "lm", se = FALSE, col = "black") +
+  theme_bw() +
+  labs(title = "Residuals vs. Fitted, model1")
+
+p2 <- ggplot(m1log_aug, aes(x = .fitted, y = .resid)) +
+  geom_point(shape = 1, size = 3) +
+  geom_smooth(method = "lm", se = FALSE, col = "black") +
+  theme_bw() +
+  labs(title = "Residuals vs. Fitted, m1log")
+
+p1 + p2
+```
+
+
+# Adding diagnosis to our model
+
+## Creating a Factor to represent disease category
+
+We want to add a new variable, specifically a factor, called `diagnosis`, which will take the values `von H-L` or `neoplasia`.
+
+- Recall `disease` is a numeric 1/0 variable (0 = von H-L, 1 = neoplasia)
+- Use `fct_recode` from the `forcats` package...
+
+```{r create_diagnosis}
+VHL <- VHL %>%
+  mutate(diagnosis = 
+           fct_recode(factor(disease), 
+                      "neoplasia" = "1",
+                      "von H-L" = "0")
+  )
+```
+
+## Now, what does VHL look like?
+
+```{r view_new_VHL}
+VHL
+```
+
+
+## Compare the patients by diagnosis
+
+```{r scatter_5_no_facets, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne, col = diagnosis)) +
+  geom_point(size = 3) +
+  stat_smooth(method=lm, se=FALSE) +
+  theme(text = element_text(size = 14)) +
+  labs(title = "p.ne vs. log(tumorvol), by diagnosis",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)") +
+  theme_bw()
+```
+
+## Faceted Scatterplots by diagnosis
+
+```{r scatter_5_with_facets, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne, col = diagnosis)) +
+  geom_point(size = 3) +
+  stat_smooth(method=lm) +
+  facet_wrap(~ diagnosis) +
+  guides(color = FALSE) +
+  theme(text = element_text(size = 14)) +
+  labs(title = "p.ne vs. log(tumorvol), by diagnosis",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)") +
+  theme_bw()
+```
+
+## Separate Models by Diagnosis?
+
+```{r}
+model2_vhl <- lm(p.ne ~ log(tumorvol), 
+             data = filter(VHL, diagnosis == "von H-L"))
+
+coef(model2_vhl)
+
+model2_neo <- lm(p.ne ~ log(tumorvol),
+             data = filter(VHL, diagnosis == "neoplasia"))
+
+coef(model2_neo)
+```
+
+Does this match our plot?
+
+## Faceted Scatterplots by diagnosis, again
+
+```{r, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne, col = diagnosis)) +
+  geom_point(size = 3) +
+  stat_smooth(method=lm) +
+  facet_wrap(~ diagnosis) +
+  guides(color = FALSE) +
+  theme(text = element_text(size = 14)) +
+  labs(title = "p.ne vs. log(tumorvol), by diagnosis",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)") +
+  theme_bw()
+```
+
+## Correlation Coefficients
+
+```{r}
+VHL %>%
+  group_by(diagnosis) %>%
+  summarize(Correlation = cor(log(tumorvol), p.ne),
+            Rsquare = (cor(log(tumorvol), p.ne)^2) )
+```
+
+Does this match our plot?
+
+## Faceted Scatterplots by diagnosis, one more time
+
+```{r, echo=FALSE}
+ggplot(VHL, aes(x = log(tumorvol), y = p.ne, col = diagnosis)) +
+  geom_point(size = 3) +
+  stat_smooth(method=lm) +
+  facet_wrap(~ diagnosis) +
+  guides(color = FALSE) +
+  theme(text = element_text(size = 14)) +
+  labs(title = "p.ne vs. log(tumorvol), by diagnosis",
+       x = "Natural logarithm of Tumor Volume (ml)", y = "Plasma Norepinephrine (pg/ml)") +
+  theme_bw()
+```
+
+## What do we predict if log(tumorvol) = 3?
+
+`log(tumorvol)` = 3 implies `tumorvol` = `exp(3)` = `r exp(3)` ml.
+
+From our `model2_vhl`, we'd predict:
+
+- 417 + 220 (3) = 1,077 pg/nl of `p.ne` for a VHL patient with `tumorvol` = `r exp(3)` ml.
+
+From our `model2_neo`, we'd predict:
+
+- -476 + 345 (3) = 559 pg/nl of `p.ne` for a Neoplasia patient with `tumorvol` = `r exp(3)` ml.
+
+## Model including two predictors
+
+```{r model3}
+model3 <- lm(p.ne ~ log(tumorvol) + diagnosis, data = VHL)
+model3
+```
+
+## But this model only changes the intercept?
+
+```{r}
+coef(model3)
+```
+
+- Model for VHL is `p.ne` = 273 + 266 `log(tumorvol)`.
+    - `p.ne` prediction if `log(tumorvol)` = 3 is 1,071 pg/nl.
+    
+- Model for neoplasia is `p.ne` = (273 - 404) + 266 `log(tumorvol)`, or -131 + 266 `log(tumorvol)`.
+    - `p.ne` prediction if `log(tumorvol)` = 3 is 667 pg/nl.
+
+Is that what we want?
+
+## Model accounting for different slopes *and* intercepts
+
+```{r model4}
+model4 <- lm(p.ne ~ log(tumorvol) * diagnosis, data = VHL)
+model4
+```
+
+## `model4` results
+
+`p.ne` = 417 + 220 log(`tumorvol`) - 893 (`diagnosis = neoplasia`) + 125 (`diagnosis = neoplasia`)*log(`tumorvol`)
+
+where the indicator variable (`diagnosis = neoplasia`) = 1 for neoplasia subjects, and 0 for other subjects...
+
+- Model for `p.ne` in von H-L patients: 
+    + 417 + 220 log(`tumorvol`)
+- Model for `p.ne` in neoplasia patients: 
+    + (417 - 893) + (220 + 125) log(`tumorvol`) 
+    + -476 + 345 log(`tumorvol`)
+
+These are our initial (separated) models, in this case.
+    
+## `model4` Predictions
+
+What is the predicted `p.ne` for a single new subject with `tumorvol` = 200 ml (so log(tumorvol) = `r round(log(200),2)`) in each diagnosis category?
+
+```{r model4predictionsneoplasia}
+predict(model4, newdata = tibble(tumorvol = 200, 
+        diagnosis = "neoplasia"), interval = "prediction")
+```
+
+```{r model4predictionVHL}
+predict(model4, newdata = tibble(tumorvol = 200, 
+        diagnosis = "von H-L"), interval = "prediction")
+```
+
+## How about the Residuals of model4?
+
+```{r, echo = FALSE}
+model4_aug <- augment(model4)
+
+p1 <- ggplot(model4_aug, aes(x = .fitted, y = .resid)) +
+  geom_point(shape = 1, size = 3, col = "blue") +
+  geom_smooth(method = "lm", se = FALSE, col = "black") +
+  theme_bw() +
+  labs(title = "Residuals vs. Fitted, Model 4")
+
+p2 <- ggplot(model4_aug, aes(sample = .resid)) +
+  geom_qq(col = "blue") + geom_qq_line(col = "red") + 
+  theme_bw() + 
+  labs(title = "Model 4 Residuals", y = "Model 4 residuals")
+
+p1 + p2
+```
+
+## Tidying the `model4` coefficients, with `broom`
+
+```{r}
+tidy(model4, conf.int = TRUE, conf.level = 0.90) %>%
+  select(term, estimate, conf.low, conf.high) %>%
+  knitr::kable(digits = 1)
+```
+
+## `model4`, summarized at a glance, with `broom`
+
+```{r}
+glance(model4) %>% select(r.squared, sigma, AIC)
+```
+
+Compare this to m1log...
+
+```{r}
+glance(m1log) %>% select(r.squared, sigma, AIC)
+```
+
+## Conclusions about VHL data
+
+- Model 4, accounting for the interaction of diagnosis with the log of tumor volume, was able to account for about 29% of the variation in the plasma norepinephrine levels.
+
+- m1log, which didn't include diagnosis but just the log of tumor volume, accounts for about 22% of the variation in plasma norepinephrine levels.
+
+- Model 1, our original linear model, which didn't account for diagnosis and didn't fit assumptions well (using raw tumor volume) accounted for about 12% of the variation in plasma norepinephrine levels.
+
+Can we draw a lot more from this yet?
+
+## So what did we hear about today?
+
+- The central role of linear regression in understanding associations between quantitative variables.
+- The interpretation of a regression model as a prediction model.
+- Assessment of key regression summaries, including residuals.
+- Using `tidy`, `glance` and `augment` from `broom` to summarize the model.
+- Measuring association through correlation coefficients.
+- How we might think about "adjusting" for the effect of a categorical predictor on a relationship between two quantitative ones.
+- How a transformation might help us "linearize" the relationship shown in a scatterplot.

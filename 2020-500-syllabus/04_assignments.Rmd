@@ -1,0 +1,57 @@
+# Assignments
+
+The four types of assignments required of you in this course are:
+
+1. A semester-long project
+2. An "observational studies in action" presentation
+3. Several brief "essays" about chapters in the Rosenbaum (2017) text, and
+4. Several "homework" assignments involving using R to perform and present analyses.
+
+## Deadlines
+
+All deadlines are specified on [the Course Calendar](https://github.com/THOMASELOVE/2020-500/blob/master/calendar.md).
+
+## The Course Project
+
+You will do a small observational study as a capstone project for the course. Your deliverables include:
+
+1. a **proposal** which you will submit for my approval before proceeding further.
+2. an **update** verifying that you have the data and are proceeding appropriately.
+3. a final **presentation** to the class about your results accompanied by an **abstract**, and by R Markdown and HTML files that describe the work you did. 
+
+Complete details on the Course Project [are available here](https://github.com/THOMASELOVE/2020-500/tree/master/project).
+
+## An "Observational Studies in Action" presentation
+
+During the semester, you will be responsible for presenting the methods and results of an observational study from the literature that uses propensity scores. Your choice of manuscript must be accepted in advance by Dr. Love. After you've claimed a study, you'll give a 15-minute presentation of it to the class, and you'll also act as "second reviewer" for one of the studies selected by your colleagues.
+
+Complete details on the OSIA work [are available here](https://github.com/THOMASELOVE/2020-500/tree/master/osia).
+
+## Homework Assignments
+
+Several homework assignments require you to do some analyses (using R and R Markdown) on data I will provide to you. 
+
+Details on the homework assignments [are available here](https://github.com/THOMASELOVE/2020-500/tree/master/homework).
+
+## Essays in reaction to the course text
+
+In most sessions, we will be reading chapters from Paul Rosenbaum's *Observation and Experiment*. In early sessions, we will be reading several chapters at once (see [the Schedule](https://github.com/THOMASELOVE/2020-500/blob/master/SCHEDULE.md) for up-to-date details.) Beginning with Class 4, you will produce an essay in reaction to this reading to share with the rest of the class. 
+
+The essay prompts [are available here](https://github.com/THOMASELOVE/2020-500/blob/master/homework/essayprompts.md).
+
+## A Note on Feedback
+
+500 is a very different course from 431-432 in terms of the "hands on" assistance that I make available to you as you're working on a homework assignment, in part because I don't have a TA for the course. In particular, I'm not going to review your code to be sure you're going in the right direction, even though I understand some of you have come to expect that from 431-432.
+
+Instead, we discuss the homework in class and I provide a detailed answer sketch after the fact. So if you have questions, please feel free to send them, and I'll answer sometimes, but what I am likely to say to anything I cannot resolve quickly for you (or think is worthy of deeper discussion as a group) is: 
+
+1. That sounds like an excellent question to bring up on Thursday in class, and 
+2. I'm going to let you (and everyone else) flounder a bit between now and our discussion of this homework in class.
+
+## Grading
+
+- If you complete all deliverables **on time**, and your project and OSIA presentations are solid, you will receive an A in the course.
+    - If you mostly meet that standard but don't quite (either because more than one thing is late or because you have substantial project problems that linger), either an A or B is possible.
+- This is an advanced graduate school course. I don't anticipate that anyone who makes a concerted effort will fall below the B standard, as no one has in the past. 
+- If you have any concerns, raise them with me directly as soon as possible. Email is likely the best approach.
+

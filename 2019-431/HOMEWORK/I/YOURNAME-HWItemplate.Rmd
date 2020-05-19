@@ -1,0 +1,57 @@
+---
+title: "YOUR NAME: Homework I for 431"
+author: "INSERT YOUR NAME HERE"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+    code_folding: show
+---
+
+# Question 1
+
+Begin typing your answer to Question 1 here. Use complete sentences.
+
+# Setup for Questions 2-6 {-}
+
+```{r setup, message=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 70)
+```
+
+## Load Packages and Data
+
+```{r, message = FALSE}
+library(here); library(janitor); library(magrittr)
+library(patchwork); library(broom); library(tidyverse)
+
+hwI_plasma <- read_csv(here("data", "hwI_plasma.csv")) %>%
+    mutate_if(is.character, as.factor) %>%
+    mutate(subj_ID = as.character(subj_ID))
+```
+
+## Code to Select Training and Test Samples
+
+```{r}
+set.seed(2019431)
+hwI_training <- hwI_plasma %>% sample_n(240)
+hwI_test <- anti_join(hwI_plasma, hwI_training, 
+                      by = "subj_ID")
+```
+
+# Question 2
+
+Type your answer to Question 2 here. 
+
+# Question 3
+
+Type your answer to Question 3 here. 
+
+and so on...
+
+## Session Information
+
+```{r}
+sessionInfo()
+```
+

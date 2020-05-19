@@ -1,0 +1,195 @@
+---
+title: "Answer Sketch for Homework H"
+author: "431 Staff and Professor Love"
+date: "Due **2019-11-08** at 2 PM. Last Edited `r Sys.time()`"
+output: 
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, message=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 70)
+```
+
+## Load necessary packages
+
+# Questions 1-4
+
+We don't provide answer sketches for essay Questions, like Questions 1-4.
+
+# R Setup for Questions 5-10
+
+```{r packages, message = FALSE}
+library(here); library(janitor); library(magrittr);
+library(broom); library(patchwork)
+library(tidyverse)
+```
+
+```{r}
+hwH_data1 <- read.csv(here("data", "hwH_data1.csv")) %>% 
+  tbl_df
+hwH_data2 <- read.csv(here("data", "hwH_data2.csv")) %>% 
+  tbl_df
+```
+
+# Question 5
+
+The same data appear in the `hwH_data1.csv` and the `hwH_data2.csv` files. What is the difference between the two files, and which of the two files is more useful for fitting an ANOVA to compare the PDS means across the three groups of study participants? Why?
+
+## Answer 5
+
+To calculate the PDS means for each subject, we want the data in a form with one row per subject. The `hWH_data1` file presents the `age` information in a wider form than the `hwH_data2` file. Thus, `hwH_data2` has twice as many rows as `hwH_data1`, and has two rows for each subject. So we want to use `hwH_data1` in this case to calculate the PDS scores for each subject.
+
+# Question 6
+
+Calculate and compare the sample PDS means across the three groups, and specify the rank order (highest to lowest) of the sampled PDS means.
+
+## Answer 6
+
+```{r}
+hwH_data1 <- hwH_data1 %>%
+  mutate(PDS = (subj_age - age)/age)
+
+hwH_data1 %>% group_by(category) %>%
+  summarize(mean_PDS = mean(PDS)) %>%
+  arrange(desc(mean_PDS))
+```
+
+Group B has the largest sample mean (0.0045), then C (0.0043), then A (0.0017).
+
+# Question 7
+
+Produce a graphical summary to compare the three groups that allows you to assess the Normality and Equal Variances assumptions of an ANOVA to compare the PDS means across the three groups. What conclusion do you draw about ANOVA assumptions in this setting? 
+
+## Answer 7.
+
+One good option was a boxplot, perhaps with violins.
+
+```{r}
+ggplot(hwH_data1, aes(x = category, y = PDS, fill = category)) +
+  geom_violin(aes(color = category), alpha = 0.5) +
+  geom_boxplot(width = 0.3, notch = TRUE, alpha = 0.75) +
+  theme_bw() +
+  coord_flip() +
+  guides(fill = FALSE, col = FALSE) +
+  labs(title = "Comparing PDS scores by Group",
+       y = "PDS Score", x = "")
+```
+
+Another reasonable option would be a set of faceted histograms, perhaps next to some Normal Q-Q plots.
+
+```{r}
+res <- mosaic::favstats(PDS ~ category, data = hwH_data1)
+bin_w = 0.025
+
+p1 <- ggplot(hwH_data1, aes(x = PDS, fill = category)) +
+  geom_histogram(binwidth = bin_w, col = "white") +
+  guides(fill = FALSE) +
+  theme_bw() +
+  facet_grid(category ~ .) +
+  labs(x = "Observed PDS values", y = "# of subjects")
+
+p2 <- ggplot(hwH_data1, aes(sample = PDS, color = category)) +
+  geom_qq() + geom_qq_line(col = "black") +
+  guides(color = FALSE) +
+  theme_bw() +
+  facet_grid(category ~ .) +
+  labs(y = "Observed PDS values")
+
+p1 + p2 + 
+  plot_layout(nrow = 1, widths = c(7, 3)) +
+  plot_annotation(title = "Histograms and Normal Q-Q plots comparing PDS by Group")
+```
+
+Here is a numerical summary, as well.
+
+```{r}
+mosaic::favstats(PDS ~ category, data = hwH_data1)
+```
+
+Main conclusions: No apparent problems with the Normality assumption. Some indication of larger spread in Group B than the other two groups, and Group B also has a somewhat smaller sample size than the other groups. ANOVA is pretty robust to problems with the equal variances assumption, so we are probably OK.
+
+# Question 8 
+
+Now do the actual comparison of the PDS means of the three groups (A, B and C) using an analysis of variance. What conclusion do you draw, using a **90%** confidence level?
+
+## Answer 8.
+
+```{r}
+summary(aov(PDS ~ category, data = hwH_data1))
+```
+
+The ANOVA F test finds no statistically detectable differences between group means, as the *p* value far exceeds the required significance level of $\alpha = 0.10$. 
+
+$$
+\eta^2 = \frac{SS(category)}{SS(Total)} = \frac{0.0017}{0.0017 + 2.8577} = 0.00059
+$$
+
+The group (category) accounts for about 0.06% of the variation in the PDS values. 
+
+# Question 9 
+
+This is a pre-planned comparison, but the sample sizes differ across the groups being compared. Obtain the results from a Tukey HSD method and then a Bonferroni approach for pairwise comparisons of the population PDS means, in each case again using a 90\% confidence level[^2]. Do your conclusions differ using these two approaches? 
+
+## Answer 9.
+
+Given the results from the ANOVA F test, neither of these results should show statistically detectable differences, and as we'll see, neither one does.
+
+### Tukey HSD Approach
+
+```{r}
+hwH_data1 %$% TukeyHSD(aov(PDS ~ category), conf.level = 0.90)
+```
+
+The confidence intervals each easily cover zero, as we can also see from the plot, below.
+
+```{r}
+mar.default <- c(5,6,4,2) + 0.1 # save default plotting margins
+
+par(mar = mar.default + c(0, 6, 0, 0)) 
+hwH_data1 %$% plot(TukeyHSD(aov(PDS ~ category), 
+                            conf.level = 0.90), las = 2)
+
+par(mar = mar.default) # return to normal plotting margins
+```
+
+
+### Bonferroni Approach
+
+```{r}
+hwH_data1 %$% pairwise.t.test(PDS, category, 
+                              p.adjust = "bonferroni")
+```
+
+# Question 10
+
+Specify the linear model regression equation used to predict our PDS outcome on the basis of group membership, but now also adjusting for whether or not the subject is `active`. What fraction of the variation in PDS levels is explained by this model? How much more of that variation is explained than by the model including group membership alone? How do you know?
+
+## Answer 10.
+
+Here is a good choice of model...
+
+```{r}
+m_10 <- lm(PDS ~ category + active, data = hwH_data1)
+
+summary(m_10)
+```
+
+This model accounts for 1.89% of the variation in `PDS`, according to the R^2^ value.
+
+We can compare this to the model without the `active` information, as follows:
+
+```{r}
+m_08 <- lm(PDS ~ category, data = hwH_data1)
+
+summary(m_08)
+```
+
+Of course, the multiple R^2^ for Model `m_08` is just the $\eta^2$ from our ANOVA comparison in Question 8. Again, we see that model accounts for less than 0.06% of the variation in PDS.
+
+So the additional impact of `active` (even after Group is already in the model) is substantially larger than the impact of Group alone, even though Model `m_10` isn't strong, either.
+
+# Grading Rubric
+
+The grading rubric will be prepared by the teaching assistants, and will be available when grades are posted. Each of the ten questions is worth 10 points.

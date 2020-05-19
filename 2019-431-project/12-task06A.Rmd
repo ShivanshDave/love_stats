@@ -1,0 +1,38 @@
+# Study A Task 6. The Study A Portfolio {#task6a}
+
+## The Task
+
+You will build a portfolio of results for Study A. **Further details on formatting and style will come by November 5.** 
+
+## The Six Required Analyses for Study A
+
+The initial work for your portfolio will include all of the code you used to merge the data sets provided to you for Study A, then select the variables you'll actually use in your analyses, and then clean up and manage any remaining issues within those variables in your data. Following that work, the required analyses for the Project Survey that need to be in your Portfolio are:
+
+1. A two-group comparison of population means (could use paired or independent samples)
+2. An analysis of variance with Tukey HSD pairwise comparisons of population means across K subgroups, where 3 $\leq$ K < 7
+3. A regression model to amplify the indepedent samples comparison in a or b by incorporating a quantitative covariate.
+4. A 2x2 Table and resulting analyses for comparison of two population proportions in terms of relative risk, odds ratio and probability difference
+5. A two-way JxK contingency table where 2 $\leq$ J < 7 and 3 $\leq$ K < 7 with an appropriate chi-square test
+6. A three way 2 x 2 x J contingency table analysis whch will expand your 2x2 table from #4 and where 3 $\leq$ J < 7
+
+Each analysis should be self-contained (so that I don't have to read Analysis 1 first to understand Analysis 3, for example). Present each new analysis as a subsection with an appropriate heading in the table of contents, so we can move to a new analysis efficiently. Each analysis should begin with a paragraph explaining what you are doing, specifying the items being used, and how you are using them, and then conclude with a paragraph of discussion of the key conclusions you draw from your detailed analyses, and a discussion of any limitations you can describe that apply to the results. 
+
+## Missing Data
+
+If you have missing data on any of the variables you study in Project Study A, then you will need to do simple imputation as part of the associated Study A analyses. In that case, you should show the imputation process in your code, and describe explicitly any choices you made, then run the necessary analysis on both the imputed sample and the sample using complete cases alone, and compare the two results. 
+
+You should generally follow the comparison plan you outlined in [Study A Task 5](#task5a). If you need to make a change, please indicate that in the text setting up each analysis. 
+
+## Demonstration Project
+
+A demonstration of an appropriate analysis for each of the required Study A analyses will be provided to you by November 5.
+
+## Deadline and Submission information
+
+Task 6 for Study A and Task 6 for Study B are to be submitted (at the same time, but as separate documents) to Canvas by 2019-12-11 at 2 PM, regardless of when you are giving your project presentation. 
+
+### "Grading"
+
+The Study A Project Portfolio is worth 15 points in the final Project grade, and is graded holistically. I will not publish my rubric, since you will have a demonstration project and extensive instructions. If you are working with a partner, you will receive the same grade on the portfolio.
+
+- You will not receive written feedback on either your project portfolio or presentation.

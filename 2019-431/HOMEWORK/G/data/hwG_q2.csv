@@ -1,0 +1,488 @@
+county_number,county_type,drive_in_minutes
+C_001,micropolitan,42
+C_002,noncore,31
+C_003,noncore,54
+C_004,small metro,25
+C_005,medium metro,17
+C_006,small metro,5
+C_007,noncore,63
+C_008,small metro,26
+C_009,micropolitan,36
+C_010,noncore,55
+C_011,micropolitan,37
+C_012,micropolitan,38
+C_013,noncore,23
+C_014,medium metro,18
+C_015,noncore,87
+C_016,micropolitan,40
+C_017,micropolitan,41
+C_018,small metro,13
+C_019,micropolitan,42
+C_020,noncore,61
+C_021,micropolitan,40
+C_022,micropolitan,39
+C_023,small metro,29
+C_024,small metro,51
+C_025,noncore,66
+C_026,small metro,26
+C_027,noncore,61
+C_028,small metro,24
+C_029,noncore,59
+C_030,noncore,63
+C_031,noncore,54
+C_032,small metro,23
+C_033,medium metro,16
+C_034,noncore,38
+C_035,large fringe metro,14
+C_036,small metro,31
+C_037,micropolitan,40
+C_038,small metro,24
+C_039,small metro,23
+C_040,noncore,1
+C_041,small metro,26
+C_042,small metro,28
+C_043,small metro,62
+C_044,medium metro,19
+C_045,noncore,22
+C_046,micropolitan,35
+C_047,micropolitan,70
+C_048,micropolitan,46
+C_049,micropolitan,34
+C_050,micropolitan,41
+C_051,large fringe metro,7
+C_052,small metro,28
+C_053,micropolitan,33
+C_054,small metro,15
+C_055,small metro,23
+C_056,noncore,67
+C_057,noncore,51
+C_058,noncore,50
+C_059,noncore,49
+C_060,micropolitan,42
+C_061,noncore,68
+C_062,micropolitan,76
+C_063,noncore,67
+C_064,small metro,29
+C_065,noncore,8
+C_066,noncore,6
+C_067,large fringe metro,6
+C_068,micropolitan,40
+C_069,noncore,29
+C_070,noncore,48
+C_071,noncore,100
+C_072,small metro,28
+C_073,noncore,49
+C_074,small metro,23
+C_075,noncore,61
+C_076,small metro,33
+C_077,noncore,71
+C_078,micropolitan,36
+C_079,noncore,49
+C_080,micropolitan,43
+C_081,medium metro,20
+C_082,small metro,33
+C_083,large central metro,31
+C_084,noncore,32
+C_085,small metro,25
+C_086,micropolitan,44
+C_087,medium metro,15
+C_088,large fringe metro,29
+C_089,large fringe metro,12
+C_090,small metro,65
+C_091,micropolitan,45
+C_092,noncore,50
+C_093,micropolitan,70
+C_094,small metro,26
+C_095,micropolitan,33
+C_096,micropolitan,38
+C_097,large fringe metro,9
+C_098,noncore,47
+C_099,micropolitan,35
+C_100,noncore,63
+C_101,micropolitan,34
+C_102,medium metro,22
+C_103,noncore,13
+C_104,noncore,50
+C_105,micropolitan,40
+C_106,large central metro,1
+C_107,large central metro,27
+C_108,small metro,33
+C_109,noncore,53
+C_110,small metro,32
+C_111,noncore,63
+C_112,micropolitan,35
+C_113,noncore,55
+C_114,large fringe metro,13
+C_115,large fringe metro,56
+C_116,noncore,66
+C_117,noncore,27
+C_118,micropolitan,40
+C_119,medium metro,18
+C_120,small metro,31
+C_121,large central metro,1
+C_122,noncore,49
+C_123,noncore,30
+C_124,medium metro,19
+C_125,medium metro,16
+C_126,small metro,27
+C_127,noncore,71
+C_128,small metro,27
+C_129,micropolitan,38
+C_130,micropolitan,40
+C_131,noncore,83
+C_132,large fringe metro,4
+C_133,noncore,30
+C_134,large fringe metro,6
+C_135,micropolitan,36
+C_136,noncore,73
+C_137,micropolitan,41
+C_138,noncore,8
+C_139,medium metro,14
+C_140,small metro,25
+C_141,micropolitan,40
+C_142,noncore,41
+C_143,small metro,26
+C_144,large fringe metro,55
+C_145,noncore,31
+C_146,noncore,58
+C_147,large central metro,2
+C_148,medium metro,24
+C_149,noncore,4
+C_150,micropolitan,36
+C_151,noncore,63
+C_152,micropolitan,35
+C_153,micropolitan,42
+C_154,noncore,70
+C_155,small metro,72
+C_156,micropolitan,35
+C_157,large fringe metro,9
+C_158,noncore,53
+C_159,noncore,60
+C_160,small metro,24
+C_161,noncore,69
+C_162,noncore,52
+C_163,noncore,73
+C_164,noncore,50
+C_165,noncore,55
+C_166,small metro,32
+C_167,small metro,25
+C_168,large fringe metro,4
+C_169,medium metro,16
+C_170,noncore,52
+C_171,noncore,54
+C_172,noncore,29
+C_173,small metro,32
+C_174,micropolitan,34
+C_175,large fringe metro,13
+C_176,micropolitan,46
+C_177,micropolitan,38
+C_178,noncore,52
+C_179,micropolitan,41
+C_180,noncore,59
+C_181,large fringe metro,9
+C_182,noncore,54
+C_183,small metro,69
+C_184,noncore,60
+C_185,noncore,31
+C_186,large fringe metro,13
+C_187,large fringe metro,4
+C_188,large central metro,1
+C_189,large fringe metro,10
+C_190,noncore,30
+C_191,noncore,41
+C_192,medium metro,22
+C_193,small metro,27
+C_194,noncore,60
+C_195,micropolitan,38
+C_196,micropolitan,46
+C_197,noncore,30
+C_198,noncore,30
+C_199,large fringe metro,30
+C_200,micropolitan,41
+C_201,medium metro,22
+C_202,small metro,33
+C_203,micropolitan,35
+C_204,medium metro,21
+C_205,medium metro,15
+C_206,large fringe metro,86
+C_207,micropolitan,38
+C_208,noncore,12
+C_209,noncore,57
+C_210,micropolitan,36
+C_211,large fringe metro,30
+C_212,noncore,57
+C_213,micropolitan,44
+C_214,micropolitan,43
+C_215,medium metro,21
+C_216,noncore,84
+C_217,micropolitan,35
+C_218,noncore,1
+C_219,noncore,21
+C_220,noncore,48
+C_221,large central metro,26
+C_222,noncore,41
+C_223,micropolitan,38
+C_224,small metro,28
+C_225,large central metro,1
+C_226,noncore,58
+C_227,noncore,71
+C_228,noncore,52
+C_229,medium metro,20
+C_230,medium metro,41
+C_231,noncore,49
+C_232,large central metro,8
+C_233,small metro,31
+C_234,micropolitan,34
+C_235,noncore,54
+C_236,micropolitan,41
+C_237,large fringe metro,10
+C_238,noncore,53
+C_239,noncore,59
+C_240,small metro,62
+C_241,noncore,58
+C_242,micropolitan,39
+C_243,small metro,33
+C_244,small metro,80
+C_245,micropolitan,54
+C_246,small metro,56
+C_247,noncore,10
+C_248,noncore,63
+C_249,micropolitan,75
+C_250,noncore,53
+C_251,small metro,64
+C_252,large central metro,1
+C_253,medium metro,15
+C_254,medium metro,20
+C_255,noncore,43
+C_256,noncore,60
+C_257,micropolitan,42
+C_258,small metro,56
+C_259,large fringe metro,68
+C_260,noncore,48
+C_261,medium metro,19
+C_262,noncore,1
+C_263,micropolitan,46
+C_264,small metro,24
+C_265,micropolitan,44
+C_266,noncore,49
+C_267,large central metro,1
+C_268,large central metro,1
+C_269,micropolitan,42
+C_270,micropolitan,38
+C_271,micropolitan,43
+C_272,medium metro,19
+C_273,medium metro,21
+C_274,large central metro,1
+C_275,noncore,84
+C_276,micropolitan,38
+C_277,noncore,49
+C_278,small metro,63
+C_279,medium metro,16
+C_280,noncore,43
+C_281,noncore,50
+C_282,micropolitan,38
+C_283,small metro,56
+C_284,small metro,31
+C_285,small metro,32
+C_286,noncore,51
+C_287,large fringe metro,12
+C_288,small metro,26
+C_289,medium metro,18
+C_290,small metro,29
+C_291,noncore,53
+C_292,medium metro,21
+C_293,noncore,50
+C_294,noncore,43
+C_295,medium metro,69
+C_296,small metro,1
+C_297,micropolitan,45
+C_298,small metro,23
+C_299,noncore,1
+C_300,large fringe metro,5
+C_301,medium metro,29
+C_302,large central metro,1
+C_303,small metro,31
+C_304,small metro,28
+C_305,large fringe metro,11
+C_306,large fringe metro,71
+C_307,noncore,53
+C_308,small metro,32
+C_309,large central metro,1
+C_310,small metro,1
+C_311,noncore,48
+C_312,noncore,1
+C_313,micropolitan,37
+C_314,medium metro,19
+C_315,micropolitan,38
+C_316,large central metro,5
+C_317,micropolitan,42
+C_318,micropolitan,37
+C_319,medium metro,15
+C_320,micropolitan,35
+C_321,small metro,26
+C_322,medium metro,21
+C_323,noncore,29
+C_324,noncore,1
+C_325,large central metro,11
+C_326,small metro,32
+C_327,micropolitan,44
+C_328,large fringe metro,73
+C_329,noncore,58
+C_330,small metro,75
+C_331,small metro,65
+C_332,micropolitan,37
+C_333,noncore,64
+C_334,small metro,24
+C_335,noncore,60
+C_336,micropolitan,44
+C_337,small metro,22
+C_338,noncore,61
+C_339,noncore,51
+C_340,micropolitan,40
+C_341,micropolitan,80
+C_342,large fringe metro,47
+C_343,small metro,22
+C_344,small metro,25
+C_345,noncore,13
+C_346,small metro,28
+C_347,small metro,28
+C_348,noncore,27
+C_349,micropolitan,40
+C_350,large fringe metro,11
+C_351,micropolitan,38
+C_352,noncore,55
+C_353,noncore,58
+C_354,large fringe metro,6
+C_355,medium metro,16
+C_356,large fringe metro,13
+C_357,micropolitan,36
+C_358,noncore,63
+C_359,small metro,26
+C_360,medium metro,15
+C_361,small metro,33
+C_362,noncore,56
+C_363,micropolitan,38
+C_364,micropolitan,43
+C_365,medium metro,22
+C_366,large fringe metro,29
+C_367,noncore,60
+C_368,micropolitan,37
+C_369,large central metro,1
+C_370,large fringe metro,32
+C_371,micropolitan,42
+C_372,micropolitan,45
+C_373,small metro,25
+C_374,noncore,61
+C_375,large fringe metro,7
+C_376,noncore,52
+C_377,noncore,55
+C_378,noncore,57
+C_379,small metro,24
+C_380,micropolitan,40
+C_381,noncore,70
+C_382,noncore,52
+C_383,noncore,61
+C_384,noncore,50
+C_385,micropolitan,41
+C_386,medium metro,18
+C_387,micropolitan,50
+C_388,large central metro,1
+C_389,noncore,82
+C_390,noncore,49
+C_391,medium metro,74
+C_392,noncore,26
+C_393,micropolitan,39
+C_394,noncore,75
+C_395,medium metro,18
+C_396,noncore,59
+C_397,small metro,26
+C_398,micropolitan,36
+C_399,micropolitan,41
+C_400,micropolitan,45
+C_401,micropolitan,41
+C_402,small metro,25
+C_403,noncore,22
+C_404,large fringe metro,47
+C_405,micropolitan,39
+C_406,small metro,56
+C_407,small metro,72
+C_408,small metro,32
+C_409,micropolitan,52
+C_410,micropolitan,38
+C_411,micropolitan,42
+C_412,medium metro,19
+C_413,small metro,23
+C_414,noncore,50
+C_415,small metro,25
+C_416,medium metro,17
+C_417,small metro,64
+C_418,medium metro,20
+C_419,micropolitan,58
+C_420,large central metro,27
+C_421,micropolitan,37
+C_422,micropolitan,10
+C_423,medium metro,16
+C_424,noncore,49
+C_425,large fringe metro,75
+C_426,micropolitan,34
+C_427,noncore,51
+C_428,medium metro,18
+C_429,medium metro,19
+C_430,noncore,31
+C_431,medium metro,17
+C_432,noncore,71
+C_433,noncore,53
+C_434,small metro,65
+C_435,large central metro,14
+C_436,small metro,32
+C_437,large fringe metro,2
+C_438,large fringe metro,54
+C_439,large fringe metro,47
+C_440,micropolitan,34
+C_441,noncore,29
+C_442,small metro,25
+C_443,medium metro,16
+C_444,micropolitan,42
+C_445,noncore,13
+C_446,noncore,49
+C_447,small metro,72
+C_448,medium metro,16
+C_449,small metro,56
+C_450,micropolitan,43
+C_451,micropolitan,36
+C_452,micropolitan,34
+C_453,micropolitan,35
+C_454,small metro,33
+C_455,noncore,83
+C_456,micropolitan,38
+C_457,noncore,56
+C_458,large fringe metro,13
+C_459,noncore,70
+C_460,noncore,63
+C_461,noncore,55
+C_462,small metro,56
+C_463,large central metro,4
+C_464,noncore,43
+C_465,noncore,100
+C_466,small metro,56
+C_467,small metro,32
+C_468,noncore,7
+C_469,noncore,63
+C_470,small metro,16
+C_471,small metro,56
+C_472,noncore,51
+C_473,noncore,54
+C_474,small metro,28
+C_475,noncore,70
+C_476,medium metro,15
+C_477,large central metro,27
+C_478,small metro,28
+C_479,micropolitan,40
+C_480,large central metro,1
+C_481,noncore,54
+C_482,small metro,59
+C_483,large fringe metro,6
+C_484,large central metro,1
+C_485,medium metro,21
+C_486,small metro,25
+C_487,small metro,32

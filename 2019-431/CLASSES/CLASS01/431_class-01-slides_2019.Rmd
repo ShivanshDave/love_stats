@@ -1,0 +1,300 @@
+---
+title: "431 Class 01"
+author: "Thomas E. Love"
+date: "2019-08-27"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    fonttheme: "structurebold"
+    colortheme: "whale"
+    fig_height: 5.5
+    fig_caption: false
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+## This is PQHS 431 / CRSP 431 / MPHP 431
+
+![http://imgs.xkcd.com/comics/correlation.png](images/correlation.png)
+
+Please take a copy of (1) the **survey** and (2) an **index card** from the teaching assistants. 
+
+Wait for further instructions before writing anything down.
+
+## Instructions for the Survey
+
+Please read these instructions carefully before writing anything down.
+
+1. Introduce yourself to someone that you don't know.
+2. Record the survey answers **for that other person**, while they record your responses.
+3. Be sure to complete all 15 questions (both sides of the paper).
+4. Also, write **YOUR** answer to question \#4 on the index card, and keep that, for now. You'll need it later.
+5. When you are finished, thank your partner and raise your hand. Someone will come to collect your survey.
+
+Regarding Question 4, Professor Love is the large fellow standing in the front of the room.
+
+## Course Details
+
+Instructor: Thomas E. Love, Ph.D.
+
+Email (best way to reach me): \color{blue} `Thomas.Love@case.edu` \color{black}
+
+Our web site: \color{blue} https://github.com/THOMASELOVE/2019-431 \color{black}
+
+Links there to:
+
+- Course Syllabus
+- Course Calendar
+- Course Notes (essentially a textbook)
+- Slides Page (in-class materials, slides as PDF and R Markdown)
+- Software Details (R and R Studio, installation and R Basics)
+- Data and Code
+- Deliverables, Quizzes and Project (after Labor Day)
+
+How to Get Help: \color{red} `431-help@case.edu` \color{black}
+
+## What is this course about?
+
+![](images/describing-431-gears.png)
+
+## What is this course about?
+
+a. Exploratory Data Analysis, Visualization
+b. Statistical Inference, Making Comparisons
+c. Linear Regression and related Models
+
+The course is about biostatistics, replicable research, using state-of-the-art tools (R, R Studio, R Markdown), and thinking about how science is most effectively done.
+
+- It is more a course in **how** to do things (highly applied) rather than a theoretical/mathematical justification for **why** we do them. We focus here on practical work.
+- It's mostly about getting you doing data science projects for biological, medical and health applications.
+
+## What is Data Science about?
+
+![](images/data-science.png)
+
+Source: \color{blue} http://r4ds.had.co.nz/introduction.html
+
+## Teaching Assistants (email `431-help@case.edu`)
+
+![](images/TAs-2019.png)
+
+- All TAs work with PQHS/CRSP/MPHP students and both Sections.
+- TA **office hours** start Tuesday, details on Course Calendar.
+
+To get help at any time starting now, email \color{blue} `431-help@case.edu`
+
+## What will we be reading?
+
+![](images/books2019.png)
+
+Our web site: \color{blue} https://github.com/THOMASELOVE/2019-431 \color{black}
+
+## Great Statisticians in History
+
+![](images/tukey2.jpg)
+
+Photo Source: \color{blue} http://www.azquotes.com/author/14847-John_Tukey
+
+John \color{red} **Tukey** \color{black} (1915-2000)
+
+## Your First Task (Do Today, Please)
+
+Visit \color{blue} http://bit.ly/431-2019-welcome-survey \color{black} if you haven't already.
+
+You'll need to **log in to Google via CWRU** to see the form.
+
+## Gathering Some Data: Age Guessing Activity
+
+- You will join one of ten groups, with 6-7 students in each group.
+- Your group will receive a sheet to keep track of your guesses (estimated ages.)
+- Your group will then receive one of a series of cards, with a photo of a person on it.
+- For each card your group receives...
+    + estimate the age of the person on the card
+    + write your (group) guess in the table on the sheet in the row corresponding to that numbered card
+- Later, you will be told the true ages and will be able to compute errors.
+
+## Scientists Gather Their Own Data
+
+If you have a little time between cards, make sure everyone in your group ...
+
+1. knows the name and field of everyone else in the group, and knows your group's letter.
+2. writes down a new guess as to my age on their index card, now that you know me better.
+
+So if your initial guess was that I was 18, but now you think I'm 19, your card should read `18/19`.
+
+## Age Guessing Robots?
+
+Well, yes, of course, there's a tool online to do this. More than one, in fact. 
+
+Visit \color{blue} https://how-old.net/ \color{black} 
+
+![](images/tel-howold.png)
+
+Do you think you did that well?
+
+## Card 1 
+
+![](images/age01.png)
+
+
+## Card 2
+
+![](images/age02.png)
+
+## Card 3
+
+![](images/age03.png)
+
+## Card 4
+
+![](images/age04.png)
+
+## No, not THAT Kevin Love
+
+![](images/kevin-love.jpg)
+
+## THIS Kevin Love, on the right (January 2019)
+
+![](images/love-family-2019.jpg)
+
+## Card 5
+
+![](images/age05.png)
+
+## Card 6
+
+![](images/age06.png)
+
+## Card 7
+
+![](images/age07.png)
+
+## Card 8
+
+![](images/age08.png)
+
+## Card 9
+
+![](images/age09.png)
+
+## Card 10
+
+![](images/age10.png)
+
+## So, How did we do?
+
+![](images/agesandphotos.png)
+
+## Collecting the Results
+
+We'll collect some key results in a Google sheet, that you should be able to reach when logged into CWRU for Google. 
+
+The sheet is at \color{blue} http://bit.ly/431-2019-day1-ageguess
+
+![](images/age-guess-sheet.png)
+
+## And how did the AI at https://how-old.net do?
+
+![](images/agesandphotoswithai.png)
+
+Robot consulted on 2016-08-27. Algorithm continues to evolve.
+
+## photo-age-history-2018.csv Data Set (excerpt)
+
+```{r get age guess data from history file, message=FALSE, echo=FALSE}
+library(tidyverse)
+ageguess <- read_csv("data/photo-age-history-2018.csv")
+```
+
+```{r show age guess tibble, echo=FALSE}
+knitr::kable(ageguess[1:12,1:8])
+```
+
+## Scatterplot of Prior Results, 1
+
+```{r guess_vs_true_age_by_year_1, echo=FALSE}
+ggplot(ageguess, aes(x = true.age, y = mean.estimate, col = year)) +
+  geom_point(size = 3) +
+  theme(axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12, face = "bold"))
+```
+
+## Scatterplot of Prior Results, 2
+
+```{r guess_vs_true_age_by_year_2, echo=FALSE}
+ggplot(ageguess, aes(x = true.age, y = mean.estimate, col = year)) +
+  geom_point(position = "jitter", size = 3) +
+  geom_abline(intercept = 0, slope = 1) + 
+  scale_color_viridis_d(end = 0.75) +
+  theme(axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12, face = "bold")) +
+  labs(title = "Age Guessing in Previous Years",
+       x = "True Age", y = "Mean Class-Wide Estimate")
+```
+
+## Mean Class-Wide Guesses (2014-17 combined)
+
+![](images/ages-and-photos-with-2014-2017-mean-guesses.png)
+
+
+## Mean Class-Wide Errors (2014-17 combined)
+
+![](images/ages-and-photos-with-2014-2017-mean-errors.png)
+
+## Scatterplot of 2018 Results with Labels
+
+```{r error_vs_true_age_2018_labeled, echo = FALSE}
+ggplot(filter(ageguess, year == 2018), aes(x = true.age, y = error, fill = sex)) +
+  geom_label(aes(label = label)) +
+  geom_hline(yintercept = 0) + 
+    guides(fill = FALSE) +
+  theme(axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12, face = "bold")) +
+  labs(title = "Errors in 2018 Age Guessing, by Subject's Sex",
+       x = "True Age", y = "Error in Class-Wide Estimate") + 
+    theme_bw() + 
+    facet_wrap(~ sex)
+```
+
+
+## Hans Rosling and "The Joy of Stats"
+
+200 countries over 200 years using 120,000 numbers, in about 4 minutes.
+
+\color{blue} http://bit.ly/431-rosling \color{black}
+
+### And if you liked that ...
+
+- The 20 minute version (from 2007): \color{blue} https://www.youtube.com/watch?v=RUwS1uAdUcI \color{black}
+
+- The full documentary from the BBC: \color{blue} https://www.gapminder.org/videos/the-joy-of-stats/ \color{black}
+
+- Video playlist from Gapminder: \color{blue} https://www.gapminder.org/videos/ \color{black}
+
+
+## What's next?
+
+![](images/next-up-2017.png)
+
+## What's next?
+
+0. \color{red} Turn in your index card \color{black} with your two guesses of my age, please.
+1. Visit \color{blue} http://bit.ly/431-2019-welcome-survey \color{black} if not already done.
+2. Follow the [\color{blue}{software instructions}](https://github.com/THOMASELOVE/2019-431/tree/master/SOFTWARE) to get R, R Studio, R Packages and 431 Data on your computer.
+3. Obtain Jeff Leek's [\color{blue}{The Elements of Data Analytic Style}](https://leanpub.com/datastyle).
+4. Obtain Nate Silver's [\color{blue}{The Signal and the Noise}](http://goo.gl/lS9LQ2).
+5. Read [\color{blue}{the syllabus}](https://thomaselove.github.io/2019-431-syllabus/) and look at the rest of [\color{blue}{the website}](https://github.com/THOMASELOVE/2019-431). Make sure you view the [\color{blue}{Course Notes}](https://thomaselove.github.io/2019-431-book/).
+6. Ask us questions. TA office hours start next week, but email is available now.
+7. You have a first deliverable, due Friday at 2 PM. [\color{blue}{Get started now!}](https://github.com/THOMASELOVE/2019-431/tree/master/DELIVERABLES/A)
+
+- Course Web Site: \color{blue} https://github.com/THOMASELOVE/2019-431 \color{black}
+- Want help? Email \color{blue} `431-help@case.edu` \color{black}

@@ -1,0 +1,47 @@
+# Part A: A Few of the Key Points
+
+## Key Graphical Descriptive Summaries for Quantitative Data
+
+- **Histograms** and their variants, including smooth density curves, and normal density functions based on the sample mean and sample standard deviation
+- **Boxplots** and the like, including ridgeline plots and violin plots, that show more of the distribution in a compact format that is especially useful for comparisons
+- **Normal QQ Plots** which are plots of the ordered data (technically, the order statistics) against certain quantiles of the Normal distribution - show curves to indicate skew, and "S" shaped arcs to indicate seriously heavy- or light-tailed distributions compared to the Normal.
+
+## Key Numerical Descriptive Summaries for Quantitative Data
+
+- Measures of *Location* (including Central Tendency), such as the **mean**, **median**, **quantiles** and even the **mode**.
+- Measures of *Spread*, including the **range**, **IQR** (which measures the variability of points near the center of the distribution), **standard deviation** (which is less appropriate as a summary measure if the data show substantial skew or heavy-tailedness), **variance**, **standard error**, **median absolute deviation** (which is less affected by outlying values in the tails of the distribution than a standard deviation).
+- I'll mention the **coefficient of variation** (ratio of the standard deviation to the mean, expressed as a percentage, note that this is only appropriate for variables that take only positive values.)
+- One Key Measure of *Shape* is nonparametric skew (skew~1~), which can be used to help confirm plot-based decisions about data shape.
+
+## The Empirical Rule - Interpreting a Standard Deviation
+
+If the data are approximately Normally distributed, then the mean and median will be very similar, and there will be minimal skew and no large outlier problem.
+
+Should this be the case, the mean and standard deviation describe the distribution well, and the **Empirical Rule** will hold reasonably well.
+
+If the data are (approximately) Normally distributed, then 
+
+- About 68% of the data will fall within one standard deviation of the mean
+- Approximately 95% of the data will fall within two standard deviations of the mean
+- Approximately 99.7% of the data will fall within three standard deviations of the mean. 
+
+## Identifying "Outliers" Using Fences and/or Z Scores
+
+- Distributions can be symmetric, but still not Normally distributed, if they are either outlier-prone (heavy-tailed) or light-tailed.
+- Outliers can have an important impact on other descriptive measures.
+- John Tukey described **fences** which separated non-outlier from outlier values in a distribution. Generally, the fences are set 1.5 IQR away from the 25th and 75th percentiles in a boxplot.
+- Or, we can use **Z scores** to highlight the relationship between values and what we might expect if the data were normally distributed.
+- The Z score for an individual value is that value minus the data's mean, all divided by the data's standard deviation. 
+- If the data are normally distributed, we'd expect all but 5% of its observations to have Z scores between -2 and +2, for example.
+
+## Summarizing Bivariate Associations: Scatterplots and Regression Lines
+
+- The most important tools are various **scatterplots**, often accompanied by **regression lines** estimated by the method of least squares, and by (loess) **smooths** which permit local polynomial functions to display curved relationships.
+- In a multivariate setting, we will occasionally consider plots in the form of a **scatterplot matrix** to enable simultaneous comparisons of multiple two-way associations.
+- We fit linear models to our data using the `lm` function, and we evaluate the models in terms of their ability to predict an outcome given a predictor, and through R^2^, which is interpreted as the proportion of variation in the outcome accounted for by the model.
+
+## Summarizing Bivariate Associations With Correlations
+
+- **Correlation coefficients,** of which by far the most commonly used is the **Pearson correlation**, which is a unitless (scale-free) measure of bivariate linear association  for the variables X and Y, symbolized by r, and ranging from -1 to +1. The Pearson correlation is a function of the slope of the least squares regression line, divided by the product of the standard deviations of X and Y.
+- Also relevant to us is the **Spearman rank correlation coefficient**, which is obtained by using the usual formula for a Pearson correlation, but on the ranks (1 = minimum, n = maximum, with average ranks are applied to the ties) of the X and Y values. This approach (running a correlation of the orderings of the data) substantially reduces the effect of outliers. The result still ranges from -1 to +1, with 0 indicating no monotone association.
+

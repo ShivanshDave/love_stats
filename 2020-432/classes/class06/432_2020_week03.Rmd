@@ -1,0 +1,1251 @@
+---
+title: "432 Week 3 Slides"
+author: "github.com/THOMASELOVE/2020-432"
+date: "2020-01-28 & 01-30"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    colortheme: "lily"
+    fonttheme: "structurebold"
+    fig_caption: FALSE
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 60)
+```
+
+## This Week's Agenda
+
+1. Predicting a binary outcome using linear probability models.
+2. Predicting a binary outcome with logistic regression
+
+## Setup
+
+```{r, warning = FALSE, message = FALSE}
+library(here); library(magrittr); library(janitor)
+library(broom); library(simputation); library(patchwork)
+library(naniar); library(visdat); library(caret)
+library(tidyverse)
+
+theme_set(theme_bw())
+
+smart1 <- readRDS(here("data/smart1.Rds"))
+smart1_sh <- readRDS(here("data/smart1_sh.Rds"))
+```
+
+## `smart1_sh` Variables, by Type
+
+Variable | Type | Description
+--------- | :----: | --------------------------------
+`landline` | Binary (1/0) | survey conducted by landline? (vs. cell)
+`healthplan` | Binary (1/0) | subject has health insurance?
+`age_imp` | Quantitative | age (imputed from groups - see Notes)
+`fruit_day` | Quantitative | mean servings of fruit / day
+`drinks_wk` | Quantitative | mean alcoholic drinks / week
+`bmi` | Quantitative | body-mass index (in kg/m^2^)
+`physhealth` | Count (0-30) | of last 30 days, # in poor physical health
+`dm_status` | Categorical | diabetes status (now 2 levels)
+`activity` | Categorical | physical activity level (4 levels)
+`smoker` | Categorical | tobacco use status (now 3 levels)
+`genhealth` | Categorical | self-reported overall health (5 levels)
+
+## Today's Questions
+
+Can we predict Prob(BMI < 30) for a subject in the `smart1_sh` data:
+
+- using the mean number of servings of fruit per day that they consume?
+- using their diabetes status?
+- using their self-reported general health status?
+- using some combination of these predictors?
+
+## Let's predict the probability that BMI < 30
+
+```{r}
+smart1_sh <- smart1_sh %>%
+  mutate(bmilt30 = as.numeric(bmi < 30),
+         dm_status = fct_relevel(dm_status, "No"))
+
+smart1_sh %>% tabyl(bmilt30) %>% adorn_pct_formatting()
+```
+
+## Association of BMI < 30 and Fruit Consumption
+
+```{r, echo = FALSE}
+ggplot(smart1_sh, aes(x = fruit_day, y = bmilt30)) +
+  geom_point() +
+  labs(title = "Fruit Servings per day vs. Obesity Status",
+       subtitle = "7412 subjects in SMART Ohio for 2017",
+       y = "BMI less than 30?",
+       x = "Average Servings of Fruit per day")
+```
+
+## Add some vertical jitter and shading to the plot
+
+```{r, echo = FALSE}
+ggplot(smart1_sh, aes(x = fruit_day, y = bmilt30)) +
+  geom_jitter(width = 0, height = 0.2, alpha = 0.2) +
+  labs(title = "Fruit Servings per day vs. Obesity Status",
+       subtitle = "7412 subjects in SMART Ohio for 2017",
+       y = "BMI less than 30?",
+       x = "Average Servings of Fruit per day")
+```
+
+
+## Linear Probability Model to predict BMI < 30?
+
+```{r}
+m1 <- smart1_sh %$% lm(bmilt30 ~ fruit_day)
+
+tidy(m1, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+## Linear Probability Model to predict BMI < 30?
+
+```{r}
+tidy(m1, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+- What's the predicted probability of BMI < 30 if a subject eats 5 servings of fruit per day?
+
+$$
+Pr(BMI < 30) = 0.645 + 0.029 (5) = 0.645 + 0.145 = 0.790
+$$
+
+- What's the predicted probability of BMI < 30 if a subject eats no fruit?
+
+## Linear Probability Model `m1` in a plot (code)
+
+```{r, eval = FALSE}
+ggplot(smart1_sh, aes(x = fruit_day, y = bmilt30)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "red") +
+  labs(title = "Predicting BMI < 30 using Fruit Servings per day",
+       subtitle = "7412 subjects in SMART Ohio for 2017",
+       y = "BMI less than 30?",
+       x = "Average Servings of Fruit per day")
+```
+
+## Linear Probability Model `m1` predicting BMI < 30
+
+```{r, echo = FALSE}
+ggplot(smart1_sh, aes(x = fruit_day, y = bmilt30)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "red") +
+  labs(title = "Predicting BMI < 30 using Fruit Servings per day",
+       subtitle = "7412 subjects in SMART Ohio for 2017",
+       y = "BMI less than 30?",
+       x = "Average Servings of Fruit per day")
+```
+
+## Residual Plots for the Linear Probability Model (`m1`)
+
+```{r, echo = FALSE, fig.height = 5}
+par(mfrow = c(2,2))
+plot(m1)
+par(mfrow = c(1,1))
+```
+
+
+## Models to predict a Binary Outcome
+
+Our outcome takes on two values (zero or one) and we then model the probability of a "one" response given a linear function of predictors.
+
+Idea 1: Use a *linear probability model*
+
+- Main problem: predicted probabilities that are less than 0 and/or greater than 1
+- Also, how can we assume Normally distributed residuals when outcomes are 1 or 0?
+
+Idea 2: Build a *non-linear* regression approach
+
+- Most common approach: logistic regression, part of the class of *generalized* linear models
+
+## The Logit Link and Logistic Function
+
+The particular link function we use in logistic regression is called the **logit link**.
+
+$$
+logit(\pi) = log\left( \frac{\pi}{1 - \pi} \right) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + ... + \beta_k X_k
+$$
+
+The inverse of the logit function is called the **logistic function**. If logit($\pi$) = $\eta$, then $\pi = \frac{exp(\eta)}{1 + exp(\eta)}$. 
+
+- The logistic function $\frac{e^x}{1 + e^x}$ takes any value $x$ in the real numbers and returns a value between 0 and 1.
+
+## The Logistic Function $y = \frac{e^x}{1 + e^x}$
+
+```{r, echo = FALSE, fig.height = 5}
+set.seed(43201)
+temp <- tibble(
+    x = runif(200, min = -5, max = 5),
+    y = exp(x) / (1 + exp(x)))
+
+ggplot(temp, aes(x = x, y = y)) + 
+    geom_line()
+```
+
+## The logit or log odds
+
+We usually focus on the **logit** in statistical work, which is the inverse of the logistic function.
+
+- If we have a probability $\pi < 0.5$, then $logit(\pi) < 0$.
+- If our probability $\pi > 0.5$, then $logit(\pi) > 0$.
+- Finally, if $\pi = 0.5$, then $logit(\pi) = 0$.
+
+### Why is this helpful?
+
+- log(odds(Y = 1)) or logit(Y = 1) covers all real numbers.
+- Prob(Y = 1) is restricted to [0, 1].
+
+## Returning to the prediction of Prob(BMI < 30)
+
+We'll use the `glm` function in R, specifying a logistic regression model.
+
+- Instead of predicting $Pr(BMI < 30)$, we're predicting $log(odds(BMI < 30))$ or $logit(BMI < 30)$.
+
+```{r}
+m2 <- smart1_sh %$% 
+  glm(bmilt30 ~ fruit_day, family = binomial)
+
+tidy(m2, conf.int = TRUE, conf.level = 0.95) %>% 
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+## Our model `m2`
+
+
+logit(BMI < 30) = log(odds(BMI < 30)) = 0.583 + 0.145 fruit_day
+
+
+- If Jaime consumes 5 servings of fruit per day, what is the prediction?
+
+
+log(odds(BMI < 30)) = 0.583 + 0.145 (5) = 0.583 + 0.725 = 1.308 
+
+
+- Exponentiate to get the odds, on our way to estimating the probability.
+
+
+odds(BMI < 30) = exp(1.308) = 3.699
+
+- so, we can estimate his Probability of BMI < 30 as...
+
+$$
+Pr(BMI < 30) = \frac{3.699}{(3.699+1)} = 0.787.
+$$
+
+
+## Another Prediction
+
+What is the predicted probability of BMI < 30 if a subject (Cersei) eats no fruit?
+
+$$
+log(odds(BMI < 30)) = 0.583 + 0.145 (0) = 0.583
+$$
+
+$$
+odds(BMI < 30) = exp(0.583) = 1.791
+$$
+
+$$
+Pr(BMI < 30) = \frac{1.791}{(1.791 + 1)} = 0.642
+$$
+
+Can we get R to do this work for us?
+
+## Predictions from a Logistic Regression Model
+
+```{r}
+new2 <- tibble( fruit_day = c(0, 5) )
+
+predict(m2, newdata = new2, type = "link") # predicted logit
+exp(predict(m2, newdata = new2, type = "link")) # odds
+predict(m2, newdata = new2, type = "response") # probability
+```
+
+## Will `augment` do this, as well?
+
+```{r}
+new2 <- tibble( fruit_day = c(0, 5) )
+
+augment(m2, newdata = new2, type.predict = "link")
+augment(m2, newdata = new2, type.predict = "response")
+```
+
+## Plotting the Logistic Regression Model
+
+Use the `augment` function to get the fitted probabilities into the original data, then plot.
+
+```{r, eval = FALSE}
+m2_aug <- augment(m2, type.predict = "response")
+
+ggplot(m2_aug, aes(x = fruit_day, y = bmilt30)) +
+  geom_point() +
+  geom_line(aes(x = fruit_day, y = .fitted), 
+            col = "purple", size = 1.5) +
+  labs(title = "Fitted Logistic Model m2 for Pr(BMI < 30)")
+```
+
+- Results on next slide
+
+## Plotting Model `m2`
+
+```{r, echo = FALSE}
+m2_aug <- augment(m2, type.predict = "response")
+
+ggplot(m2_aug, aes(x = fruit_day, y = bmilt30)) +
+  geom_point() +
+  geom_line(aes(x = fruit_day, y = .fitted), 
+            col = "purple", size = 1.5) +
+  labs(title = "Fitted Logistic Model m2 for Pr(BMI < 30)")
+```
+
+## Evaluating the Model, again
+
+```{r}
+m2
+```
+
+$$
+logit(BMI < 30) = log(odds(BMI < 30)) = 0.583 + 0.145 fruit
+$$
+
+How can we interpret the coefficients of the model?
+
+## Could we try exponentiating the coefficients?
+
+```{r}
+coef(m2)
+exp(coef(m2))
+```
+
+Suppose Charlie ate one more piece of fruit per day than Harry.
+
+- The **odds** of Charlie having BMI < 30 are 1.156 times as large as they are for Harry.
+- Odds Ratio comparing two subjects whose `fruit_day` differ by 1 serving is 1.156.
+
+## More details on `m2` coefficients
+
+```{r}
+tidy(m2, exponentiate = TRUE, conf.int = TRUE) %>%
+  select(term, estimate, std.error, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
+```
+
+- What would it mean if the Odds Ratio for `fruit_day` was 1?
+- If Charlie eats more servings of fruit than Harry, what would an odds ratio for `fruit_day` that was greater than 1 mean? 
+- How about an odds ratio that was less than 1?
+- What is the smallest possible Odds Ratio?
+
+## `m2`: some additional output
+
+```{r}
+m2
+```
+
+- Think of the Deviance as a measure of "lack of fit".
+- Deviance accounted for by `m2` is 
+  - 9249 - 9213 = 36 points on 7411 - 7410 = 1 df
+- Can do a likelihood ratio test via `anova`.
+
+## `anova(m2)` for our logistic regression model
+
+Analysis of Deviance
+
+```{r}
+anova(m2, test = "LRT")
+```
+
+
+## `m2`: output from `glance`
+
+```{r}
+glance(m2) %>% select(1:2, 6:7, 3)
+```
+
+`logLik` = log-likelihood = - deviance/2
+
+
+```{r}
+glance(m2) %>% select(4:5)
+```
+
+- AIC and BIC still useful for comparing models using the same outcome.
+
+## Can we predict `BMI < 30` using `dm_status` and `genhealth`?
+
+```{r}
+smart1_sh <- smart1_sh %>%
+  mutate(bmilt30 = as.numeric(bmi < 30),
+         dm_status = fct_relevel(dm_status, "No"))
+
+smart1_sh %>% tabyl(genhealth, dm_status)
+```
+
+## Two-Factor Linear Probability model for `bmilt30`
+
+```{r}
+m3 <- smart1_sh %$% 
+  lm(bmilt30 ~ dm_status * genhealth)
+
+anova(m3) %>% knitr::kable(digits = 3)
+```
+
+## Equation for model `m3`
+
+```{r}
+tidy(m3) %>% 
+  select(term, estimate) %>% knitr::kable(digits = 3)
+```
+
+- Prediction for a subject without diabetes who is in Excellent Health?
+
+## Get predictions for all subjects in our data
+
+```{r}
+m3_aug <- augment(m3)
+
+m3_aug %>% count(.fitted, dm_status, genhealth)
+```
+
+## Plot observed vs. predicted values
+
+```{r, fig.height = 4}
+ggplot(m3_aug, aes(x = .fitted, y = bmilt30)) +
+  geom_count() 
+```
+
+## Making Classification Decisions (0.5 as cutoff)
+
+- Our outcome is `bmilt30`, where `bmilt30` = 1 if BMI < 30, and otherwise `bmilt30` = 0.
+- We establish a classification rule based on our model's predicted probabilities of BMI < 30.
+  - If .fitted is below 0.5, we classify that as a prediction that `bmilt30` = 0.
+  - If .fitted is 0.5 or larger, we classify that as a prediction that `bmilt30` = 1.
+- 0.5 is a natural cut point here but not the only possible one.
+
+```{r}
+m3_aug %$% table(.fitted >= 0.5, bmilt30)
+```
+
+## Standard Epidemiological Format
+
+```{r}
+confuse3_small <- m3_aug %>%
+  mutate(bmilt30_act = factor(bmilt30 == "1"),
+     bmilt30_pre = factor(.fitted >= 0.5),
+     bmilt30_act = fct_relevel(bmilt30_act, "TRUE"),
+     bmilt30_pre = fct_relevel(bmilt30_pre, "TRUE")) %$%
+  table(bmilt30_pre, bmilt30_act)
+
+confuse3_small
+```
+
+
+## (Mis-)Classification Table / Confusion Matrix
+
+```{r}
+confuse3_small
+```
+
+- Total Observations: 483 + 1860 + 405 + 4664 = 7412
+- Correct Predictions: 483 + 4664 = 5147, or 69.4% **accuracy**
+- Incorrect Predictions: 405 + 1860 = 2265 (30.6%)
+- Actual TRUE: 4664 + 405 = 5069, or 68.4% **prevalence**
+- Predicted TRUE: 4664 + 1860 = 6524, or 88.0% **detection prevalence**
+
+## Other Summaries from a Confusion Matrix
+
+```{r}
+confuse3_small
+```
+
+- **Sensitivity** = 4664 / (4664 + 405) = 92.01% (also called Recall)
+  - if the subject actually has BMI < 30 our model predicts that 92.01% of the time.
+- **Specificity** = 483 / (1860 + 483) = 20.61%
+  - if the subject actually has BMI >= 30 our model predicts that 20.61% of the time.
+- **Positive Predictive Value** or *Precision* = 4664 / (4664 + 1860) = 71.49%
+  - our predictions of BMI < 30 were correct 71.49% of the time.
+- **Negative Predictive Value** = 483 / (483 + 405) = 54.39%
+  - our predictions that BMI >= 30 were correct 54.39% of the time.
+
+## Big Summary of Confusion Matrix (from `caret`)
+
+```{r, eval = FALSE}
+m3_aug %$% confusionMatrix(
+  data = factor(.fitted >= 0.5),
+  reference = factor(bmilt30 == 1), 
+  positive = "TRUE") 
+```
+
+Results on next two slides...
+
+## Confusion Matrix statistics for `m3`
+
+```
+          Reference
+Prediction FALSE TRUE
+     FALSE   483  405
+     TRUE   1860 4664
+     
+               Accuracy : 0.6944          
+                 95% CI : (0.6838, 0.7049)
+    No Information Rate : 0.6839          
+    P-Value [Acc > NIR] : 0.02617         
+                  Kappa : 0.1516          
+ McNemar's Test P-Value : < 2e-16         
+```
+
+- Kappa is a correlation statistic ranging from -1 to +1. It measures the inter-rater reliability of our predictions and the true classifications, in this context. Complete agreement would be +1, and complete disagreement would be -1.
+
+
+## Confusion Matrix statistics for `m3`
+
+```
+       'Positive' Class : TRUE            
+            Sensitivity : 0.9201          
+            Specificity : 0.2061          
+         Pos Pred Value : 0.7149          
+         Neg Pred Value : 0.5439          
+             Prevalence : 0.6839          
+         Detection Rate : 0.6292          
+   Detection Prevalence : 0.8802          
+      Balanced Accuracy : 0.5631          
+```
+
+## Tidying a Confusion Matrix
+
+```{r, eval = FALSE}
+confuse3 <- m3_aug %$% confusionMatrix(
+  data = factor(.fitted >= 0.5),
+  reference = factor(bmilt30 == 1), 
+  positive = "TRUE") 
+
+tidy(confuse3) %>% knitr::kable(digits = 3)
+```
+
+Results next slide.
+
+---
+
+```{r, echo = FALSE}
+confuse3 <- m3_aug %$% confusionMatrix(
+  data = factor(.fitted >= 0.5),
+  reference = factor(bmilt30 == 1), 
+  positive = "TRUE") 
+
+tidy(confuse3) %>% knitr::kable(digits = 3)
+```
+
+## How do we fit a simple logistic regression model?
+
+```{r}
+m4 <- smart1_sh %$% 
+  glm(bmilt30 ~ dm_status, family = binomial(link = logit))
+```
+
+## How do we interpret the coefficients?
+
+```{r}
+tidy(m4) %>% select(term, estimate) %>% 
+  knitr::kable(digits = 3)
+```
+
+Equation: `logit(BMI < 30) = 0.946 - 1.044 (dm_status = Yes)`
+
+How can we interpret this result?
+
+## Interpreting our Logistic Regression Equation
+
+`logit(BMI < 30) = 0.946 - 1.044 (dm_status = Yes)`
+
+- Harry has diabetes.
+  - His predicted `logit(BMI < 30)` is 0.946 - 1.044 (1) = -0.098
+- Sally does not have diabetes.
+  - Her predicted `logit(BMI < 30)` is 0.946 - 1.044 (0) = 0.946
+
+Now, `logit(BMI < 30)` = `log(odds(BMI < 30))`, so exponentiate to get the odds...
+
+- Harry has predicted `odds(BMI < 30)` = exp(-0.098) = 0.9066
+- Sally has predicted `odds(BMI < 30)` = exp(0.946) = 2.575
+
+Can we convert these `odds` into something more intuitive?
+
+## Converting Odds to Probabilities
+
+- Harry has predicted `odds(BMI < 30)` = exp(-0.098) = 0.9066
+- Sally has predicted `odds(BMI < 30)` = exp(0.946) = 2.575
+
+$$
+odds(BMI < 30) = \frac{Pr(BMI < 30)}{1 - Pr(BMI < 30)}
+$$
+
+and
+
+$$
+Pr(BMI < 30) = \frac{odds(BMI < 30)}{odds(BMI < 30) + 1}
+$$
+
+- So Harry's predicted `Pr(BMI < 30)` = 0.9066 / 1.9066 = 0.48
+- Sally's predicted `Pr(BMI < 30)` = 2.575 / 3.575 = 0.72
+- odds range from 0 to $\infty$, and log(odds) range from $-\infty$ to $\infty$.
+- odds > 1 if probability > 0.5. If odds = 1, then probability = 0.5.
+
+## What about the odds ratio?
+
+`logit(BMI < 30) = 0.946 - 1.044 (dm_status = Yes)`
+
+- Harry, with diabetes, has odds(BMI < 30) = 0.9066
+- Sally, without diabetes, has odds(BMI < 30) = 2.575
+
+Odds Ratio for BMI < 30 associated with having diabetes (vs. not) = 
+
+$$
+\frac{0.9066}{2.575} = 0.352
+$$
+
+- Our model estimates that a subject with diabetes has 35.2% of the odds of a subject without diabetes of having BMI < 30.
+
+Can we calculate the odds ratio from the equation's coefficients?
+
+- Yes, `exp(-1.044)` = 0.352.
+
+## Tidy with exponentiation
+
+```{r}
+tidy(m4, exponentiate = TRUE, 
+     conf.int = TRUE, conf.level = 0.9) %>% 
+  select(term, estimate, conf.low, conf.high) %>% 
+  knitr::kable(digits = 3)
+```
+
+- The odds ratio for BMI < 30 among subjects with diabetes as compared to those without diabetes is 0.352
+- The odds of BMI < 30 are 35.2% as large for subjects with diabetes as they are for subjects without diabetes, according to this model.
+- A 90% uncertainty interval for the odds ratio estimate includes (0.316, 0.393).
+
+## Interpreting these summaries
+
+Connecting the Odds Ratio and Log Odds Ratio to probability statements...
+
+- If the probabilities were the same (for diabetes and non-diabetes subjects) of having BMI < 30, then the odds would also be the same, and so the odds ratio would be 1.
+- If the probabilities of BMI < 30 were the same and thus the odds were the same, then the log odds ratio would be `log(1)` = 0.
+
+`logit(BMI < 30) = 0.946 - 1.044 (dm_status = Yes)`
+
+1. If the log odds of a coefficient (like `diabetes = Yes`) are negative, then what does that imply?
+
+2. What if we flipped the order of the levels for diabetes so our model was about `diabetes = No`?
+
+New model: `logit(BMI < 30) = -0.098 + 1.044 (dm_status = No)`
+
+## Two-Factor Logistic Regression (model `m5`)
+
+First, let's try a model without interaction.
+
+```{r}
+m5_without <- smart1_sh %$% 
+      glm(bmilt30 ~ dm_status + genhealth, 
+          family = binomial()) # logit is default link
+
+tidy(m5_without) %>% select(term, estimate) %>% 
+  knitr::kable(digits = 3)
+```
+
+## Our model `m5_without`
+
+```
+logit(BMI < 30) = log(odds(BMI < 30)) 
+   = 1.72 - 0.81 (dm_status = Yes) 
+          - 0.60 (genhealth = Very Good)
+          - 1.05 (genhealth = Good)
+          - 1.12 (genhealth = Fair) 
+          - 1.24 (genhealth = Poor)
+```
+
+1. How do we interpret the meaning of the -0.81 coefficient for `dm_status = Yes` in this model?
+2. How do we interpret the meaning of the -1.05 coefficient for `genhealth = Good`?
+
+## Our model `m5_without`
+
+```
+logit(BMI < 30) = 
+   = 1.72 - 0.81 (dm = Yes) - 0.60 (Very Good) - 1.05 (Good)
+      - 1.12 (Fair) - 1.24 (Poor)
+```
+
+1. How do we interpret the meaning of the -0.81 coefficient for `dm_status = Yes` in this model?
+
+If Harry and Sally have the **same `genhealth` status**, but Harry has diabetes and Sally does not, the model predicts that Harry's `log(odds(BMI < 30))` will be 0.81 lower than Sally's.
+
+- Harry: `logit(BMI < 30) = (1.72 - 0.81) - 0.60 (Very Good) - 1.05 (Good) - 1.12 (Fair) - 1.24 (Poor)`
+- Sally: `logit(BMI < 30) = 1.72 - 0.60 (VG) - 1.05 (G) - 1.12 (F) - 1.24 (P)`
+
+Suppose that, for example, Harry and Sally each had Excellent `genhealth`...
+
+## Question 1 (continued)
+
+```
+logit(BMI < 30) = 
+   = 1.72 - 0.81 (dm = Yes) - 0.60 (Very Good) - 1.05 (Good)
+      - 1.12 (Fair) - 1.24 (Poor)
+```
+
+1. How do we interpret the meaning of the -0.81 coefficient for `dm_status = Yes` in this model?
+
+Subject | Harry | Sally
+--------: | :------------------: | :------------------:
+`genhealth` | Excellent | Excellent
+`dm_status` | Yes | No
+`log(odds(BMI < 30))` | 1.72 - 0.81 = 0.91 | 1.72
+`odds(BMI < 30)` | exp(0.91) = 2.484 | exp(1.72) = 5.585
+`Pr(BMI < 30)` | 2.484/3.484 = 0.71 | 5.585/6.585 = 0.85
+
+## Our model `m5_without`
+
+```
+logit(BMI < 30) = 
+   = 1.72 - 0.81 (dm = Yes) - 0.60 (Very Good) - 1.05 (Good)
+      - 1.12 (Fair) - 1.24 (Poor)
+```
+
+2. How do we interpret the meaning of the -1.05 coefficient for `genhealth = Good`?
+
+If Harry and Sally have the **same `dm_status`**, but Harry has Good `genhealth` and Sally has Excellent `genhealth`, the model predicts that Harry's `log(odds(BMI < 30))` will be 1.05 lower than Sally's.
+
+- Harry: `logit(BMI < 30) = 1.72 - 0.81 (dm = Yes) - 1.05`
+- Sally: `logit(BMI < 30) = 1.72 - 0.81 (dm = Yes)`
+
+Why are we comparing Harry at Good to Sally at Excellent here?
+
+## Question 2 (continued)
+
+```
+logit(BMI < 30) = 
+   = 1.72 - 0.81 (dm = Yes) - 0.60 (Very Good) - 1.05 (Good)
+      - 1.12 (Fair) - 1.24 (Poor)
+```
+
+2. How do we interpret the meaning of the -1.05 coefficient for `genhealth = Good`?
+
+Subject | Harry | Sally
+--------: | :------------------: | :------------------:
+`genhealth` | Good | Excellent
+`dm_status` | No | No
+`log(odds(BMI < 30))` | 1.72 - 1.05 = 0.67 | 1.72
+`odds(BMI < 30)` | exp(0.67) = 1.954 | exp(1.72) = 5.585
+`Pr(BMI < 30)` | 1.954/2.954 = 0.66 | 5.585/6.585 = 0.85
+
+- What is the odds ratio for BMI < 30 comparing Harry to Sally? 1.954/5.585 = 0.350
+- Now, what if Harry and Sally each had diabetes?
+
+## Question 2 (continued)
+
+```
+logit(BMI < 30) = 
+   = 1.72 - 0.81 (dm = Yes) - 0.60 (Very Good) - 1.05 (Good)
+      - 1.12 (Fair) - 1.24 (Poor)
+```
+
+2. How do we interpret the meaning of the -1.05 coefficient for `genhealth = Good`?
+
+Subject | Harry | Sally
+--------: | :------------------: | :------------------:
+`genhealth` | Good | Excellent
+`dm_status` | Yes | Yes
+`log(odds(BMI < 30))` | 1.72 - 1.05 - 0.81 = -0.14 | 1.72 - 0.81 = 0.91
+`odds(BMI < 30)` | exp(-0.14) = 0.869 | exp(0.91) = 2.484
+`Pr(BMI < 30)` | 0.869/1.869 = 0.46 | 2.484/3.484 = 0.71
+
+Now what is the odds ratio for BMI < 30 comparing Harry to Sally? 0.869/2.484 = 0.350
+
+## Tidying our `m5_without` model
+
+```{r}
+tidy(m5_without, exponentiate = TRUE, 
+     conf.int = TRUE, conf.level = 0.90) %>% 
+  select(term, estimate, conf.low, conf.high) %>% 
+  knitr::kable(digits = 3)
+```
+
+How do we interpret the odds ratios here?
+
+## How well does our model predict the outcome?
+
+We can build a table of predicted outcomes.
+
+```{r}
+augment(m5_without, type.predict = "response") %>% 
+  count(.fitted, dm_status, genhealth)
+```
+
+## Making Classification Decisions (0.5 as cutoff)
+
+- Our outcome is `bmilt30`, where `bmilt30` = 1 if BMI < 30, and otherwise `bmilt30` = 0.
+- We establish a classification rule based on our model's predicted probabilities of BMI < 30.
+  - If .fitted is below 0.5, we classify that as a prediction that `bmilt30` = 0.
+  - If .fitted is 0.5 or larger, we classify that as a prediction that `bmilt30` = 1.
+- 0.5 is a natural cut point here but not the only possible one.
+
+## (Mis-)Classification Table / Confusion Matrix
+
+```{r}
+m5_without_aug <- augment(m5_without, data = smart1_sh, 
+                         type.predict = "response")
+
+confuse5_without <- m5_without_aug %>%
+  mutate(bmilt30_act = factor(bmilt30 == "1"),
+     bmilt30_pre = factor(.fitted >= 0.5),
+     bmilt30_act = fct_relevel(bmilt30_act, "TRUE"),
+     bmilt30_pre = fct_relevel(bmilt30_pre, "TRUE")) %$%
+  table(bmilt30_pre, bmilt30_act)
+
+confuse5_without
+```
+
+- Same results as linear probability model `m3`!
+
+## `m5_with`: Adding an interaction term?
+
+```{r, eval = FALSE}
+m5_with <- smart1_sh %$% 
+  glm(bmilt30 ~ dm_status * genhealth, family = binomial())
+
+tidy(m5_with) %>% 
+  select(term, estimate, std.error, p.value) %>% 
+  knitr::kable(digits = 3)
+```
+
+Results on next slide...
+
+## Coefficients of model `m5_with`
+
+```{r}
+m5_with <- smart1_sh %$% 
+  glm(bmilt30 ~ dm_status * genhealth, family = binomial())
+```
+
+```{r, echo = FALSE}
+tidy(m5_with) %>% 
+  select(term, estimate, std.error, p.value) %>% 
+  knitr::kable(digits = 3)
+```
+
+## Interpreting `m5_with` Coefficients
+
+Equation for log(odds(BMI < 30)) =
+
+```
+1.71 - 0.73 (dm = Yes) 
+- 0.57 (Very Good) - 1.07 (Good) - 1.16 (Fair) - 1.06 (Poor) 
+- 0.26 (dm = Yes)(Very Good) + 0.07 (dm = Yes)(Good)
++ 0.05 (dm = Yes)(Fair) - 0.59 (dm = Yes)(Poor)
+```
+
+How do we understand the -0.59 coefficient here? 
+
+Suppose Cersei has Excellent and Jaime has Poor `genhealth`. What are their model equations for `log(odds(BMI < 30))`?
+
+- Cersei: 1.71 - 0.73 `dm_status`
+- Jaime: (1.71 - 1.06) + ((-0.73) + (-0.59)) `dm_status`,
+- so Jaime: 0.65 - 1.32 `dm_status`.
+
+## Making Predictions with `m5_with`
+
+Equation for log(odds(BMI < 30)) =
+
+```
+1.71 - 0.73 (dm = Yes) 
+- 0.57 (Very Good) - 1.07 (Good) - 1.16 (Fair) - 1.06 (Poor) 
+- 0.26 (dm = Yes)(Very Good) + 0.07 (dm = Yes)(Good)
++ 0.05 (dm = Yes)(Fair) - 0.59 (dm = Yes)(Poor)
+```
+
+Subject | dm_status | genhealth | log(odds(BMI < 30))
+------- | --------- | --------- | -----------------------:
+Harry | No | Excellent | 1.71
+Sally | No | Poor | 1.71 - 1.06 = 0.65
+Cersei | Yes | Excellent | 1.71 - 0.73 = 0.98
+Jaime | Yes | Poor | 1.71 - 0.73 - 1.06 - 0.59 = -0.67
+
+## Getting R to make the predictions
+
+(Reducing rounding errors)
+
+```{r}
+new_m5 <- tibble(
+  subject = c("Harry", "Sally", "Cersei", "Jaime"),
+  dm_status = c("No", "No", "Yes", "Yes"),
+  genhealth = c("1_Excellent", "5_Poor", 
+                "1_Excellent", "5_Poor"))
+
+predict(m5_with, newdata = new_m5, type = "link")
+```
+
+## Making Predictions with `m5_with` (again)
+
+```
+1.71 - 0.73 (dm = Yes) 
+- 0.57 (Very Good) - 1.07 (Good) - 1.16 (Fair) - 1.06 (Poor) 
+- 0.26 (dm = Yes)(Very Good) + 0.07 (dm = Yes)(Good)
++ 0.05 (dm = Yes)(Fair) - 0.59 (dm = Yes)(Poor)
+```
+Subject | dm | genhealth | odds(BMI < 30) 
+------- | --- | --------- | -------------:
+Harry | No | Excellent | exp(1.71) = 5.53
+Sally | No | Poor | exp(0.65) = 1.92
+Cersei | Yes | Excellent | exp(0.98) = 2.66
+Jaime | Yes | Poor | exp(-0.67) = 0.51
+
+## Getting R to make the predictions
+
+(Reducing rounding errors)
+
+```{r}
+predict(m5_with, newdata = new_m5, type = "link") # logit
+exp(predict(m5_with, newdata = new_m5, type = "link")) # odds
+```
+
+## Making Predictions with `m5_with` (one more time)
+
+```
+1.71 - 0.73 (dm = Yes) 
+- 0.57 (Very Good) - 1.07 (Good) - 1.16 (Fair) - 1.06 (Poor) 
+- 0.26 (dm = Yes)(Very Good) + 0.07 (dm = Yes)(Good)
++ 0.05 (dm = Yes)(Fair) - 0.59 (dm = Yes)(Poor)
+```
+How do we understand the -0.59 coefficient here?
+
+Subject | dm | genhealth | Pr(BMI < 30) 
+------- | --- | --------- | -------------:
+Harry | No | Excellent | 5.53/6.53 = 0.85
+Sally | No | Poor | 1.92/2.92 = 0.66
+Cersei | Yes | Excellent | 2.66/3.66 = 0.73
+Jaime | Yes | Poor | 0.51/1.51 = 0.34
+
+## Getting R to make the predictions
+
+```{r}
+predict(m5_with, newdata = new_m5, 
+        type = "response") # probs
+```
+
+## Model `m5_with` Results (from R's `predict`)
+
+Subject | dm | genhealth | logit | odds | Pr(BMI < 30)
+------- | --- | --------- | ----: | ----: | :----:
+Harry | No | Excellent | 1.714 | 5.551 | 0.847
+Sally | No | Poor | 0.655 | 1.926 | 0.658
+Cersei | Yes | Excellent | 0.981 | 2.667 | 0.727
+Jaime | Yes | Poor | -0.664 | 0.515 | 0.340
+
+### Calculating Odds Ratios
+
+- Comparing DM to No DM (if GenHealth = Excellent) = 2.667/5.551 = 0.480
+- Comparing Poor to Excellent (if no DM) = 1.926 / 5.551 = 0.347
+- Comparing DM to No DM (if GenHealth = Poor) = 0.515/1.926 = 0.267
+- Comparing Poor to Excellent (if DM) = 0.515 / 2.667 = 0.193
+
+## Exponentiating the `m5_with` Coefficients 
+
+```{r, eval = FALSE}
+tidy(m5_with, exponentiate = TRUE, conf.int = TRUE,
+     conf.level = 0.90) %>% 
+  select(term, estimate, conf.low, conf.high) %>% 
+  knitr::kable(digits = 3)
+```
+
+Results on the next slide...
+
+
+## Exponentiating the `m5_with` Coefficients 
+
+```{r, echo = FALSE}
+tidy(m5_with, exponentiate = TRUE, conf.int = TRUE,
+     conf.level = 0.90) %>% 
+  select(term, estimate, conf.low, conf.high) %>% 
+  knitr::kable(digits = 3)
+```
+
+
+1. Interpret the `dm_statusYes` coefficient (0.480).
+2. Interpret the `genhealth5_Poor` coefficient (0.347).
+
+## Model `m5_with` Predictions, Again
+
+1. Interpret the `dm_statusYes` coefficient (0.480).
+2. Interpret the `genhealth5_Poor` coefficient (0.347).
+
+Subject | dm | genhealth | odds(BMI < 30) 
+------- | --- | --------- | :--------:
+Harry | No | Excellent | 5.551 
+Sally | No | Poor | 1.926 
+Cersei | Yes | Excellent | 2.667 
+Jaime | Yes | Poor | 0.515 
+
+### Odds Ratios we calculated earlier...
+
+1. Comparing DM to No DM (if GenHealth = Excellent) = 2.667/5.551 = 0.480
+2. Comparing Poor to Excellent (if no DM) = 1.926 / 5.551 = 0.347
+
+## Exponentiating the `m5_with` Coefficients 
+
+```{r, echo = FALSE}
+tidy(m5_with, exponentiate = TRUE, conf.int = TRUE,
+     conf.level = 0.90) %>% 
+  select(term, estimate, conf.low, conf.high) %>% 
+  knitr::kable(digits = 3)
+```
+
+3. How do we interpret the interaction coefficients, like 0.557 for (DM = Yes)(GenHealth = Poor)?
+
+## Interpreting `m5_with` Interaction Odds Ratios
+
+3. How do we interpret the interaction coefficients, like 0.557 for (DM = Yes)(GenHealth = Poor)?
+
+Odds Ratios we calculated earlier...
+
+- Comparing DM to No DM (if GenHealth = Poor) $\approx$  0.267
+- Comparing DM to No DM (if GenHealth = Excellent) $\approx$ 0.480
+- Comparing Poor to Excellent (if DM) $\approx$ 0.193
+- Comparing Poor to Excellent (if no DM) $\approx$  0.347
+
+Within rounding error,
+
+$$
+\frac{0.267}{0.480} \approx \frac{0.193}{0.347} \approx 0.557
+$$
+
+## Using `glance` on these models
+
+```{r}
+bind_rows(glance(m5_with), glance(m5_without)) %>%
+  mutate(model = c("With Interaction", "No Interaction"),
+         deviance_diff = null.deviance - deviance,
+         df_diff = df.null - df.residual) %>%
+  select(model, AIC, BIC, deviance_diff, df_diff) %>% 
+  knitr::kable(digits = 1)
+```
+
+## Confusion Matrix for `m5_with`
+
+```{r}
+m5_with_aug <- augment(m5_with, data = smart1_sh, 
+                         type.predict = "response")
+
+confuse5_with <- m5_with_aug %>%
+  mutate(bmilt30_act = factor(bmilt30 == "1"),
+     bmilt30_pre = factor(.fitted >= 0.5),
+     bmilt30_act = fct_relevel(bmilt30_act, "TRUE"),
+     bmilt30_pre = fct_relevel(bmilt30_pre, "TRUE")) %$%
+  table(bmilt30_pre, bmilt30_act)
+
+confuse5_with
+```
+
+- Still 4664 + 483 = 5147 accurate predictions (69.4%)
+
+## Logistic Regression Comparisons via `anova`
+
+Based on Likelihood Ratio Test
+
+```{r}
+anova(m5_without, m5_with, test = "LRT")
+```
+
+Other options include Rao's efficient score test (`test = "Rao"`) and Pearson's chi-square test (`test = "Chisq"`)
+
+## Logistic Regression Comparisons via `anova`
+
+Another potentially attractive option compares the models based on Mallows' $C_p$ statistic, which is closely related to the AIC, in general, and identical to what `glance` provides for AIC in this case.
+
+```{r}
+anova(m5_without, m5_with, test = "Cp")
+```
+
+## `m6`: Logistic Regression (Interaction & Covariate)
+
+```{r, eval = FALSE}
+m6 <- smart1_sh %$% 
+  glm(bmilt30 ~ fruit_day + dm_status * genhealth, 
+      family = binomial)
+
+tidy(m6) %>% 
+  select(term, estimate, std.error, p.value) %>% 
+  knitr::kable(digits = 3)
+```
+
+Results on next slide...
+
+## `m6` model coefficients
+
+```{r, echo = FALSE}
+m6 <- smart1_sh %$% 
+  glm(bmilt30 ~ fruit_day + dm_status * genhealth, 
+      family = binomial)
+
+tidy(m6) %>% 
+  select(term, estimate, std.error, p.value) %>% 
+  knitr::kable(digits = 3)
+```
+
+## The `m6` model
+
+```
+log(odds(BMI < 30)) = 
+  1.548 +
+  + 0.114 fruit_day
+  - 0.741 dm_status = Yes
+  - 0.563 genhealth = Very Good
+  - 1.052 genhealth = Good
+  - 1.129 genhealth = Fair
+  - 1.016 genhealth = Poor
+  - 0.258 (dm_status = Yes)(genhealth = Very Good)
+  + 0.071 (dm_status = Yes)(genhealth = Good)
+  + 0.051 (dm_status = Yes)(genhealth = Fair)
+  - 0.601 (dm_status = Yes)(genhealth = Poor)
+```
+
+Does the impact of `fruit_day` change depending on `dm_status` and `genhealth`?
+
+## Confusion Matrix for `m6`
+
+```{r}
+m6_aug <- augment(m6, data = smart1_sh, 
+                         type.predict = "response")
+confuse6 <- m6_aug %>%
+  mutate(bmilt30_act = factor(bmilt30 == "1"),
+     bmilt30_pre = factor(.fitted >= 0.5),
+     bmilt30_act = fct_relevel(bmilt30_act, "TRUE"),
+     bmilt30_pre = fct_relevel(bmilt30_pre, "TRUE")) %$%
+  table(bmilt30_pre, bmilt30_act)
+confuse6
+```
+
+- 4731 + 418 = 5149 accurate predictions (69.5%)
+- Sensitivity 93.3%, and Specificity 17.8%
+
+## The `m7` model with factor-covariate interactions
+
+```{r, eval = FALSE}
+m7 <- smart1_sh %$% 
+  glm(bmilt30 ~ 
+        fruit_day*dm_status + 
+        fruit_day*genhealth +
+        dm_status*genhealth, 
+      family = binomial)
+
+tidy(m7) %>% 
+  select(term, estimate, std.error, p.value) %>% 
+  knitr::kable(digits = 3)
+```
+
+## The `m7` model
+
+```{r, echo = FALSE}
+m7 <- smart1_sh %$% 
+  glm(bmilt30 ~ 
+        fruit_day*dm_status + 
+        fruit_day*genhealth +
+        dm_status*genhealth, 
+      family = binomial)
+
+tidy(m7) %>% 
+  select(term, estimate, std.error, p.value) %>% 
+  knitr::kable(digits = 3)
+```
+
+## Confusion Matrix for `m7`
+
+```{r}
+m7_aug <- augment(m7, data = smart1_sh, 
+                         type.predict = "response")
+confuse7 <- m7_aug %>%
+  mutate(bmilt30_act = factor(bmilt30 == "1"),
+     bmilt30_pre = factor(.fitted >= 0.5),
+     bmilt30_act = fct_relevel(bmilt30_act, "TRUE"),
+     bmilt30_pre = fct_relevel(bmilt30_pre, "TRUE")) %$%
+  table(bmilt30_pre, bmilt30_act)
+confuse7
+```
+
+- 4724 + 428 = 5152 accurate predictions (69.5%)
+- Sensitivity 93.1%, and Specificity 18.3%
+
+## Could we do a three-way interaction?
+
+```{r}
+m8 <- smart1_sh %$% 
+  glm(bmilt30 ~ fruit_day*dm_status*genhealth, 
+      family = binomial)
+```
+
+```{r, echo = FALSE}
+tidy(m8) %>% select(term, estimate) %>% 
+  slice(1:4, 16:20) %>% knitr::kable(digits = 3)
+```
+
+These are just 9 of the 20 coefficients fit in total.
+
+## Confusion Matrix for `m8`
+
+```{r}
+m8_aug <- augment(m8, data = smart1_sh, 
+                         type.predict = "response")
+confuse8 <- m8_aug %>%
+  mutate(bmilt30_act = factor(bmilt30 == "1"),
+     bmilt30_pre = factor(.fitted >= 0.5),
+     bmilt30_act = fct_relevel(bmilt30_act, "TRUE"),
+     bmilt30_pre = fct_relevel(bmilt30_pre, "TRUE")) %$%
+  table(bmilt30_pre, bmilt30_act)
+confuse8
+```
+
+- 4729 + 424 = 5153 accurate predictions (69.5%)
+- Sensitivity 93.2%, and Specificity 18.1%
+
+
+## Comparison of Models with Deviance Tests
+
+```{r}
+anova(m5_without, m5_with, m6, m7, m8, test = "LRT")
+```
+
+## Comparison of Models with AIC/BIC
+
+```{r}
+bind_rows(glance(m5_without), glance(m5_with), glance(m6),
+          glance(m7), glance(m8)) %>%
+  mutate(model = c("m5_without", "m5_with", 
+                   "m6", "m7", "m8")) %>%
+  select(model, AIC, BIC)
+```
+
+## Comparison of Models by Confusion Matrix
+
+Model | Correct Preds. | Accuracy | Sensitivity | Specificity
+--------: | ------------: | -------: | -----: | -----:
+`m5_without` | 5,147 | 69.44% | 92.0% | 20.6%
+`m5_with` | 5,147 | 69.44% | 92.0% | 20.6%
+`m6` | 5 149 | 69.47% | 93.3% | 17.8%
+`m7` | 5,152 | 69.51% | 93.1% | 18.3%
+`m8` | 5,153 | 69.52% | 93.2% | 18.1%
+
+## What's Coming Up?
+
+Building on what we know about Linear & Logistic Regression
+
+- Model Selection and Cross-Validation Strategies
+- Incorporating the Survey Weights into our Analyses
+- Checking Assumptions (in Logistic Regression)
+- ROC Curve Analysis (in Logistic Regression)
+- Multiple Imputation (rather than Simple Imputation) to deal with missing data
+
+At which point, we'll move on to ...
+
+- Other methods for predicting 1/0 and quantitative outcomes (via the `rms` package)
+- Using regression-style approaches to predict other kinds of outcomes (counts, multiple categories, times to event with censoring)
+

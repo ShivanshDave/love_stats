@@ -1,0 +1,73 @@
+# (PART\*) Part B. Making Comparisons {-}
+
+# Introduction to Part B
+
+## Point Estimation and Confidence Intervals
+
+The basic theory of estimation can be used to indicate the probable accuracy and potential for bias in estimating based on limited samples.  A point estimate provides a single best guess as to the value of a population or process parameter.
+
+A confidence interval is a particularly useful way to convey to people just how much error one must allow for in a given estimate.  In particular, a confidence interval allows us to quantify just how close we expect, for instance, the sample mean to be to the population or process mean.  The computer will do the calculations; we need to interpret the results.
+
+The key tradeoffs are cost vs. precision, and precision vs. confidence in the correctness of the statement.  Often, if we are dissatisfied with the width of the confidence interval and want to make it smaller, we have little choice but to reconsider the sample -- larger samples produce shorter intervals.  
+
+## One-Sample Confidence Intervals
+
+Very often, sample data indicate that something has happened -- a change in the proportion, a shift in the mean, etc.  Before we get excited, it's worth checking whether the apparent result might possibly be the result of random sampling error.  The next few classes will be devoted to ideas of testing--seeing whether an apparent result might possibly be attributable to sheer randomness.  Confidence intervals provide a way to assess this chance. 
+
+Statistics provides a number of tools for reaching an informed choice (informed by sample information, of course.)  Which tool, or statistical method, to use depends on various aspects of the problem at hand. 
+
+## Comparing Two Groups
+
+In making a choice between two alternatives, questions such as the following become paramount.
+
+- Is there a status quo?
+- Is there a standard approach?
+- What are the costs of incorrect decisions?
+- Are such costs balanced?
+
+The process of comparing the means/medians/proportions/rates of the populations represented by two independently obtained samples can be challenging, and such an approach is not always the best choice.  Often, specially designed experiments can be more informative at lower cost (i.e. smaller sample size).  As one might expect, using these more sophisticated procedures introduces trade-offs, but the costs are typically small relative to the gain in information.
+
+When faced with such a comparison of two alternatives, a test based on **paired** data is often much better than a test based on two distinct, independent samples.  Why?  If we have done our experiment properly, the pairing lets us eliminate background variation that otherwise hides meaningful differences.
+
+### Model-Based Comparisons and ANOVA/Regression
+
+Comparisons based on independent samples of quantitative variables are also frequently accomplished through other equivalent methods, including the analysis of variance approach and dummy variable regression, both of which produce  identical confidence intervals to the pooled variance t test for the same comparison.
+
+We will also discuss some of the main ideas in developing, designing and analyzing statistical experiments, specifically in terms of making comparisons. The ideas we will present in this section allow for the comparison of more than two populations in terms of their population means.  The statistical techniques employed analyze the sample variance in order to test and estimate the population means and for this reason the method is called the analysis of variance (ANOVA), and we will discuss this approach alone, and within the context of a linear regression model using dummy or indicator variables.
+
+## Special Tools for Categorical Data
+
+We will also turn briefly to some methods for dealing with qualitative, categorical variables.  In particular, we begin with a test of how well the frequencies of various categories fit a theoretical set of probabilities.  We also consider a test for the relation between two qualitative variables. We'll examine some of the key measures used in describing such relationships, like odds ratios and relative risks.
+
+## Our First Three Studies
+
+We'll focus, for a while, on three studies, and the next few Chapters in these Notes summarize each of them, graphically and numerically, and then use them to demonstrate various approaches to making inferences.
+
+- The Serum Zinc study, which uses a single sample of quantitative data.
+- A randomized controlled trial comparing ibuprofen vs. placebo in patients with sepsis, which uses an *independent samples* design to compare two samples of quantitative data.
+- The Lead in the Blood of Children study, which uses a *paired samples* design to compare two samples of quantitative data.
+
+## Data Sets used in Part B
+
+```{r partBdata, message=FALSE}
+serzinc <- read_csv("data/serzinc.csv") 
+bloodlead <- read_csv("data/bloodlead.csv")
+sepsis <- read_csv("data/sepsis.csv")
+specialty <- read_csv("data/specialty.csv")
+battery <- read.csv("data/battery.csv") %>% tbl_df
+breakfast <- read.csv("data/breakfast.csv") %>% tbl_df
+nyfs2 <- read.csv("data/nyfs2.csv") %>% tbl_df
+survey1 <- read.csv("data/surveyday1.csv") %>% tbl_df
+active2x3 <- read.csv("data/active2x3.csv") # deliberately NOT a tibble
+darwin <- read.csv("data/darwin.csv") %>% tbl_df
+```
+
+## The `Love-boost.R` script
+
+In this part of the course, we'll also make use of a few scripts I've gathered for you.
+
+```{r}
+source("data/Love-boost.R")
+```
+
+

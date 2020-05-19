@@ -1,0 +1,431 @@
+---
+title: "431 Class 15"
+author: "github.com/THOMASELOVE/2019-431"
+date: "2019-10-15"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    fonttheme: "structurebold"
+    colortheme: "whale"
+    fig_height: 5.5
+    fig_caption: false
+---
+
+```{r set-options, echo=FALSE, cache=FALSE, message = FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+## Today's Agenda (Notes Chapters 19-20)
+
+1. Discussion of Quiz 1
+2. Discussion of Draft Survey for Project Study A
+3. Statistical Inference and the `dm431` data: Comparing Population Means using Independent Samples
+    - Pooled t / Indicator Variable Regression
+    - Welch's t 
+    - Wilcoxon-Mann-Whitney rank sum
+    - Bootstrap with `bootdif`
+
+## Today's Setup and Data
+
+```{r load_packages, message = FALSE}
+library(magrittr); library(janitor) 
+library(patchwork); library(here); 
+library(boot); library(broom)
+library(tidyverse)
+
+source(here("R", "Love-boost.R"))
+
+dm431 <- readRDS(here("data", "dm431.Rds"))
+```
+
+## Comparing means using Independent Samples
+
+Our population: ALL adults ages 31-70 seen for care this year and two years ago who live in Northeast Ohio with a diabetes diagnosis.
+
+Our sample: 431 of those people, drawn in a way we hope is representative (but certainly isn't random).
+
+1. Can we estimate the difference in the population mean systolic blood pressure among females in our population as compared to males in our population?
+
+2. Can we estimate the difference in the population mean LDL level for those on a statin as compared to those not on a statin?
+
+3. Can we estimate the difference in the population mean hemoglobin A1c for those with Medicaid vs. Medicare insurance?
+
+## SBP for females vs. males
+
+```{r, echo = FALSE}
+ggplot(dm431, aes(x = sbp, fill = sex)) +
+  geom_histogram(bins = 12, col = "white") +
+  facet_wrap(~ sex) +
+  guides(fill = FALSE) + 
+  labs(title = "Systolic Blood Pressure by Sex in 431 Adults with Diabetes")
+```
+
+## Numerical Summary for Two Independent Samples
+
+```{r}
+mosaic::favstats(sbp ~ sex, data = dm431)
+```
+
+## Confidence Interval Options for Independent Samples
+
+1. Pooled t CI or Indicator Variable Regression Model (t approach assuming equal population variances)
+2. Welch t CI (t approach without assuming equal population variances)
+3. Wilcoxon-Mann-Whitney Rank Sum Test (non-parametric test not assuming Normality but needing symmetry to be related to means)
+4. Bootstrap confidence interval for the difference in population means (fewest assumptions of these options)
+
+## Hypotheses Under Consideration
+
+The hypotheses we are testing are:
+
+- $H_0$: mean in population 1 = mean in population 2 + hypothesized difference $\Delta_0$ vs.
+- $H_A$: mean in population 1 $\neq$ mean in population 2 + hypothesized difference $\Delta_0$, 
+
+where $\Delta_0$ is almost always zero. An equivalent way to write this is:
+
+- $H_0: \mu_1 = \mu_2 + \Delta_0$ vs. 
+- $H_A: \mu_1 \neq \mu_2 + \Delta_0$ 
+
+Yet another equally valid way to write this is: 
+
+- $H_0: \mu_1 - \mu_2 = \Delta_0$ vs. 
+- $H_A: \mu_1 - \mu_2 \neq \Delta_0$,
+
+where, again, $\Delta_0$ is almost always zero. 
+
+
+## Assumptions of the Pooled T test
+
+The standard method for comparing population means based on two independent samples is based on the t distribution, and requires the following assumptions:
+
+1.	[Independence] The samples for the two groups are drawn independently.
+2.	[Random Samples] The samples for each of the groups are drawn at random from the populations of interest.
+3.	[Normal Population] The two populations are each Normally distributed
+4.	[Equal Variances] The population variances in the two groups being compared are the same, so we can obtain a pooled estimate of their joint variance.
+
+## The Pooled Variances t test in R
+
+Also referred to as the t test assuming equal population variances:
+
+```{r}
+tt <- t.test(sbp ~ sex, data = dm431, var.equal = TRUE)
+tidy(tt) %>% 
+  select(estimate1, estimate2, 
+         conf.low, conf.high, method, alternative) %>%
+  knitr::kable(digits = 2)
+```
+
+## Full output from Pooled T test
+
+```{r, echo = FALSE}
+tt
+```
+
+## Indicator Variable Regression Approach
+
+```{r}
+model1 <- lm(sbp ~ sex, data = dm431)
+tidy(model1, conf.int = TRUE, conf.level = 0.95) %>%
+  select(term, estimate, conf.low, conf.high) %>% 
+  knitr::kable(digits = 2)
+```
+
+`sexM` indicator shows the effect of being Male, so the displayed CI estimates $\mu_{male} - \mu_{female}$. Invert the signs to get the $\mu_{female} - \mu_{male}$ estimate.
+
+## `summary(model1)`
+
+```{r, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/model1summary.png")
+```
+
+## Results for the SBP and Sex Study
+
+Procedure     | *p* for $H_0: \mu_F = \mu_M$ | 95% CI for $\mu_M - \mu_F$
+:-----------: | --------------------: | :------------------------:
+Pooled t | 0.90 | (-3.3, 3.8)
+
+What conclusions should we draw, at $\alpha$ = 0.05?
+
+## Assumptions of the Welch t test
+
+The Welch test still requires:
+
+1.	[Independence] The samples for the two groups are drawn independently.
+2.	[Random Samples] The samples for each of the groups are drawn at random from the populations of interest.
+3.	[Normal Population] The two populations are each Normally distributed
+
+But it doesn't require:
+
+4.	[Equal Variances] The population variances in the two groups being compared are the same.
+
+Welch's t test is the default `t.test` in R.
+
+## Welch t test not assuming equal population variances
+
+```{r}
+t.test(sbp ~ sex, data = dm431)
+```
+
+## Results for the SBP and Sex Study
+
+Procedure     | *p* for $H_0: \mu_F = \mu_M$ | 95% CI for $\mu_M - \mu_F$
+:-----------: | --------------------: | :------------------------:
+Pooled t  | 0.90 | (-3.3, 3.8)
+Welch t   | 0.89 | (-3.2, 3.7)
+
+What conclusions should we draw, at $\alpha$ = 0.05?
+
+
+## Assumptions of the Wilcoxon-Mann-Whitney Rank Sum Test
+
+The Wilcoxon-Mann-Whitney Rank Sum test still requires:
+
+1.	[Independence] The samples for the two groups are drawn independently.
+2.	[Random Samples] The samples for each of the groups are drawn at random from the populations of interest.
+
+But it doesn't require:
+
+3.	[Normal Population] The two populations are each Normally distributed
+4.	[Equal Variances] The population variances in the two groups being compared are the same.
+
+It also doesn't really compare population means. It compares pseudo-medians again.
+
+## Wilcoxon-Mann-Whitney Rank Sum Test
+
+```{r}
+wilcox.test(sbp ~ sex, data = dm431, conf.int = TRUE)
+```
+
+## Results for the SBP and Sex Study
+
+Procedure     | *p* for $H_0: \mu_F = \mu_M$ | 95% CI for $\mu_M - \mu_F$
+:-----------: | --------------------: | :------------------------:
+Pooled t  | 0.90 | (-3.3, 3.8)
+Welch t   | 0.89 | (-3.2, 3.7)
+
+Procedure     | *p* for $H_0: psmed_F = psmed_M$ | 95% CI for M - F shift
+:-----------: | --------------------: | :------------------------:
+Rank Sum  | 0.42 | (-2.0, 5.0)
+
+What conclusions should we draw, at $\alpha$ = 0.05?
+
+## The Bootstrap
+
+This bootstrap approach to comparing population means using two independent samples still requires:
+
+1.	[Independence] The samples for the two groups are drawn independently.
+2.	[Random Samples] The samples for each of the groups are drawn at random from the populations of interest.
+
+but does not require either of the other two assumptions:
+
+3.	[Normal Population] The two populations are each Normally distributed
+4.	[Equal Variances] The population variances in the two groups being compared are the same.
+
+The bootstrap procedure I use in R was adapted from Frank Harrell and colleagues. http://biostat.mc.vanderbilt.edu/twiki/bin/view/Main/BootstrapMeansSoftware
+
+## The `bootdif` function
+
+The procedure requires the definition of a function, which I have adapted a bit, called `bootdif`, which is part of the `Love-boost.R` script we loaded earlier.
+
+As in our previous bootstrap procedures, we are sampling (with replacement) a series of many data sets (default: 2000).
+
+- Here, we are building bootstrap samples based on the SBP levels in the two independent samples (M vs. F). 
+- For each bootstrap sample, we are calculating a mean difference between the two groups (M vs. F).
+- We then determine the 2.5th and 97.5th percentile of the resulting distribution of mean differences (for a 95% confidence interval).  
+
+## Using the `bootdif` function to compare means based on independent samples
+
+So, to compare systolic BP (our outcome) across the two levels of sex (our grouping factor) for the adult patients with diabetes in NE Ohio, run...
+
+```{r}
+set.seed(4312019)
+dm431 %$% bootdif(sbp, sex, conf.level = 0.95)
+```
+
+- The two columns must be separated here with a comma rather than a tilde (`~`), and are specified using `$` notation. 
+- This CI estimates $\mu_{male} - \mu_{female}$: observe the listed sample mean difference for the necessary context. Invert the signs, as before, to estimate $\mu_{female} - \mu_{male}$.
+
+## Results for the SBP and Sex Study
+
+Procedure     | *p* for $H_0: \mu_F = \mu_M$ | 95% CI for $\mu_F - \mu_M$
+:-----------: | --------------------: | :------------------------:
+Pooled t  | 0.90 | (-3.3, 3.8)
+Welch t   | 0.89 | (-3.2, 3.7)
+Bootstrap   | *p* > 0.05 | (-3.1, 3.6)
+
+Procedure     | *p* for $H_0: psmed_F = psmed_M$ | 95% CI for M - F shift
+:-----------: | --------------------: | :------------------------:
+Rank Sum  | 0.42 | (-2.0, 5.0)
+
+What conclusions should we draw, at $\alpha$ = 0.05?
+
+## Which Method Should We Use?
+
+1. Plot the distributions of the two independent samples.
+2. Does it seem reasonable to assume that **each** distribution (here, both sbp in males and sbp in females) follows an approximately Normal distribution?
+
+- If Yes, Normal models seem appropriate, then
+  - use the pooled t test (or indicator variable regression) if the sample sizes are nearly the same, or if the sample variances are quite similar
+  - use the Welch's t test, otherwise (this is the default R choice)
+- If No, Normal models don't seem appropriate, then
+  - compare means using the bootstrap via `bootdif`, or
+  - compare pseudo-medians using the rank sum test
+
+What did we see in our systolic BP data? 
+
+## Systolic BP, within groups defined by sex
+
+```{r plot3again_comparing_sbp_by_sex, fig.height = 4, echo = FALSE}
+ggplot(dm431, aes(x = sex, y = sbp, fill = sex)) +
+    geom_violin(aes(col = sex), alpha = 0.2) +
+    geom_boxplot(notch = TRUE, width = 0.4) +
+    coord_flip() +
+    guides(fill = FALSE, color = FALSE) +
+    theme_bw() + 
+    labs(x = "", y = "Systolic Blood Pressure",
+         title = "Independent Samples Comparison: SBP by Sex")
+```
+
+## LDL of statin users and non-users
+
+```{r, echo = FALSE, fig.height = 3.5}
+ggplot(dm431, aes(x = factor(statin), y = ldl)) +
+    geom_violin() +
+    geom_boxplot(aes(fill = factor(statin)), 
+                 width = 0.3, notch = TRUE) +
+    scale_fill_viridis_d() +
+    coord_flip() +
+    guides(fill = FALSE) +
+    theme_bw() + 
+    labs(x = "", y = "LDL Cholesterol Level this year",
+         title = "Independent Samples Comparison: LDL by Statin Use")
+```
+
+## What should we do about the missing values?
+
+We could just look at the complete cases, and that's probably the best strategy when we're doing a two-sample t test. When we fit a more complicated regression (than just the simple indicator variable regression we need to get the pooled t test) where we're adjusting for multiple variables, then we'll consider imputation seriously.
+
+We also probably want to turn `statin` into a factor with meaningful names.
+
+```{r}
+dm431_sub <- dm431 %>%
+  filter(complete.cases(ldl, statin)) %>%
+  mutate(statin_f = 
+           fct_recode(factor(statin), 
+                      statin_rx = "1", no_statin = "0"))
+```
+
+OK. Let's plot again.
+
+## LDL of statin users and non-users
+
+```{r, echo = FALSE}
+ggplot(dm431_sub, aes(x = statin_f, y = ldl)) +
+    geom_violin() +
+    geom_boxplot(aes(fill = statin_f), 
+                 width = 0.3, notch = TRUE) +
+    scale_fill_viridis_d() +
+    coord_flip() +
+    guides(fill = FALSE) +
+    theme_bw() + 
+    labs(x = "", y = "LDL Cholesterol Level",
+         title = "Independent Samples Comparison: LDL by Statin Use")
+```
+
+## Summary Statistics for LDL by statin prescription
+
+```{r}
+mosaic::favstats(ldl ~ statin_f, data = dm431_sub)
+```
+
+## Pooled t-test from indicator variable regression
+
+```{r, out.width = '90%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/modelsubsummary.png")
+```
+
+Conclusions at $\alpha$ = 0.05?
+
+## Results for the LDL and Statin Study
+
+Procedure     | *p* for $H_0: \mu_{statin} = \mu_{no}$ | 95% CI for $\mu_{statin} - \mu_{no}$
+:-----------: | --------------------: | :------------------------:
+Pooled t  | 0.82 | (-9.8, 7.8)
+Welch t   | 0.80 | (-8.9, 6.8)
+Bootstrap   | *p* > 0.05 | (-8.7, 7.0)
+
+Procedure     | *p* for $H_0: psmed_{st} = psmed_{no}$ | 95% CI for Statin - No shift
+:-----------: | --------------------: | :------------------------:
+Rank Sum  | 0.27 | (-12, 4)
+
+What conclusions should we draw, at $\alpha$ = 0.05?
+
+## Let's compare Hemoglobin A1c for Medicare vs. Medicaid
+
+```{r}
+dm431_sub2 <- dm431 %>% 
+  filter(insurance %in% c("Medicaid", "Medicare")) %>%
+  filter(complete.cases(a1c)) %>%
+  droplevels()
+
+mosaic::favstats(a1c ~ insurance, data = dm431_sub2)
+```
+
+## Hemoglobin A1c for Medicare vs. Medicaid
+
+```{r, echo = FALSE}
+ggplot(dm431_sub2, aes(x = insurance, y = a1c)) +
+    geom_violin() +
+    geom_boxplot(aes(fill = insurance), 
+                 width = 0.3, notch = TRUE) +
+    scale_fill_viridis_d(begin = 0.3, end = 0.7) +
+    coord_flip() +
+    guides(fill = FALSE) +
+    theme_bw() + 
+    labs(x = "", y = "Hemoglobin A1c",
+         title = "Independent Samples Comparison: A1c by Insurance")
+```
+
+## Four Approaches for comparing A1c by Insurance
+
+Procedure     | *p* for $H_0: \mu_{Medicaid} = \mu_{Medicare}$ | 95% CI for $\mu_{Medicaid} - \mu_{Medicare}$
+:-----------: | --------------------: | :------------------------:
+Pooled t  | 0.13 | (-0.14, 1.01)
+Welch t   | 0.14 | (-0.14, 1.02)
+Bootstrap CI  | *p* > 0.05 | (-0.17, 1.02)
+
+Procedure     | *p* for $H_0: psmed_{Medicaid} = psmed_{Medicare}$ | 95% CI for Medicaid - Medicare shift
+:-----------: | --------------------: | :------------------------:
+Rank Sum  | 0.24 | (-0.2, 0.6)
+
+What conclusions should we draw, at $\alpha$ = 0.05?
+
+## A Few Reminders About Significance
+
+- **A significant effect is not necessarily the same thing as an interesting effect.**  For example, results calculated from large samples are nearly always "significant" even when the effects are quite small in magnitude.  Before doing a test, always ask if the effect is large enough to be of any practical interest.  If not, why do the test?
+
+- **A non-significant effect is not necessarily the same thing as no difference.**  A large effect of real practical interest may still produce a non-significant result simply because the sample is too small.
+
+- **There are assumptions behind all statistical inferences.** Checking assumptions is crucial to validating the inference made by any test or confidence interval.
+
+## `dm431` Example 4.
+
+Compare the proportion of current Medicare subjects whose insurance status changed to Medicare in the last two years, to the proportion of current Medicare subjects who had another insurance status two years ago?
+
+```{r}
+dm431 %>% filter(insurance == "Medicare") %>%
+  count(insurance, insurance_old)
+```
+
+- Outcome? Exposure Groups? Paired or Independent Samples? 
+
+## `dm431` Example 5.
+
+Among current Medicare subjects, compare the proportion with A1c below 8 to the proportion for the same patients two years ago.
+
+```{r}
+dm431 %>% filter(insurance == "Medicare") %>%
+  count(a1c < 8, a1c_old < 8)
+```
+
+- Outcome? Exposure Groups? Paired or Independent Samples? 

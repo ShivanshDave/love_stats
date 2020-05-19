@@ -1,0 +1,366 @@
+---
+title: "Class 04: Exploring the Day 1 Survey"
+author: "Thomas E. Love"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    code_folding: show
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, message=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 70)
+```
+
+# Load the R Packages we need
+
+```{r load_packages, message = FALSE, warning = FALSE}
+library(magrittr); library(tidyverse)
+## always need tidyverse, can include other packages too
+```
+
+# Load the Data
+
+We will read in the .csv file of the data, and then pipe that result into the `tbl_df` function, which turns the data frame into a nicely organized *tibble*. 
+
+- Since we've carefully stored the data file in the same directory as our R Project, we can read it in directly.
+
+```{r load_data}
+day1 <- read.csv("surveyday1_2019.csv") %>% tbl_df
+```
+
+# Key Verbs in the Tidyverse for Data Wrangling
+
+## Print your tibble by typing its name
+
+```{r}
+day1
+```
+
+## Use **select** to pick columns / variables from your tibble
+
+```{r}
+day1 %>%
+    select(favcolor, haircut)
+```
+
+## Use **filter** to pick rows / subjects from your tibble
+
+```{r}
+day1 %>%
+    filter(year == 2019)
+```
+
+## Use **count** to count the number of observations meeting a criterion
+
+```{r}
+day1 %>%
+    count(favcolor == "red")
+```
+
+Or to provide a cross-classification:
+
+```{r}
+day1 %>%
+    count(favcolor == "blue", english)
+```
+
+## Use **arrange** to arrange the rows of a tibble
+
+```{r}
+day1 %>%
+    count(statsofar) %>%
+    arrange(desc(n))
+```
+
+## Add new variables with **mutate**
+
+```{r}
+day1 %>%
+    mutate(guess_error = ageguess - lovetrueage) %>%
+    select(ageguess, lovetrueage, guess_error) %>%
+    summary()
+```
+
+## Get grouped summaries with **group_by** and **summarize**
+
+```{r}
+day1 %>%
+    group_by(year) %>%
+    summarize(n = n(), average_guess = mean(ageguess),
+              min_error = min(ageguess),
+              max_error = max(ageguess),
+              actual = mean(lovetrueage)) 
+```
+
+Whoops - looks like we have some missing `ageguess` values. We could filter our data to only include the subjects who provided a guess...
+
+```{r}
+day1 %>%
+    filter(complete.cases(ageguess)) %>%
+    group_by(year) %>%
+    summarize(n = n(), average_guess = mean(ageguess),
+              min_error = min(ageguess),
+              max_error = max(ageguess),
+              actual = mean(lovetrueage)) 
+```
+
+What if, instead, we wanted to look at the errors made, by subtracting off my true age from everyone's guess?
+
+```{r}
+day1 %>%
+    filter(complete.cases(ageguess)) %>%
+    mutate(guess_error = ageguess - lovetrueage) %>%
+    group_by(year) %>%
+    summarize(n = n(), average_error = mean(guess_error),
+              min_error = min(guess_error),
+              max_error = max(guess_error))
+```
+
+# Using `ggplot`: A Histogram of Haircut Prices
+
+## Default Version
+
+```{r}
+ggplot(data = day1, aes(x = haircut)) +
+    geom_histogram()
+```
+
+## Improvements
+
+1. We'll filter the rows of the `day1` tibble to include only those subjects who gave us a haircut price.
+
+```{r}
+day1 %>% 
+    filter(complete.cases(haircut)) %>%
+    ggplot(data = ., aes(x = haircut)) +
+    geom_histogram()
+```
+
+2. We'll specify that R should create bins of width $10 (rather than the default, which creates 30 bins) for the haircut prices to fall in.
+
+```{r}
+day1 %>% 
+    filter(complete.cases(haircut)) %>%
+    ggplot(data = ., aes(x = haircut)) +
+    geom_histogram(binwidth = 10)
+```
+
+3. We'll set the fill to be a better color - a nice resource for this is to google **Colors in R**. I'll pick "slateblue". We'll also color the outlines of the bars "white".
+
+```{r}
+day1 %>% 
+    filter(complete.cases(haircut)) %>%
+    ggplot(data = ., aes(x = haircut)) +
+    geom_histogram(binwidth = 10, 
+                   fill = "slateblue", col = "white")
+```
+
+4. We'll build a main title, subtitle and proper axis titles.
+
+```{r}
+day1 %>% 
+    filter(complete.cases(haircut)) %>%
+    ggplot(data = ., aes(x = haircut)) +
+    geom_histogram(binwidth = 10, 
+                   fill = "slateblue", col = "white") +
+    labs(x = "Price of Most Recent Haircut in $",
+         y = "Number of Students",
+         title = "Histogram of Haircut Prices",
+         subtitle = "431 students from 2014 - 2019")
+```
+
+## Separate histograms for each year with faceting?
+
+```{r}
+day1 %>%
+    filter(!is.na(haircut)) %>%
+    ggplot(., aes(x = haircut)) +
+        geom_histogram(binwidth = 10, 
+                       fill = "slateblue", color = "white") +
+        guides(fill = FALSE) +
+        labs(x = "Price of Last Haircut in $", 
+        		 y = "Number of Students") +
+        facet_wrap(~ year)
+```
+
+## Building a Comparison Boxplot
+
+We could use a comparison boxplot. A trick here is to specify `year` as a factor...
+
+```{r}
+day1 %>%
+    filter(complete.cases(haircut)) %>%
+    ggplot(data = ., 
+           aes(x = factor(year), y = haircut)) +
+    geom_boxplot()
+```
+
+
+# Numerical Summaries
+
+## Detailed Numerical Summary of Haircut Prices
+
+```{r}
+day1 %>%
+    select(haircut) %>%
+    summary()
+```
+
+which can also be done with
+
+```{r}
+summary(day1$haircut)
+```
+
+The `mosaic` package has a useful `favstats` function...
+
+```{r}
+mosaic::favstats(day1$haircut)
+```
+
+But to get this in a pipeline, you'd need the `%$%` operator from the `magrittr` package...
+
+```{r}
+day1 %$%
+    mosaic::favstats(haircut)
+```
+
+The `psych` package has a useful `describe` function...
+
+```{r}
+day1 %$%
+    psych::describe(haircut)
+```
+
+The `Hmisc` package also has a useful `describe` function...
+
+```{r}
+day1 %$%
+    Hmisc::describe(haircut)
+```
+
+## Numerical Summary by Year?
+
+```{r}
+day1 %>% 
+    filter(!is.na(haircut)) %>%
+    group_by(year) %>%
+    summarize(n = n(), mean = mean(haircut), 
+              sd = sd(haircut), median = median(haircut))
+```
+
+# Using `ggplot` scatterplots
+
+## What is the relationship between 431 students' pulse rate and hours of sleep the prior night?
+
+Here, we're looking at two quantitative variables. A scatterplot is usually the best choice.
+
+```{r}
+ggplot(data = day1, aes(x = lastsleep, y = pulse)) +
+    geom_point()
+```
+
+## Improving the Scatterplot
+
+Let's filter to include only those cases with known `pulse` and known `lastsleep`, and also add a line from a linear regression model to predict pulse rate on the basis of hours of sleep the prior night.
+
+```{r}
+day1 %>%
+    filter(complete.cases(pulse, lastsleep)) %>%
+    ggplot(data = ., aes(x = lastsleep, y = pulse)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, col = "red")
+```
+
+Let's look at the 2019 data only, and fit a curved (loess) smooth to predict pulse rate on the basis of hours of sleep the prior night. We'll also add a title and subtitle and retitle the axes
+
+```{r}
+day1 %>%
+    filter(year == "2019") %>%
+    filter(complete.cases(pulse, lastsleep)) %>%
+    ggplot(data = ., aes(x = lastsleep, y = pulse)) +
+    geom_point() +
+    geom_smooth(method = "loess") +
+    labs(title = "Pulse Rate as a Function of Hours of Sleep Last Night",
+         subtitle = "with fitted loess smooth, students in the 2019 class",
+         x = "Hours of Sleep Last Night",
+         y = "Pulse Rate in Class Today")
+```
+
+We could instead restrict ourselves to a linear model for the 2019 group.
+
+```{r}
+day1 %>%
+    filter(year == "2019") %>%
+    filter(complete.cases(pulse, lastsleep)) %>%
+    ggplot(data = ., aes(x = lastsleep, y = pulse)) +
+    geom_point() +
+    geom_smooth(method = "lm", col = "red") +
+    labs(title = "Pulse Rate as a Function of Hours of Sleep Last Night",
+         subtitle = "with fitted linear model, students in the 2019 class",
+         x = "Hours of Sleep Last Night",
+         y = "Pulse Rate in Class Today")
+```
+
+The correlation of `lastsleep` and `pulse` is likely to be of some interest. Note the use of both the `%>%` and `%$%` pipes in this case.
+
+```{r}
+day1 %>%
+    filter(year == "2019") %>%
+    filter(complete.cases(pulse, lastsleep)) %$%
+    cor(pulse, lastsleep)
+```
+
+## Does the linear model change much by year?
+
+Here's the plot, color coding the models by year (note the use of the group as well as the color aesthetic here), and also incorporating the black-and-white theme, rather than the default.
+
+```{r}
+day1 %>%
+    filter(complete.cases(pulse, lastsleep)) %>%
+    ggplot(., aes(x = lastsleep, y = pulse, 
+    							color = factor(year),
+    							group = factor(year))) +
+    geom_point() + 
+    geom_smooth(method = "lm", se = FALSE) +
+	  theme_bw()
+```
+
+Here's the same plot of the models alone, and not showing the data (commenting out the line of code that draws the points.) We'll also improve the labeling.
+
+```{r}
+day1 %>%
+    filter(complete.cases(pulse, lastsleep)) %>%
+    ggplot(., aes(x = lastsleep, y = pulse, 
+    							color = factor(year),
+    							group = factor(year))) +
+ #   geom_point() + 
+    geom_smooth(method = "lm", se = FALSE) +
+    labs(title = "Pulse Rate and Hours of Sleep, 2014-2019",
+         x = "Hours of Sleep Last Night",
+         y = "Pulse Rate in Class Today") +
+	  theme_bw()
+```
+
+## Faceting a Scatterplot
+
+Here's the same basic information, but faceted by year.
+
+```{r}
+day1 %>%
+    filter(complete.cases(pulse, lastsleep)) %>%
+    ggplot(data = ., aes(x = lastsleep, y = pulse, 
+    							group = factor(year))) +
+    geom_point() + 
+    geom_smooth(method = "lm", color = "red") +
+    facet_wrap(~ year) +
+    labs(title = "Pulse Rate and Hours of Sleep, 2014-2019",
+         x = "Hours of Sleep Last Night",
+         y = "Pulse Rate in Class Today") +
+    theme_bw()
+```

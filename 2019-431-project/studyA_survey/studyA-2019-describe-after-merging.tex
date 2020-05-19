@@ -1,0 +1,1798 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Study A Survey Data After Merging},
+            pdfauthor={Thomas E. Love},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Study A Survey Data After Merging}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Thomas E. Love}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{2019-11-22}
+
+
+\begin{document}
+\maketitle
+
+\hypertarget{hmiscdescribe-for-the-entire-data-set}{%
+\section{\texorpdfstring{\texttt{Hmisc::describe} for the entire data
+set}{Hmisc::describe for the entire data set}}\label{hmiscdescribe-for-the-entire-data-set}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Hmisc}\OperatorTok{::}\KeywordTok{describe}\NormalTok{(studyA)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+studyA 
+
+ 165  Variables      67  Observations
+---------------------------------------------------------------------------
+subject 
+       n  missing distinct 
+      67        0       67 
+
+lowest : R-01 R-02 R-03 R-04 R-05, highest: R-63 R-64 R-65 R-66 R-67
+---------------------------------------------------------------------------
+Q001 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     24    43
+Proportion 0.358 0.642
+---------------------------------------------------------------------------
+Q002 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     20    47
+Proportion 0.299 0.701
+---------------------------------------------------------------------------
+Q003 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     33    34
+Proportion 0.493 0.507
+---------------------------------------------------------------------------
+Q004 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     18    49
+Proportion 0.269 0.731
+---------------------------------------------------------------------------
+Q005 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     28    39
+Proportion 0.418 0.582
+---------------------------------------------------------------------------
+Q006 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     38    29
+Proportion 0.567 0.433
+---------------------------------------------------------------------------
+Q007 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     58     9
+Proportion 0.866 0.134
+---------------------------------------------------------------------------
+Q008 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       19    0.993     1991    6.066     1981     1984 
+     .25      .50      .75      .90      .95 
+    1988     1993     1995     1997     1998 
+                                                                      
+Value       1969  1975  1980  1983  1984  1985  1986  1987  1988  1989
+Frequency      1     1     2     2     2     3     1     2     3     2
+Proportion 0.015 0.015 0.030 0.030 0.030 0.045 0.015 0.030 0.045 0.030
+                                                                
+Value       1991  1992  1993  1994  1995  1996  1997  1998  1999
+Frequency      5     5     8     8     6     8     2     3     3
+Proportion 0.075 0.075 0.119 0.119 0.090 0.119 0.030 0.045 0.045
+---------------------------------------------------------------------------
+Q009 
+       n  missing distinct 
+      67        0        5 
+                                                            
+Value      Excellent      Fair      Good      Poor Very Good
+Frequency         18         4        11         1        33
+Proportion     0.269     0.060     0.164     0.015     0.493
+---------------------------------------------------------------------------
+Q010 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       38    0.997    57.34    72.37      2.3      3.0 
+     .25      .50      .75      .90      .95 
+    13.0     28.0     60.0    193.0    260.4 
+
+lowest :   2   3   4   5  12, highest: 252 264 276 282 316
+---------------------------------------------------------------------------
+Q011 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       19    0.991    67.55    4.451     61.0     62.0 
+     .25      .50      .75      .90      .95 
+    65.5     68.0     70.0     71.4     72.7 
+                                                                      
+Value         57    58    60    61    62    63    64    65    66    67
+Frequency      1     1     1     3     2     2     5     2     6     5
+Proportion 0.015 0.015 0.015 0.045 0.030 0.030 0.075 0.030 0.090 0.075
+                                                                
+Value         68    69    70    71    72    73    75    77    78
+Frequency     11     7     7     7     3     1     1     1     1
+Proportion 0.164 0.104 0.104 0.104 0.045 0.015 0.015 0.015 0.015
+---------------------------------------------------------------------------
+Q012 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       39    0.998    156.1    33.88    115.9    120.0 
+     .25      .50      .75      .90      .95 
+   134.5    155.0    168.5    192.0    212.6 
+
+lowest : 102 110 112 115 118, highest: 200 218 223 245 260
+---------------------------------------------------------------------------
+Q013 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       24    0.992    71.33    11.38     56.0     60.0 
+     .25      .50      .75      .90      .95 
+    64.5     72.0     76.0     80.0     90.8 
+
+lowest :  47  51  56  60  62, highest:  84  88  92  96 104
+---------------------------------------------------------------------------
+Q014 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        7    0.962    2.269    1.928 
+                                                    
+Value          0     1     2     3     4     5     6
+Frequency     12    11    18    13     3     6     4
+Proportion 0.179 0.164 0.269 0.194 0.045 0.090 0.060
+---------------------------------------------------------------------------
+Q015 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       11    0.964    7.011    1.829      4.3      5.0 
+     .25      .50      .75      .90      .95 
+     6.0      7.0      8.0      9.0      9.0 
+                                                                      
+Value       0.00  4.00  5.00  6.00  7.00  7.50  7.75  8.00  9.00 10.00
+Frequency      2     2     5    10    18     3     2    15     8     1
+Proportion 0.030 0.030 0.075 0.149 0.269 0.045 0.030 0.224 0.119 0.015
+                
+Value      10.75
+Frequency      1
+Proportion 0.015
+---------------------------------------------------------------------------
+Q016 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     39    28
+Proportion 0.582 0.418
+---------------------------------------------------------------------------
+Q017 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     10    57
+Proportion 0.149 0.851
+---------------------------------------------------------------------------
+Q018 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     12    55
+Proportion 0.179 0.821
+---------------------------------------------------------------------------
+Q019 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     29    38
+Proportion 0.433 0.567
+---------------------------------------------------------------------------
+Q020 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     11    56
+Proportion 0.164 0.836
+---------------------------------------------------------------------------
+Q021 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     29    38
+Proportion 0.433 0.567
+---------------------------------------------------------------------------
+Q022 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     53    14
+Proportion 0.791 0.209
+---------------------------------------------------------------------------
+Q023 
+       n  missing distinct 
+      67        0        2 
+                    
+Value        No  Yes
+Frequency    61    6
+Proportion 0.91 0.09
+---------------------------------------------------------------------------
+Q024 
+       n  missing distinct 
+      67        0        6 
+                                                                      
+Value           Excellent           Fair           Good I do not cook.
+Frequency               4             15             22              2
+Proportion          0.060          0.224          0.328          0.030
+                                        
+Value                Poor      Very Good
+Frequency               5             19
+Proportion          0.075          0.284
+---------------------------------------------------------------------------
+Q025 
+       n  missing distinct 
+      67        0        6 
+
+Allergies (5, 0.075), Environment (3, 0.045), Health (7, 0.104), I have no
+dietary restrictions (35, 0.522), Personal Decision (10, 0.149), Religious
+(7, 0.104)
+---------------------------------------------------------------------------
+Q026 
+       n  missing distinct 
+      67        0        6 
+
+Allergy Avoidance (4, 0.060), Do not follow a special diet (42, 0.627),
+Halal (5, 0.075), Low carbohydrate (5, 0.075), Low sodium (1, 0.015),
+Vegetarian (10, 0.149)
+---------------------------------------------------------------------------
+Q027 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        8    0.903    4.672    2.786 
+                                                          
+Value          0     1     2     3     4     5     6     7
+Frequency      6     4     9     5     1    10     2    30
+Proportion 0.090 0.060 0.134 0.075 0.015 0.149 0.030 0.448
+---------------------------------------------------------------------------
+Q028 
+       n  missing distinct 
+      67        0        5 
+
+1 - 200 calories (e.g. a granola bar) (7, 0.104), 201 - 400 calories (e.g.
+a bowl of cereal with skim milk) (25, 0.373), 401 - 600 calories (e.g.
+eggs and bacon) (19, 0.284), I do not eat breakfast (14, 0.209), More than
+600 calories (2, 0.030)
+---------------------------------------------------------------------------
+Q029 
+       n  missing distinct 
+      67        0       15 
+
+lowest : Cafe (i.e. Starbucks)                                         Cafe (i.e. Starbucks), Fast food restaurant                   Cafe (i.e. Starbucks), Fast food restaurant, Other restaurant Cafe (i.e. Starbucks), Grocery Store                          Cafe (i.e. Starbucks), Grocery Store, Fast food restaurant   
+highest: Cafe (i.e. Starbucks), Purchased online                       Did not purchase coffee or tea                                Grocery Store                                                 Other restaurant                                              Purchased online                                             
+---------------------------------------------------------------------------
+Q030 
+       n  missing distinct 
+      67        0       51 
+
+lowest : Aldi, Constantinos Market                                   Aldi, Costco, Marcs, Walmart                                Aldi, Costco, Trader Joes, Whole Foods                      Aldi, Costco, Walmart                                       Aldi, Daves Market, Marcs, Target, Trader Joes, Whole Foods
+highest: Target, Whole Foods                                         Trader Joes                                                 Walmart                                                     Walmart, Whole Foods                                        Whole Foods                                                
+---------------------------------------------------------------------------
+Q031 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       15    0.906    83.16    22.76       33       50 
+     .25      .50      .75      .90      .95 
+      74       90      100      100      100 
+                                                                      
+Value          0    20    30    40    50    60    70    73    75    80
+Frequency      1     1     2     1     4     3     4     1     2     5
+Proportion 0.015 0.015 0.030 0.015 0.060 0.045 0.060 0.015 0.030 0.075
+                                        
+Value         85    89    90    95   100
+Frequency      1     1    10     1    30
+Proportion 0.015 0.015 0.149 0.015 0.448
+---------------------------------------------------------------------------
+Q032 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       21    0.991    144.3    115.1     31.5     48.0 
+     .25      .50      .75      .90      .95 
+    60.0    100.0    200.0    300.0    335.0 
+
+lowest :  30  35  40  45  50, highest: 250 300 350 400 700
+---------------------------------------------------------------------------
+Q033 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       13    0.981    78.04    18.33       43       50 
+     .25      .50      .75      .90      .95 
+      75       85       90       95       95 
+                                                                      
+Value          3    30    40    50    60    70    75    80    85    86
+Frequency      1     1     2     5     3     3     7    10    11     1
+Proportion 0.015 0.015 0.030 0.075 0.045 0.045 0.104 0.149 0.164 0.015
+                            
+Value         90    95   100
+Frequency     14     6     3
+Proportion 0.209 0.090 0.045
+---------------------------------------------------------------------------
+Q034 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       12    0.976    5.388    3.158      1.3      2.6 
+     .25      .50      .75      .90      .95 
+     4.0      5.0      7.0      8.8     10.0 
+                                                                      
+Value          0     1     2     3     4     5     6     7     8    10
+Frequency      3     1     3     7    17     9     8     4     8     4
+Proportion 0.045 0.015 0.045 0.104 0.254 0.134 0.119 0.060 0.119 0.060
+                      
+Value         12    16
+Frequency      2     1
+Proportion 0.030 0.015
+---------------------------------------------------------------------------
+Q035 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       11    0.972    3.239     2.45      0.0      1.0 
+     .25      .50      .75      .90      .95 
+     2.0      3.0      4.0      6.0      7.7 
+                                                                      
+Value          0     1     2     3     4     5     6     7     8     9
+Frequency      5     9    17     8    12     7     4     1     1     2
+Proportion 0.075 0.134 0.254 0.119 0.179 0.104 0.060 0.015 0.015 0.030
+                
+Value         10
+Frequency      1
+Proportion 0.015
+---------------------------------------------------------------------------
+Q036 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       12    0.971    3.075    3.445      0.0      0.0 
+     .25      .50      .75      .90      .95 
+     0.0      2.0      4.0      7.8     10.0 
+                                                                      
+Value          0     1     2     3     4     5     6     7     9    10
+Frequency     18     7    10    11     6     4     3     1     2     2
+Proportion 0.269 0.104 0.149 0.164 0.090 0.060 0.045 0.015 0.030 0.030
+                      
+Value         12    15
+Frequency      2     1
+Proportion 0.030 0.015
+---------------------------------------------------------------------------
+Q037 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       17     0.98    10.61    5.035      4.3      5.0 
+     .25      .50      .75      .90      .95 
+     7.0     10.0     14.0     15.0     17.7 
+                                                                      
+Value          2     3     4     5     6     7     8     9    10    12
+Frequency      1     1     2     7     1     9     3     1    13     4
+Proportion 0.015 0.015 0.030 0.104 0.015 0.134 0.045 0.015 0.194 0.060
+                                                    
+Value         13    14    15    16    17    18    21
+Frequency      1    14     4     1     1     1     3
+Proportion 0.015 0.209 0.060 0.015 0.015 0.015 0.045
+---------------------------------------------------------------------------
+Q038 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       17    0.986    18.48    17.01      3.0      5.0 
+     .25      .50      .75      .90      .95 
+     7.0     15.0     20.5     34.0     55.5 
+                                                                      
+Value          0     1     3     5     7     8    10    15    18    20
+Frequency      2     1     2    11     3     2     8    12     1     8
+Proportion 0.030 0.015 0.030 0.164 0.045 0.030 0.119 0.179 0.015 0.119
+                                                    
+Value         21    25    30    40    45    60   120
+Frequency      1     4     5     1     2     3     1
+Proportion 0.015 0.060 0.075 0.015 0.030 0.045 0.015
+---------------------------------------------------------------------------
+Q039 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        9    0.971    2.657    2.859 
+                                                                
+Value          0     1     2     3     4     5     7     8    10
+Frequency     16    13    12     5     6     5     7     1     2
+Proportion 0.239 0.194 0.179 0.075 0.090 0.075 0.104 0.015 0.030
+---------------------------------------------------------------------------
+Q040 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       17     0.99    6.149    5.843      0.0      0.0 
+     .25      .50      .75      .90      .95 
+     2.0      5.0      8.5     12.8     15.4 
+                                                                      
+Value          0     1     2     3     4     5     6     7     8     9
+Frequency      9     6     5     6     2     7     2     9     4     1
+Proportion 0.134 0.090 0.075 0.090 0.030 0.104 0.030 0.134 0.060 0.015
+                                                    
+Value         10    12    14    16    18    21    30
+Frequency      8     1     3     1     1     1     1
+Proportion 0.119 0.015 0.045 0.015 0.015 0.015 0.015
+---------------------------------------------------------------------------
+Q041 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       12    0.978    4.851    3.791      0.0      1.6 
+     .25      .50      .75      .90      .95 
+     3.0      4.0      5.5      8.0      9.4 
+                                                                      
+Value          0     1     2     3     4     5     6     7     8    10
+Frequency      5     2     7    11    15    10     4     2     7     2
+Proportion 0.075 0.030 0.104 0.164 0.224 0.149 0.060 0.030 0.104 0.030
+                      
+Value         12    40
+Frequency      1     1
+Proportion 0.015 0.015
+---------------------------------------------------------------------------
+Q042 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       46    0.998     68.3    55.54     10.6     13.0 
+     .25      .50      .75      .90      .95 
+    30.0     60.0    100.0    120.0    150.0 
+
+lowest :   3   4   5  10  12, highest: 125 150 152 160 370
+---------------------------------------------------------------------------
+Q043 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     53    14
+Proportion 0.791 0.209
+---------------------------------------------------------------------------
+Q044 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     62     5
+Proportion 0.925 0.075
+---------------------------------------------------------------------------
+Q045 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     54    13
+Proportion 0.806 0.194
+---------------------------------------------------------------------------
+Q046 
+       n  missing distinct 
+      67        0        5 
+                                                            
+Value      Excellent      Fair      Good      Poor Very Good
+Frequency          8        13        23         4        19
+Proportion     0.119     0.194     0.343     0.060     0.284
+---------------------------------------------------------------------------
+Q047 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       18    0.985    28.27    31.82      3.6      5.0 
+     .25      .50      .75      .90      .95 
+     8.5     15.0     30.0     72.0    114.0 
+                                                                      
+Value          2     3     5     7    10    12    14    15    20    25
+Frequency      1     3    12     1    11     1     1     7    10     1
+Proportion 0.015 0.045 0.179 0.015 0.164 0.015 0.015 0.104 0.149 0.015
+                                                          
+Value         30    45    50    60    90   100   120   180
+Frequency      5     2     1     4     2     1     3     1
+Proportion 0.075 0.030 0.015 0.060 0.030 0.015 0.045 0.015
+---------------------------------------------------------------------------
+Q048 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     25    42
+Proportion 0.373 0.627
+---------------------------------------------------------------------------
+Q049 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     40    27
+Proportion 0.597 0.403
+---------------------------------------------------------------------------
+Q050 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     37    30
+Proportion 0.552 0.448
+---------------------------------------------------------------------------
+Q051 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     38    29
+Proportion 0.567 0.433
+---------------------------------------------------------------------------
+Q052 
+       n  missing distinct 
+      67        0        4 
+                                                      
+Value           Daily Frequently      Never     Rarely
+Frequency          13         26          1         27
+Proportion      0.194      0.388      0.015      0.403
+---------------------------------------------------------------------------
+Q053 
+       n  missing distinct 
+      67        0        5 
+                                                            
+Value      Excellent      Fair      Good      Poor Very Good
+Frequency          7         9        23         1        27
+Proportion     0.104     0.134     0.343     0.015     0.403
+---------------------------------------------------------------------------
+Q054 
+       n  missing distinct 
+      67        0        4 
+
+High (15, 0.224), I have not worked out in the past week (12, 0.179), Low
+(13, 0.194), Medium (27, 0.403)
+---------------------------------------------------------------------------
+Q055 
+       n  missing distinct 
+      67        0        8 
+
+Cat (8, 0.119), Cat, Dog (2, 0.030), Cat, Fish, Reptile, Other Kind of Pet
+(1, 0.015), Dog (10, 0.149), Dog, Rabbit (1, 0.015), Fish (1, 0.015), I do
+not have any pets (43, 0.642), Rabbit, Other Kind of Pet (1, 0.015)
+---------------------------------------------------------------------------
+Q056 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       23    0.991     65.4    29.75     16.5     20.0 
+     .25      .50      .75      .90      .95 
+    50.0     72.0     80.0    100.0    100.0 
+
+lowest :   0   6  10  15  20, highest:  85  88  90  95 100
+---------------------------------------------------------------------------
+Q057 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       20     0.99    66.94    20.28     40.0     50.0 
+     .25      .50      .75      .90      .95 
+    53.0     70.0     80.0     87.0     90.7 
+                                                                      
+Value         10    25    40    45    50    51    55    60    63    65
+Frequency      2     1     2     1    10     1     2     4     2     5
+Proportion 0.030 0.015 0.030 0.015 0.149 0.015 0.030 0.060 0.030 0.075
+                                                                      
+Value         70    75    78    80    81    83    85    90    91    95
+Frequency      9     4     1     9     1     1     5     3     1     3
+Proportion 0.134 0.060 0.015 0.134 0.015 0.015 0.075 0.045 0.015 0.045
+---------------------------------------------------------------------------
+Q058 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       26    0.996    47.84    37.52      0.0      7.4 
+     .25      .50      .75      .90      .95 
+    20.5     50.0     75.5     90.0     99.7 
+
+lowest :   0   5   9  10  15, highest:  87  90  95  99 100
+---------------------------------------------------------------------------
+Q059 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       21     0.99    61.31    23.75       20       30 
+     .25      .50      .75      .90      .95 
+      50       70       75       85       90 
+
+lowest :  0  1 11 20 25, highest: 75 80 85 90 95
+---------------------------------------------------------------------------
+Q060 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       24    0.991    37.03    32.29      0.0      3.0 
+     .25      .50      .75      .90      .95 
+    17.5     30.0     60.0     80.0     87.8 
+
+lowest :   0   5  10  14  15, highest:  85  89  90  95 100
+---------------------------------------------------------------------------
+Q061 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       28    0.996    55.09    33.44     10.0     15.0 
+     .25      .50      .75      .90      .95 
+    30.0     60.0     80.0     90.0     98.5 
+
+lowest :   0   1  10  15  18, highest:  85  89  90  95 100
+---------------------------------------------------------------------------
+Q062 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        5    0.903    2.343    1.329 
+                                        
+Value          1     2     3     4     5
+Frequency     18    28     6    10     5
+Proportion 0.269 0.418 0.090 0.149 0.075
+---------------------------------------------------------------------------
+Q063 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        6    0.703   0.5821   0.9064 
+                                              
+Value          0     1     2     3     4     6
+Frequency     44    16     2     3     1     1
+Proportion 0.657 0.239 0.030 0.045 0.015 0.015
+---------------------------------------------------------------------------
+Q064 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       21    0.993     10.7    9.955      1.0      2.0 
+     .25      .50      .75      .90      .95 
+     4.0      7.0     16.0     25.0     29.4 
+
+lowest :  0  1  2  3  4, highest: 21 25 26 28 30
+---------------------------------------------------------------------------
+Q065 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       32    0.995    51.47    27.72     10.3     18.0 
+     .25      .50      .75      .90      .95 
+    35.5     50.0     65.0     80.8     84.7 
+
+lowest :   4   8  10  11  12, highest:  84  85  90 100 126
+---------------------------------------------------------------------------
+Q066 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       14     0.83    12.66    3.321      7.0      7.0 
+     .25      .50      .75      .90      .95 
+    10.5     14.0     14.0     14.0     17.4 
+                                                                      
+Value          6     7     8     9    10    11    12    13    14    15
+Frequency      2     7     2     1     5     2     3     2    37     1
+Proportion 0.030 0.104 0.030 0.015 0.075 0.030 0.045 0.030 0.552 0.015
+                                  
+Value         16    18    20    21
+Frequency      1     1     2     1
+Proportion 0.015 0.015 0.030 0.015
+---------------------------------------------------------------------------
+Q067 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       11    0.966    4.209    4.908      0.0      0.0 
+     .25      .50      .75      .90      .95 
+     0.0      3.0      7.0     11.6     14.0 
+                                                                      
+Value          0     1     2     3     4     5     6     7    10    14
+Frequency     19     8     6     5     2     3     3    13     1     6
+Proportion 0.284 0.119 0.090 0.075 0.030 0.045 0.045 0.194 0.015 0.090
+                
+Value         21
+Frequency      1
+Proportion 0.015
+---------------------------------------------------------------------------
+Q068 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       17    0.985    6.776    3.642     2.65     3.00 
+     .25      .50      .75      .90      .95 
+    5.00     6.00     8.00    10.00    13.40 
+                                                                      
+Value       0.00  2.25  2.50  3.00  3.25  4.00  5.00  6.00  7.00  7.50
+Frequency      1     1     2     4     1     6    13    10     5     1
+Proportion 0.015 0.015 0.030 0.060 0.015 0.090 0.194 0.149 0.075 0.015
+                                                    
+Value       8.00  9.00 10.00 12.00 14.00 15.00 20.00
+Frequency      8     2     7     2     1     2     1
+Proportion 0.119 0.030 0.104 0.030 0.015 0.030 0.015
+---------------------------------------------------------------------------
+Q069 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       34    0.997    21.44    21.59      0.0      1.8 
+     .25      .50      .75      .90      .95 
+     7.0     15.0     29.0     47.0     67.0 
+
+lowest :  0.0  1.0  1.5  2.0  3.0, highest: 60.0 70.0 81.0 85.0 90.0
+---------------------------------------------------------------------------
+Q070 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       29    0.984    54.25     67.4      0.0      0.0 
+     .25      .50      .75      .90      .95 
+     3.5     30.0     75.0    150.0    181.0 
+
+lowest :   0   2   5   6   8, highest: 160 190 200 284 300
+---------------------------------------------------------------------------
+Q071 
+       n  missing distinct 
+      67        0        2 
+                                        
+Value       Inside the US Outside the US
+Frequency              44             23
+Proportion          0.657          0.343
+---------------------------------------------------------------------------
+Q072 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     13    54
+Proportion 0.194 0.806
+---------------------------------------------------------------------------
+Q073 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     26    41
+Proportion 0.388 0.612
+---------------------------------------------------------------------------
+Q074 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     38    29
+Proportion 0.567 0.433
+---------------------------------------------------------------------------
+Q075 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     56    11
+Proportion 0.836 0.164
+---------------------------------------------------------------------------
+Q076 
+       n  missing distinct    value 
+      67        0        1      Yes 
+              
+Value      Yes
+Frequency   67
+Proportion   1
+---------------------------------------------------------------------------
+Q077 
+       n  missing distinct 
+      67        0        3 
+                                                      
+Value      Not currently working     Working full-time
+Frequency                     25                    27
+Proportion                 0.373                 0.403
+                                
+Value          Working part-time
+Frequency                     15
+Proportion                 0.224
+---------------------------------------------------------------------------
+Q078 
+       n  missing distinct 
+      67        0        5 
+
+Dual Degree (4, 0.060), Graduate Doctoral program (26, 0.388), Graduate
+Masters program (27, 0.403), Non-Degree (6, 0.090), Undergraduate (4,
+0.060)
+---------------------------------------------------------------------------
+Q079 
+       n  missing distinct 
+      67        0        5 
+
+Grew up mostly outside US (23, 0.343), Midwest (17, 0.254), Northeast (15,
+0.224), South (6, 0.090), West (6, 0.090)
+---------------------------------------------------------------------------
+Q080 
+       n  missing distinct 
+      23       44       14 
+
+Canada (2, 0.087), China (7, 0.304), Egypt (1, 0.043), Greece (1, 0.043),
+India (2, 0.087), Kuwait (1, 0.043), Lebanon (1, 0.043), Libya (1, 0.043),
+Middle East (1, 0.043), Qatar (1, 0.043), Saudi Arabia (1, 0.043), Serbia
+(2, 0.087), Shanghai (1, 0.043), Turkey (1, 0.043)
+---------------------------------------------------------------------------
+Q081 
+       n  missing distinct 
+      67        0        3 
+                                     
+Value         Rural Suburban    Urban
+Frequency         5       38       24
+Proportion    0.075    0.567    0.358
+---------------------------------------------------------------------------
+Q082 
+       n  missing distinct 
+      67        0        3 
+
+I am a casual player of video games. (26, 0.388), I am a hardcore player -
+someone who plays more than just casually. (9, 0.134), I do not play video
+games. (32, 0.478)
+---------------------------------------------------------------------------
+Q083 
+       n  missing distinct 
+      67        0        5 
+
+Computer (8, 0.119), Console (18, 0.269), Handheld (Nintendo DS, PSP,
+etc.) (2, 0.030), I donât play video games. (32, 0.478), Mobile (7, 0.104)
+---------------------------------------------------------------------------
+Q084 
+       n  missing distinct 
+      67        0        4 
+                                      
+Value        Fall Spring Summer Winter
+Frequency      33     15     17      2
+Proportion  0.493  0.224  0.254  0.030
+---------------------------------------------------------------------------
+Q085 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       23    0.991    63.93    23.48     26.5     33.0 
+     .25      .50      .75      .90      .95 
+    50.0     70.0     79.0     89.4     95.0 
+
+lowest :  15  20  25  30  35, highest:  85  89  90  95 100
+---------------------------------------------------------------------------
+Q086 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       15    0.969    7.299    4.824      0.0      1.0 
+     .25      .50      .75      .90      .95 
+     5.5      6.0      9.0     12.0     16.5 
+                                                                      
+Value          0     1     3     4     5     6     7     8     9    10
+Frequency      5     3     4     2     3    19     3     1    13     5
+Proportion 0.075 0.045 0.060 0.030 0.045 0.284 0.045 0.015 0.194 0.075
+                                        
+Value         12    13    18    20    22
+Frequency      4     1     1     2     1
+Proportion 0.060 0.015 0.015 0.030 0.015
+---------------------------------------------------------------------------
+Q087 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       18    0.771    116.8    196.6        0        0 
+     .25      .50      .75      .90      .95 
+       0        0      120      324      513 
+                                                                      
+Value          0    16    20    30    60   100   120   180   240   250
+Frequency     41     1     2     3     1     1     4     2     1     1
+Proportion 0.612 0.015 0.030 0.045 0.015 0.015 0.060 0.030 0.015 0.015
+                                                          
+Value        300   360   400   450   540   840  1260  1440
+Frequency      3     1     1     1     1     1     1     1
+Proportion 0.045 0.015 0.015 0.015 0.015 0.015 0.015 0.015
+---------------------------------------------------------------------------
+Q088 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       43    0.999    889.6    837.5     22.4     50.0 
+     .25      .50      .75      .90      .95 
+   234.0    707.0   1263.5   2000.0   2100.0 
+
+lowest :   15   19   20   28   30, highest: 1900 2000 2100 2500 3000
+---------------------------------------------------------------------------
+Q089 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       31    0.976    27.12    34.46      0.0      0.0 
+     .25      .50      .75      .90      .95 
+     0.0     15.0     47.5     56.4     94.0 
+
+lowest :   0.0   1.0   1.2   1.5   2.0, highest:  80.0 100.0 101.0 123.8 200.0
+---------------------------------------------------------------------------
+PSS_01 
+       n  missing distinct 
+      67        0        5 
+                                                              
+Value      Almost Never Fairly Often        Never    Sometimes
+Frequency            19            8            6           30
+Proportion        0.284        0.119        0.090        0.448
+                       
+Value        Very Often
+Frequency             4
+Proportion        0.060
+---------------------------------------------------------------------------
+PSS_02 
+       n  missing distinct 
+      67        0        5 
+                                                              
+Value      Almost Never Fairly Often        Never    Sometimes
+Frequency            25            9            8           20
+Proportion        0.373        0.134        0.119        0.299
+                       
+Value        Very Often
+Frequency             5
+Proportion        0.075
+---------------------------------------------------------------------------
+PSS_03 
+       n  missing distinct 
+      67        0        5 
+                                                              
+Value      Almost Never Fairly Often        Never    Sometimes
+Frequency            11           14            1           25
+Proportion        0.164        0.209        0.015        0.373
+                       
+Value        Very Often
+Frequency            16
+Proportion        0.239
+---------------------------------------------------------------------------
+PSS_04 
+       n  missing distinct 
+      67        0        4 
+                                                              
+Value      Almost Never Fairly Often    Sometimes   Very Often
+Frequency             7           23           15           22
+Proportion        0.104        0.343        0.224        0.328
+---------------------------------------------------------------------------
+PSS_05 
+       n  missing distinct 
+      67        0        4 
+                                                              
+Value      Almost Never Fairly Often    Sometimes   Very Often
+Frequency             9           26           23            9
+Proportion        0.134        0.388        0.343        0.134
+---------------------------------------------------------------------------
+PSS_06 
+       n  missing distinct 
+      67        0        5 
+                                                              
+Value      Almost Never Fairly Often        Never    Sometimes
+Frequency            18            8           11           23
+Proportion        0.269        0.119        0.164        0.343
+                       
+Value        Very Often
+Frequency             7
+Proportion        0.104
+---------------------------------------------------------------------------
+PSS_07 
+       n  missing distinct 
+      67        0        5 
+                                                              
+Value      Almost Never Fairly Often        Never    Sometimes
+Frequency             7           29            2           19
+Proportion        0.104        0.433        0.030        0.284
+                       
+Value        Very Often
+Frequency            10
+Proportion        0.149
+---------------------------------------------------------------------------
+PSS_08 
+       n  missing distinct 
+      67        0        5 
+                                                              
+Value      Almost Never Fairly Often        Never    Sometimes
+Frequency            13           27            1           20
+Proportion        0.194        0.403        0.015        0.299
+                       
+Value        Very Often
+Frequency             6
+Proportion        0.090
+---------------------------------------------------------------------------
+PSS_09 
+       n  missing distinct 
+      67        0        5 
+                                                              
+Value      Almost Never Fairly Often        Never    Sometimes
+Frequency            21            8           13           21
+Proportion        0.313        0.119        0.194        0.313
+                       
+Value        Very Often
+Frequency             4
+Proportion        0.060
+---------------------------------------------------------------------------
+PSS_10 
+       n  missing distinct 
+      67        0        5 
+                                                              
+Value      Almost Never Fairly Often        Never    Sometimes
+Frequency            23            8           14           17
+Proportion        0.343        0.119        0.209        0.254
+                       
+Value        Very Often
+Frequency             5
+Proportion        0.075
+---------------------------------------------------------------------------
+HIOS_1 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        5    0.932    3.209     1.29 
+                                        
+Value          1     2     3     4     5
+Frequency      7    10    20    22     8
+Proportion 0.104 0.149 0.299 0.328 0.119
+---------------------------------------------------------------------------
+HIOS_2 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        5    0.881     4.06    1.111 
+                                        
+Value          1     2     3     4     5
+Frequency      1     7     8    22    29
+Proportion 0.015 0.104 0.119 0.328 0.433
+---------------------------------------------------------------------------
+HIOS_3 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        4    0.845    4.179   0.9172 
+                                  
+Value          2     3     4     5
+Frequency      6     4    29    28
+Proportion 0.090 0.060 0.433 0.418
+---------------------------------------------------------------------------
+HIOS_4 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        5    0.907    3.597    1.157 
+                                        
+Value          1     2     3     4     5
+Frequency      2    10    14    28    13
+Proportion 0.030 0.149 0.209 0.418 0.194
+---------------------------------------------------------------------------
+HIOS_5 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        5    0.897     3.91    1.069 
+                                        
+Value          1     2     3     4     5
+Frequency      1     6    12    27    21
+Proportion 0.015 0.090 0.179 0.403 0.313
+---------------------------------------------------------------------------
+HIOS_6 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        5    0.848    4.104   0.8729 
+                                        
+Value          1     2     3     4     5
+Frequency      1     2     9    32    23
+Proportion 0.015 0.030 0.134 0.478 0.343
+---------------------------------------------------------------------------
+HIOS_7 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        5      0.9    3.985    1.133 
+                                        
+Value          1     2     3     4     5
+Frequency      1     6    13    20    27
+Proportion 0.015 0.090 0.194 0.299 0.403
+---------------------------------------------------------------------------
+HIOS_8 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        4    0.786    4.418   0.7707 
+                                  
+Value          2     3     4     5
+Frequency      2     6    21    38
+Proportion 0.030 0.090 0.313 0.567
+---------------------------------------------------------------------------
+FCS_1 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     35    32
+Proportion 0.522 0.478
+---------------------------------------------------------------------------
+FCS_2 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     34    33
+Proportion 0.507 0.493
+---------------------------------------------------------------------------
+FCS_3 
+       n  missing distinct 
+      67        0        2 
+                      
+Value         No   Yes
+Frequency     21    46
+Proportion 0.313 0.687
+---------------------------------------------------------------------------
+FCS_4 
+       n  missing distinct 
+      67        0        2 
+                    
+Value        No  Yes
+Frequency    63    4
+Proportion 0.94 0.06
+---------------------------------------------------------------------------
+FCS_5 
+       n  missing distinct 
+      67        0        3 
+                                           
+Value      Not at all   Somewhat       Very
+Frequency           3         34         30
+Proportion      0.045      0.507      0.448
+---------------------------------------------------------------------------
+FCS_6 
+       n  missing distinct 
+      67        0        3 
+                                           
+Value      Not at all   Somewhat       Very
+Frequency           7         22         38
+Proportion      0.104      0.328      0.567
+---------------------------------------------------------------------------
+ISI_1 
+       n  missing distinct 
+      67        0        5 
+                                                                      
+Value             Mild    Moderate        None      Severe Very Severe
+Frequency           21          16          25           3           2
+Proportion       0.313       0.239       0.373       0.045       0.030
+---------------------------------------------------------------------------
+ISI_2 
+       n  missing distinct 
+      67        0        5 
+                                                                      
+Value             Mild    Moderate        None      Severe Very Severe
+Frequency           25           9          26           3           4
+Proportion       0.373       0.134       0.388       0.045       0.060
+---------------------------------------------------------------------------
+ISI_3 
+       n  missing distinct 
+      67        0        5 
+                                                                      
+Value             Mild    Moderate        None      Severe Very Severe
+Frequency           17           8          32           9           1
+Proportion       0.254       0.119       0.478       0.134       0.015
+---------------------------------------------------------------------------
+ISI_4 
+       n  missing distinct 
+      67        0        5 
+                                                                
+Value           Dissatisfied           Neutral         Satisfied
+Frequency                 19                14                24
+Proportion             0.284             0.209             0.358
+                                              
+Value      Very dissatisfied    Very satisfied
+Frequency                  4                 6
+Proportion             0.060             0.090
+---------------------------------------------------------------------------
+ISI_5 
+       n  missing distinct 
+      67        0        5 
+                                                                 
+Value        A little       Much Not at all   Somewhat  Very much
+Frequency          16         10         26         13          2
+Proportion      0.239      0.149      0.388      0.194      0.030
+---------------------------------------------------------------------------
+ISI_6 
+       n  missing distinct 
+      67        0        5 
+                                                                 
+Value        A little       Much Not at all   Somewhat  Very much
+Frequency          20         11         25         10          1
+Proportion      0.299      0.164      0.373      0.149      0.015
+---------------------------------------------------------------------------
+ISI_7 
+       n  missing distinct 
+      67        0        5 
+                                                                 
+Value        A little       Much Not at all   Somewhat  Very much
+Frequency          13         11         21         13          9
+Proportion      0.194      0.164      0.313      0.194      0.134
+---------------------------------------------------------------------------
+SDG_01 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        9    0.946    2.585    1.719 
+                                                                
+Value       0.67  1.00  2.00  3.00  3.50  4.00  5.00  6.00 12.00
+Frequency      1    19    17    16     1     6     4     2     1
+Proportion 0.015 0.284 0.254 0.239 0.015 0.090 0.060 0.030 0.015
+---------------------------------------------------------------------------
+SDG_02 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        8    0.882    1.668    1.102 
+                                                          
+Value       0.00  0.25  1.00  2.00  2.50  3.00  4.00  5.00
+Frequency      4     1    30    20     1     7     2     2
+Proportion 0.060 0.015 0.448 0.299 0.015 0.104 0.030 0.030
+---------------------------------------------------------------------------
+SDG_03 
+       n  missing distinct 
+      67        0        4 
+
+Donât eat bread (4, 0.060), High-fiber white or wholemeal, multigrain, rye
+or spelt (41, 0.612), Some other kind (7, 0.104), White bread (15, 0.224)
+---------------------------------------------------------------------------
+SDG_04 
+       n  missing distinct 
+      67        0        6 
+
+1-2 times per week (14, 0.209), 2-3 times per month (10, 0.149), 3-5 times
+per week (20, 0.299), 6 or more times per week (19, 0.284), Less than once
+per month (1, 0.015), Once per month (3, 0.045)
+---------------------------------------------------------------------------
+SDG_05 
+       n  missing distinct 
+      67        0        6 
+
+1-2 times per week (18, 0.269), 2-3 times per month (7, 0.104), 3-5 times
+per week (22, 0.328), 6 or more times per week (16, 0.239), Less than once
+per month (2, 0.030), Once per month (2, 0.030)
+---------------------------------------------------------------------------
+SDG_06 
+       n  missing distinct 
+      67        0        4 
+                                                                
+Value              3-5 times per week   6 or more times per week
+Frequency                          15                          3
+Proportion                      0.224                      0.045
+                                                                
+Value                  Donât eat meat Less than 2 times per week
+Frequency                          12                         37
+Proportion                      0.179                      0.552
+---------------------------------------------------------------------------
+SDG_07 
+       n  missing distinct 
+      67        0        6 
+
+1-2 times per week (13, 0.194), 2-3 times per month (25, 0.373), 3-5 times
+per week (2, 0.030), 6 or more times per week (1, 0.015), Less than once
+per month (18, 0.269), Once per month (8, 0.119)
+---------------------------------------------------------------------------
+SDG_08 
+       n  missing distinct 
+      67        0        3 
+                                                                        
+Value         150-300 ml (5-10 fluid oz.) Less than 150 ml (5 fluid oz.)
+Frequency                              19                             41
+Proportion                          0.284                          0.612
+                                         
+Value      More than 300 ml (10 fluid oz.
+Frequency                               7
+Proportion                          0.104
+---------------------------------------------------------------------------
+SDG_09 
+       n  missing distinct 
+      67        0        4 
+                                                      
+Value      I do not consume milk    Low or reduced fat
+Frequency                     22                    18
+Proportion                 0.328                 0.269
+                                                      
+Value             Skim (non-fat)            Whole milk
+Frequency                      9                    18
+Proportion                 0.134                 0.269
+---------------------------------------------------------------------------
+SDG_10 
+       n  missing distinct 
+      67        0        6 
+
+1-2 times per week (17, 0.254), 2-3 times per month (11, 0.164), 3-5 times
+per week (17, 0.254), 6 or more times per week (16, 0.239), Less than once
+per month (4, 0.060), Once per month (2, 0.030)
+---------------------------------------------------------------------------
+SDG_11 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       11    0.977    5.679    2.893     2.00     2.60 
+     .25      .50      .75      .90      .95 
+    4.00     5.00     7.25    10.00    10.00 
+                                                                      
+Value        2.0   3.0   4.0   5.0   6.0   7.0   7.5   8.0   9.0  10.0
+Frequency      7     6    10    15    11     1     1     5     1     8
+Proportion 0.104 0.090 0.149 0.224 0.164 0.015 0.015 0.075 0.015 0.119
+                
+Value       12.0
+Frequency      2
+Proportion 0.030
+---------------------------------------------------------------------------
+SDG_12 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        4     0.55   0.2761   0.4432 
+                                  
+Value        0.0   1.0   1.5   3.0
+Frequency     51    14     1     1
+Proportion 0.761 0.209 0.015 0.015
+---------------------------------------------------------------------------
+SDG_13 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        9    0.945    1.843    1.604 
+                                                                
+Value        0.0   0.5   1.0   2.0   3.0   4.0   5.0   6.0   8.0
+Frequency     11     1    19    20     7     6     1     1     1
+Proportion 0.164 0.015 0.284 0.299 0.104 0.090 0.015 0.015 0.015
+---------------------------------------------------------------------------
+SDG_14 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       19    0.981    68.92    25.42     26.5     31.8 
+     .25      .50      .75      .90      .95 
+    50.0     75.0     90.0     90.0     93.5 
+                                                                      
+Value        0.0  20.0  25.0  30.0  33.0  40.0  50.0  60.0  62.5  65.0
+Frequency      1     2     1     3     1     2     8     6     1     1
+Proportion 0.015 0.030 0.015 0.045 0.015 0.030 0.119 0.090 0.015 0.015
+                                                                
+Value       70.0  75.0  80.0  83.0  85.0  90.0  95.0  99.0 100.0
+Frequency      3     8     6     1     3    16     1     1     2
+Proportion 0.045 0.119 0.090 0.015 0.045 0.239 0.015 0.015 0.030
+---------------------------------------------------------------------------
+SDG_15 
+       n  missing distinct 
+      67        0        6 
+
+1-2 times per week (12, 0.179), 2-3 times per month (27, 0.403), 3-5 times
+per week (4, 0.060), 6 or more times per week (1, 0.015), Less than once
+per month (10, 0.149), Once per month (13, 0.194)
+---------------------------------------------------------------------------
+SDG_16 
+       n  missing distinct 
+      67        0        6 
+
+1-2 times per week (7, 0.104), 2-3 times per month (15, 0.224), 3-5 times
+per week (10, 0.149), 6 or more times per week (11, 0.164), Less than once
+per month (18, 0.269), Once per month (6, 0.090)
+---------------------------------------------------------------------------
+SDG_17 
+       n  missing distinct 
+      67        0        3 
+                                                          
+Value      Never or Rarely       Sometimes         Usually
+Frequency               21              18              28
+Proportion           0.313           0.269           0.418
+---------------------------------------------------------------------------
+SDG_18 
+       n  missing distinct 
+      67        0        6 
+
+1-2 times per week (15, 0.224), 2-3 times per month (25, 0.373), 3-5 times
+per week (9, 0.134), 6 or more times per week (1, 0.015), Less than once
+per month (8, 0.119), Once per month (9, 0.134)
+---------------------------------------------------------------------------
+SDG_19 
+       n  missing distinct 
+      67        0        4 
+                                                            
+Value            1-2 times per week      2-3 times per month
+Frequency                         4                        6
+Proportion                    0.060                    0.090
+                                                            
+Value      Less than once per month           Once per month
+Frequency                        47                       10
+Proportion                    0.701                    0.149
+---------------------------------------------------------------------------
+SDG_20 
+       n  missing distinct 
+      67        0        3 
+                                                          
+Value      Never or Rarely       Sometimes         Usually
+Frequency               42              18               7
+Proportion           0.627           0.269           0.104
+---------------------------------------------------------------------------
+SDG_21 
+       n  missing distinct 
+      67        0        3 
+                                                          
+Value      Never or Rarely       Sometimes         Usually
+Frequency               10              19              38
+Proportion           0.149           0.284           0.567
+---------------------------------------------------------------------------
+SDG_22 
+       n  missing distinct 
+      67        0        6 
+
+1-2 times per week (21, 0.313), 2-3 times per month (16, 0.239), 3-5 times
+per week (13, 0.194), 6 or more times per week (5, 0.075), Less than once
+per month (6, 0.090), Once per month (6, 0.090)
+---------------------------------------------------------------------------
+SDG_23 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        4    0.527   0.2985   0.4993 
+                                  
+Value          0     1     2     4
+Frequency     52    12     2     1
+Proportion 0.776 0.179 0.030 0.015
+---------------------------------------------------------------------------
+SDG_24 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        5    0.877     1.06    1.329 
+                                        
+Value          0     1     2     3     4
+Frequency     32    14     9     9     3
+Proportion 0.478 0.209 0.134 0.134 0.045
+---------------------------------------------------------------------------
+SDG_25 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       10    0.932    1.769    2.033      0.0      0.0 
+     .25      .50      .75      .90      .95 
+     0.0      1.0      2.0      3.8      6.0 
+                                                                      
+Value        0.0   0.5   1.0   2.0   3.0   5.0   6.0   7.0   8.0  12.0
+Frequency     21     1    12    21     5     2     2     1     1     1
+Proportion 0.313 0.015 0.179 0.313 0.075 0.030 0.030 0.015 0.015 0.015
+---------------------------------------------------------------------------
+PSS_Summary 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       28    0.997    16.37    8.727      6.3      7.6 
+     .25      .50      .75      .90      .95 
+    11.0     15.0     21.5     27.8     30.4 
+
+lowest :  2  3  6  7  8, highest: 29 31 32 34 36
+---------------------------------------------------------------------------
+PSS_Category 
+       n  missing distinct 
+      67        0        3 
+                                     
+Value          High      Low Moderate
+Frequency         8       29       30
+Proportion    0.119    0.433    0.448
+---------------------------------------------------------------------------
+HIOS_Summary 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       21    0.994    3.933   0.7533    2.538    3.075 
+     .25      .50      .75      .90      .95 
+   3.625    4.000    4.375    4.750    4.750 
+
+lowest : 2.000 2.375 2.500 2.625 3.000, highest: 4.500 4.625 4.750 4.875 5.000
+---------------------------------------------------------------------------
+HIOS_Category 
+       n  missing distinct 
+      67        0        4 
+                                                  
+Value           High       Low  Moderate Very High
+Frequency         41         4        10        12
+Proportion     0.612     0.060     0.149     0.179
+---------------------------------------------------------------------------
+FCS_Summary 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        7    0.943    5.418    1.463 
+                                                    
+Value          1     3     4     5     6     7     8
+Frequency      1     5     8    19    20    12     2
+Proportion 0.015 0.075 0.119 0.284 0.299 0.179 0.030
+---------------------------------------------------------------------------
+FCS_Category 
+       n  missing distinct 
+      67        0        3 
+                                     
+Value          High      Low Moderate
+Frequency        34        6       27
+Proportion    0.507    0.090    0.403
+---------------------------------------------------------------------------
+ISI_Summary 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       24    0.995    8.836    7.116      0.3      2.0 
+     .25      .50      .75      .90      .95 
+     3.0      8.0     13.0     16.8     21.4 
+
+lowest :  0  1  2  3  4, highest: 20 22 23 24 25
+---------------------------------------------------------------------------
+ISI_Category 
+       n  missing distinct 
+      67        0        4 
+                                                                      
+Value                High            Low       Moderate Non-Meaningful
+Frequency               4             24              7             32
+Proportion          0.060          0.358          0.104          0.478
+---------------------------------------------------------------------------
+SDG_Component_A 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        8    0.974    5.164    3.009 
+                                                          
+Value        0.0   2.0   2.5   4.0   5.0   6.0   7.5  10.0
+Frequency      1    12     7    11     6     8    15     7
+Proportion 0.015 0.179 0.104 0.164 0.090 0.119 0.224 0.104
+---------------------------------------------------------------------------
+SDG_Component_B 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        3    0.801    7.015    3.234 
+                            
+Value          0     5    10
+Frequency      5    30    32
+Proportion 0.075 0.448 0.478
+---------------------------------------------------------------------------
+SDG_Component_C 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       20    0.993    7.078    2.022    3.825    4.800 
+     .25      .50      .75      .90      .95 
+   6.250    7.500    8.500    9.000    9.500 
+                                                                      
+Value       0.50  1.25  2.75  3.75  4.00  4.50  5.00  5.50  6.00  6.25
+Frequency      1     1     1     1     2     1     1     3     3     4
+Proportion 0.015 0.015 0.015 0.015 0.030 0.015 0.015 0.045 0.045 0.060
+                                                                      
+Value       6.50  6.75  7.00  7.50  7.75  8.00  8.50  9.00  9.50 10.00
+Frequency      6     2     5    10     2     6     6     7     2     3
+Proportion 0.090 0.030 0.075 0.149 0.030 0.090 0.090 0.104 0.030 0.045
+---------------------------------------------------------------------------
+SDG_Component_D 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       13    0.969    5.858    1.991      2.5      3.3 
+     .25      .50      .75      .90      .95 
+     5.0      6.0      7.0      8.0      8.0 
+                                                                      
+Value        2.0   2.5   3.0   3.5   4.5   5.0   5.5   6.0   6.5   7.0
+Frequency      1     4     2     2     7    14     1     6     1    17
+Proportion 0.015 0.060 0.030 0.030 0.104 0.209 0.015 0.090 0.015 0.254
+                            
+Value        8.0   9.0  10.0
+Frequency     10     1     1
+Proportion 0.149 0.015 0.015
+---------------------------------------------------------------------------
+SDG_Component_E 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       19    0.994    4.616    2.431    1.075    2.000 
+     .25      .50      .75      .90      .95 
+   3.125    4.500    6.250    6.750    7.925 
+                                                                      
+Value       0.00  1.00  1.25  2.00  3.00  3.25  4.00  4.25  4.50  5.00
+Frequency      2     2     2     6     5     2     7     5     3     8
+Proportion 0.030 0.030 0.030 0.090 0.075 0.030 0.104 0.075 0.045 0.119
+                                                                
+Value       5.25  5.50  6.25  6.50  6.75  7.75  8.00  8.75 10.00
+Frequency      3     3     5     5     3     2     1     1     2
+Proportion 0.045 0.045 0.075 0.075 0.045 0.030 0.015 0.015 0.030
+---------------------------------------------------------------------------
+SDG_Component_F 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        4    0.786    7.948    1.701 
+                                  
+Value        2.5   5.0   7.5  10.0
+Frequency      1     7    38    21
+Proportion 0.015 0.104 0.567 0.313
+---------------------------------------------------------------------------
+SDG_Component_G 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       13    0.988     7.09    1.712     4.65     5.00 
+     .25      .50      .75      .90      .95 
+    6.00     7.00     8.00     9.00     9.50 
+                                                                      
+Value        3.5   4.5   5.0   5.5   6.0   6.5   7.0   7.5   8.0   8.5
+Frequency      1     3     4     3    11     6    10     5     8     6
+Proportion 0.015 0.045 0.060 0.045 0.164 0.090 0.149 0.075 0.119 0.090
+                            
+Value        9.0   9.5  10.0
+Frequency      4     4     2
+Proportion 0.060 0.060 0.030
+---------------------------------------------------------------------------
+SDG_Component_H 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        5    0.838    5.261    2.856 
+                                        
+Value        0.0   2.5   5.0   7.5  10.0
+Frequency      7     6    36     9     9
+Proportion 0.104 0.090 0.537 0.134 0.134
+---------------------------------------------------------------------------
+SDG_Component_I 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        6    0.937    7.668    1.742 
+                                              
+Value       1.25  5.00  6.25  7.50  8.75 10.00
+Frequency      1     5    12    23    16    10
+Proportion 0.015 0.075 0.179 0.343 0.239 0.149
+---------------------------------------------------------------------------
+SDG_Component_J 
+       n  missing distinct     Info     Mean      Gmd 
+      67        0        4    0.767    8.507    2.096 
+                                  
+Value        2.5   5.0   7.5  10.0
+Frequency      4     5    18    40
+Proportion 0.060 0.075 0.269 0.597
+---------------------------------------------------------------------------
+SDG_Summary 
+       n  missing distinct     Info     Mean      Gmd      .05      .10 
+      67        0       52        1    66.21     11.2    49.00    53.70 
+     .25      .50      .75      .90      .95 
+   60.75    65.25    73.12    78.85    81.35 
+
+lowest : 45.00 46.25 49.00 50.50 52.50, highest: 81.00 81.50 83.25 85.75 86.50
+---------------------------------------------------------------------------
+\end{verbatim}
+
+\hypertarget{check-all-that-apply-items}{%
+\section{Check All That Apply items}\label{check-all-that-apply-items}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{studyA }\OperatorTok{%>%}\StringTok{ }\KeywordTok{tabyl}\NormalTok{(Q029)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                                                                         Q029
+                                                        Cafe (i.e. Starbucks)
+                                  Cafe (i.e. Starbucks), Fast food restaurant
+                Cafe (i.e. Starbucks), Fast food restaurant, Other restaurant
+                                         Cafe (i.e. Starbucks), Grocery Store
+                   Cafe (i.e. Starbucks), Grocery Store, Fast food restaurant
+ Cafe (i.e. Starbucks), Grocery Store, Fast food restaurant, Other restaurant
+                       Cafe (i.e. Starbucks), Grocery Store, Other restaurant
+     Cafe (i.e. Starbucks), Grocery Store, Other restaurant, Purchased online
+                       Cafe (i.e. Starbucks), Grocery Store, Purchased online
+                                      Cafe (i.e. Starbucks), Other restaurant
+                                      Cafe (i.e. Starbucks), Purchased online
+                                               Did not purchase coffee or tea
+                                                                Grocery Store
+                                                             Other restaurant
+                                                             Purchased online
+  n    percent
+ 18 0.26865672
+  2 0.02985075
+  1 0.01492537
+ 12 0.17910448
+  2 0.02985075
+  1 0.01492537
+  3 0.04477612
+  1 0.01492537
+  3 0.04477612
+  3 0.04477612
+  2 0.02985075
+ 11 0.16417910
+  5 0.07462687
+  1 0.01492537
+  2 0.02985075
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{studyA }\OperatorTok{%>%}\StringTok{ }\KeywordTok{tabyl}\NormalTok{(Q030)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                                                         Q030 n    percent
+                                    Aldi, Constantinos Market 1 0.01492537
+                                 Aldi, Costco, Marcs, Walmart 1 0.01492537
+                       Aldi, Costco, Trader Joes, Whole Foods 1 0.01492537
+                                        Aldi, Costco, Walmart 2 0.02985075
+  Aldi, Daves Market, Marcs, Target, Trader Joes, Whole Foods 1 0.01492537
+                                   Aldi, Daves Market, Target 1 0.01492537
+              Aldi, Giant Eagle, Heinens, Target, Trader Joes 1 0.01492537
+                                     Aldi, Giant Eagle, Marcs 1 0.01492537
+                          Aldi, Giant Eagle, Marcs, Sams Club 1 0.01492537
+                                    Aldi, Giant Eagle, Target 1 0.01492537
+                                                Aldi, Walmart 1 0.01492537
+                                   Aldi, Walmart, Whole Foods 1 0.01492537
+              Constantinos Market, Costco, Giant Eagle, Marcs 1 0.01492537
+    Constantinos Market, Daves Market, Marcs, Target, Walmart 1 0.01492537
+                   Constantinos Market, Daves Market, Walmart 1 0.01492537
+                                                       Costco 1 0.01492537
+                                         Costco, Daves Market 2 0.02985075
+                            Costco, Daves Market, Trader Joes 1 0.01492537
+                    Costco, Giant Eagle, Walmart, Whole Foods 1 0.01492537
+            Costco, Heinens, Target, Trader Joes, Whole Foods 1 0.01492537
+                                  Costco, Target, Trader Joes 1 0.01492537
+                             Costco, Trader Joes, Whole Foods 2 0.02985075
+                                              Costco, Walmart 2 0.02985075
+                                          Costco, Whole Foods 1 0.01492537
+                                                 Daves Market 1 0.01492537
+                   Daves Market, Heinens, Target, Trader Joes 1 0.01492537
+               Daves Market, Target, Trader Joes, Whole Foods 1 0.01492537
+                   Daves Market, Target, Walmart, Whole Foods 1 0.01492537
+                                    Daves Market, Trader Joes 1 0.01492537
+                           Daves Market, Trader Joes, Walmart 1 0.01492537
+                       Daves Market, Trader Joes, Whole Foods 1 0.01492537
+                                        Daves Market, Walmart 1 0.01492537
+                                    Daves Market, Whole Foods 3 0.04477612
+                                                  Giant Eagle 1 0.01492537
+                                         Giant Eagle, Walmart 1 0.01492537
+                                     Giant Eagle, Whole Foods 1 0.01492537
+                                                      Heinens 1 0.01492537
+                                Heinens, Trader Joes, Walmart 1 0.01492537
+                            Heinens, Trader Joes, Whole Foods 1 0.01492537
+                                             Heinens, Walmart 2 0.02985075
+                                         Heinens, Whole Foods 1 0.01492537
+                             I do not buy groceries regularly 3 0.04477612
+ I do not buy groceries regularly, Marcs, Target, Trader Joes 1 0.01492537
+                                                        Marcs 3 0.04477612
+                                           Sams Club, Walmart 1 0.01492537
+                              Sams Club, Walmart, Whole Foods 1 0.01492537
+                                          Target, Whole Foods 3 0.04477612
+                                                  Trader Joes 2 0.02985075
+                                                      Walmart 1 0.01492537
+                                         Walmart, Whole Foods 1 0.01492537
+                                                  Whole Foods 3 0.04477612
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{studyA }\OperatorTok{%>%}\StringTok{ }\KeywordTok{tabyl}\NormalTok{(Q055)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                                  Q055  n    percent
+                                   Cat  8 0.11940299
+                              Cat, Dog  2 0.02985075
+ Cat, Fish, Reptile, Other Kind of Pet  1 0.01492537
+                                   Dog 10 0.14925373
+                           Dog, Rabbit  1 0.01492537
+                                  Fish  1 0.01492537
+                I do not have any pets 43 0.64179104
+             Rabbit, Other Kind of Pet  1 0.01492537
+\end{verbatim}
+
+
+\end{document}

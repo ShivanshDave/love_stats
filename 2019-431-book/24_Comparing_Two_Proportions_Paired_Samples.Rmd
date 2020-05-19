@@ -1,0 +1,277 @@
+# Comparing Proportions/Rates using Two Paired Samples {#Paired-Props}
+
+This Chapter compares two population proportions (rates/percentages) when working with a paired samples design. Some of the motivation for this material (and a couple of key functions) come from @BilderLoughlin2015.
+
+## An Example: Access to Specialty Care and Insurance in Children
+
+@Bisgaier2011 measured children's access to outpatient specialty care to identify potential disparities in providers' acceptance of Medicaid and the Children's Health Insurance Program (CHIP) - a public program versus private insurance. In their study, the research team, posing as mothers of pediatric patients, called 273 specialty clinics in Cook County, Illinois twice each, separated by one month. Following a standardized script, the two calls differed only by the insurance status of the child. A key point of interest is to identify whether there were meaningful disparities in provider acceptance of Medicaid-CHIP (public) versus private insurance overall, and within several specialties.
+
+To start, we'll focus on the data describing the 82 calls made to 41 psychiatry clinics, where each clinic was called once representing public (Medicaid-CHIP) insurance, and once representing private insurance. Out of the 41 clinics,
+
+- 18 denied an appointment to both the Medicaid-CHIP (Public Insurance) and Private insurance child
+- 5 accepted both insurance types and granted appointments
+- 16 denied public insurance but granted an appointment to the privately insured child
+- 2 accepted public insurance but denied private insurance
+
+We can summarize this in a table, where each count describes a *pair* of telephone calls to a single clinic.
+
+-- | Private Accepted | Private Denied | Total
+---------------: | -----------------: | ---------------: | -------:
+Public Accepted | 5 | 2 | 7
+Public Denied | 16 | 18 | 34
+Total        | 21 | 20 | 41
+
+### Working with the `specialty` data
+
+I've gathered the complete data (for all 273 clinics reported in @Bisgaier2011) into a table called `specialty`.
+
+```{r}
+specialty
+```
+
+We're interested here in the data among the Psychiatry clinics, so we can filter and tabulate:
+
+```{r}
+specialty %>% filter(clinic_type == "Psychiatry") %>%
+    tabyl(insurance, appointment) %>%
+    adorn_totals(where = c("row", "col"))
+```
+
+but this represents the data as a single count for each of the 82 calls that was made to a Psychiatry clinic, without accounting for the pairing by clinic_id (since each clinic provides a result for a Private and a Public call.) A proper table that accounts for the pairing should wind up with 41 clinics being represented, not the 82 individual calls. 
+
+### Using `pivot_wider` to get a paired samples table
+
+So let's go back to the full `specialty` data, with 273 clinics and 546 calls. We want to "widen" the tibble, creating more columns but half as many rows, so that our new tibble has 273 rows (one per clinic) as opposed to 546 rows (one per call). To accomplish this, we'll use `pivot_wider`, creating more columns but fewer rows.
+
+```{r}
+specialty_wider <- specialty %>%
+    pivot_wider(names_from = insurance,
+                values_from = appointment)
+
+specialty_wider
+```
+
+Now we have one row per clinic, and so now we can try again on the table for our 41 Psychiatry clinics.
+
+```{r}
+specialty_wider %>% filter(clinic_type == "Psychiatry") %>%
+    tabyl(Public, Private) %>%
+    adorn_totals(where = c("row", "col")) %>%
+    adorn_title()
+```
+
+There we go.
+
+## What comparison are we making?
+
+To describe the size of the effect in this situation, we have at least two options:
+
+### Concordant and Discordant Pairs in a Paired Samples 2x2 Table
+
+If we have a paired-samples 2x2 table with counts `a`, `b`, `c` and `d` arranged as follows:
+
+```
+a  b
+c  d
+```
+
+then `a` and `d` describe *concordant pairs*, where the same result is observed in both the rows and the columns, and `b` and `c` together describe the *discordant pairs*, where the opposite result is observed in the rows and columns.
+
+In our insurance example, we have `a` = 5, `b` = 2, `c` = 16 and `d` = 18. 
+
+- So we have 23 (`a` + `d` = 5 + 18) *concordant clinics* where the same response (either Accept or Deny) was provided to both Public and Private.
+- The remaining 18 (`b` + `c` = 2 + 16) are *discordant clinics* where the response to the Public call was different than the response to the Private call. 
+
+It turns out that the *discordant pairs*, generally, will be of maximum interest to us, as they give us an indication of the relative appeal of Public vs. Private insurance to these clinics, while the *concordant* results don't allow us to make any meaningful progress in building our comparison.
+
+### Measuring the McNemar Odds Ratio in a Paired Samples 2x2 Table
+
+In a paired samples table we calculate something called the *McNemar odds ratio* using only the discordant pairs. The McNemar odds ratio is the larger of (`b`/`c`) or (`c`/`b`).
+
+Remember our insurance data, with `a` = 5, `b` = 2, `c` = 16 and `d` = 18:
+
+-- | Private Accepted | Private Denied | Total
+---------------: | -----------------: | ---------------: | -------:
+Public Accepted | 5 | 2 | 7
+Public Denied | 16 | 18 | 34
+Total        | 21 | 20 | 41
+
+Our odds ratio is 16/2 or 8, since that is larger than its inverse. Of the Psychiatry clinics who accepted one of the two types of insurance, the odds ratio suggests a much greater likelihood of accepting an appointment for a child with private insurance than one with public (Medicaid-CHIP) insurance.
+
+### Measuring Cohen's *g* in a Paired Samples 2x2 Table
+
+Cohen's *g* statistic (see @Cohen1988) is also measured using only the counts of discordant pairs. First, we identify the larger of $\frac{b}{b+c}$ or $\frac{c}{b+c}$. Then Cohen's *g* is that value minus 0.5.
+
+For our insurance data, we have:
+
+$$
+\frac{b}{b+c} = \frac{2}{18} = 0.111
+$$
+
+and
+
+$$
+\frac{c}{b+c} = \frac{16}{18} = 0.889
+$$
+
+which is the larger of the two. We subtract 0.5 from this result to obtain Cohen's *g* = 0.389. It turns out that Cohen's *g* is just a straightforward function of the McNemar odds ratio, and we'll concentrate our work on the odds ratio.
+
+## Building a Confidence Interval for the McNemar Odds Ratio
+
+As a reminder, our table is:
+
+```{r}
+specialty_wider %>% 
+    filter(clinic_type == "Psychiatry") %>%
+    tabyl(Public, Private)
+```
+
+```{r}
+library(exact2x2)
+
+specialty_wider %>% 
+    filter(clinic_type == "Psychiatry") %$%
+    exact2x2(Public, Private, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.90)
+```
+
+This gives us the point estimate and 90% confidence interval for a McNemar odds ratio. The odds of being accepted for an appointment are lower for children with Public insurance than Private. We might prefer to develop an odds ratio point estimate that exceeds 1. To do so, we can simply invert the rows and columns.
+
+```{r}
+specialty_wider %>% 
+    filter(clinic_type == "Psychiatry") %$%
+    exact2x2(Private, Public, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.90)
+```
+
+This is equivalent to simply taking the reciprocal of the point and interval estimates we saw previously.
+
+@Bisgaier2011 published (in their Table 2) a 95% confidence interval for this odds ratio, as (1.9 - 71.7). Does our result match theirs?
+
+```{r}
+specialty_wider %>% 
+    filter(clinic_type == "Psychiatry") %$%
+    exact2x2(Private, Public, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.95)
+```
+
+### A One-Sided Confidence Interval for the McNemar Odds Ratio
+
+Suppose we simply wanted an upper bound, perhaps now with a 95% confidence level, for our McNemar odds ratio. We just need to specify an appropriate alternative in the exact2x2 function.
+
+```{r}
+specialty_wider %>% 
+    filter(clinic_type == "Psychiatry") %$%
+    exact2x2(Private, Public, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.95,
+             alternative = "less")
+```
+
+And if we wanted a lower bound, that is also available.
+
+```{r}
+specialty_wider %>% 
+    filter(clinic_type == "Psychiatry") %$%
+    exact2x2(Private, Public, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.95,
+             alternative = "greater")
+```
+
+As you'll note, the lower and upper bounds of one-sided 95% confidence intervals mirror the two-sided 90% confidence interval, as usual.
+
+### What if we looked at all of the clinic types?
+
+Here's the table for our complete set of 273 clinics.
+
+```{r}
+specialty_wider %>% 
+    tabyl(Public, Private)
+```
+
+The McNemar odds ratio should be 155/5 or 31. Cohen's g is (155/(155 + 5)) - 0.5 = 0.96875 - 0.5 = 0.46875. These are enormous effect sizes. For example, @Cohen1988 tentatively identified large effects as those with odds ratios exceeding 3 or Cohen's g exceeding 0.25. (Small effects were those with Cohen's g below 0.15, or Odds Ratios below 1.86).
+
+What's a 90% confidence interval for the McNemar odds ratio across all 273 clinics?
+
+```{r}
+specialty_wider %$% 
+    exact2x2(Private, Public, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.9)
+```
+
+@Bisgaier2011 published a 95% confidence interval for this odds ratio in Table 2, as (13.0, 96.8).
+
+```{r}
+specialty_wider %$% 
+    exact2x2(Private, Public, paired = TRUE,
+             conf.int = TRUE, conf.level = 0.95)
+```
+
+Again, our result matches theirs.
+
+## Estimating the difference in proportions
+
+Within the Psychiatry clinics, we saw the following:
+
+```{r}
+specialty_wider %>% 
+    filter(clinic_type == "Psychiatry") %>%
+    tabyl(Public, Private) %>%
+    adorn_totals(where = c("row", "col")) %>%
+    adorn_title()
+```
+
+- In the Private calls, 21 of 41 (51.2%) were Accepted.
+- In the Public calls, 7 of 41 (17.1%) were Accepted.
+
+Can we compare these percentages (or perhaps their equivalent proportions) directly, and estimate that difference with a confidence interval?
+
+Yes, thanks to the `PropCIs` package, and its `diffpropci.Wald.mp()` and `diffpropci.mp()` functions. To use these tools, we load the `PropCIs` package, and specify the values of `b`, `c` and `n`, the total sample size.
+
+We will specify the values of `b = 2` and `c = 16` here so that the difference in conditional probability that we are comparing is the probability, assuming the clinic accepted the patient only once, of accepting private insurance minus the probability of accepting public insurance. We are estimating:
+
+$$
+Pr(Accepted for Private | only Accepted once) - Pr(Accepted for Public | only Accepted once)
+$$
+
+based on a sample of `n = 41` Psychiatry clinics.
+
+There are two confidence interval estimation procedures available. The first is the *Wald* confidence interval:
+
+```{r}
+library(PropCIs)
+
+diffpropci.Wald.mp(b = 2, c = 16, n = 41, conf.level = 0.90)
+```
+
+Also available in the `PropCIs` package is the *Agresti-Min* confidence interval.
+
+```{r}
+diffpropci.mp(b = 2, c = 16, n = 41, conf.level = 0.90)
+```
+
+As you can see, each interval is quite wide here, and they also produce somewhat different point estimates, because they are making different sorts of approximations. These approaches, again, are only appropriate with **paired** comparisons of proportions. 
+
+Our estimate describes, assuming a clinic only gives an appointment to one of the two insurance types, the probability of Private insurance getting that appointment minus the probability of Public insurance getting the appointment.
+
+### What if we looked at all of the clinic types?
+
+Here, again is the table for our complete set of 273 clinics.
+
+```{r}
+specialty_wider %>% 
+    tabyl(Public, Private) %>%
+    adorn_totals(where = c("row", "col")) %>%
+    adorn_title()
+```
+
+And here are the 90% Wald and Agresti-Min confidence intervals for matched pairs describing the proportion accepted for Private but not Public, minus the proportion accepted for Public but not Private.
+
+```{r}
+diffpropci.Wald.mp(b = 5, c = 155, n = 273, conf.level = 0.90)
+```
+
+```{r}
+diffpropci.mp(b = 5, c = 155, n = 273, conf.level = 0.90)
+```
+
+

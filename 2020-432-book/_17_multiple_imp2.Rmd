@@ -1,0 +1,335 @@
+# Multiple Imputation and Logistic Regression
+
+## The `smart_17` data set
+
+In this chapter, we'll use a subset of the `smart_16` data we built in the last chapter. We'll look at a logistic regression describing whether or not the subject's `physhealth` response was at least 1, accounting for missingness by fitting multiple imputations.
+
+```{r}
+smart_17 <- smart_ohio %>%
+    filter(dm_status == "Diabetes") %>%
+    filter(complete.cases(physhealth)) %>%
+    mutate(bad_phys = ifelse(physhealth > 0, 1, 0),
+           comor = hx_mi + hx_chd + hx_stroke + hx_asthma +
+               hx_skinc + hx_otherc + hx_copd + hx_arthr) %>%
+    select(SEQNO, mmsa, bad_phys, bmi, comor, hx_depress, activity)
+```
+
+## Simple Imputation with `mice` to help with Non-Linearity Assessment
+
+In `smart_17` we have `r n_case_miss(smart_17)` subjects with missing information, out of the `nrow(smart_17)` subjects in the data set.
+
+```{r}
+n_case_miss(smart_17)
+nrow(smart_17)
+
+gg_miss_var(smart_17)
+```
+
+The `mice` package provides several approaches we can use for imputation in building models of all kinds. Here, we'll use it just to obtain a single set of imputed results that we can apply to "complete" our data for the purposes of thinking about  considering the addition of non-linear predictor terms to our logistic regression model.
+
+```{r}
+# requires library(mice)
+
+set.seed(4321)
+
+# create small data set including only variables to
+# be used in building the imputation model
+
+sm17 <- smart_17 %>% 
+    select(bad_phys, activity, bmi, comor, hx_depress)
+
+smart_17_mice1 <- mice(sm17, m = 1)
+
+smart_17_imp1 <- complete(smart_17_mice1)
+
+n_case_miss(smart_17_imp1)
+```
+
+And now we'll use this completed `smart_17_imp1` data set (the product of just a single imputation) to help us build a Spearman $\rho^2$ plot.
+
+## Logistic Regression: Considering Non-Linearity in the Predictors
+
+Consider the following Spearman $\rho^2$ plot.
+
+```{r}
+# requires rms package 
+# (technically Hmisc, which is loaded by rms)
+
+smart_17_imp1 %$% 
+    plot(spearman2(bad_phys ~ comor + hx_depress + bmi + 
+                       activity))
+```
+
+After our single imputation, we have the same `N` value in all rows of this plot, which is what we want to see. It appears that in considering potential non-linear terms, `comor` and `hx_depress` are most worthy of increased attention. 
+
+## "Augmented" Logistic Regression with `glm` (Complete Cases)
+
+We'll add an interaction term between `hx_depress` and `comor`.
+
+```{r}
+# requires rms package (and co-loading Hmisc)
+
+modA_cc <- smart_17 %$% 
+    glm(bad_phys ~ activity + bmi + comor*hx_depress,
+        family = binomial())
+
+summary(modA_cc)
+```
+
+Note again that the appropriate number of observations are listed as "deleted due to missingness."
+
+### Exponentiating and Tidying the Coefficients
+
+```{r}
+tidy(modA_cc, exponentiate = TRUE, conf.int = TRUE) %>%
+    select(term, estimate, conf.low, conf.high) %>%
+    kable(digits = 3)
+```
+
+
+
+
+### Quality of Fit Statistics
+
+```{r}
+glance(modA_cc)
+```
+
+
+
+### Making Predictions with the Model
+
+As before, we'll use the new model to predict  `physhealth` values for Sheena and Jacob.
+
+- Sheena is age 50, has 2 comorbidities, has smoked 100 cigarettes in her life, has no history of depression, a BMI of 25, and is Highly Active.
+- Jacob is age 65, has 4 comorbidities, has never smoked, has a history of depression, a BMI of 32 and is Inactive.
+
+We'll first build predictions for Sheena and Jacob (with 95% prediction intervals) for `phys_tr`.
+
+```{r}
+new2 <- tibble(
+    name = c("Sheena", "Jacob"),
+    age_imp = c(50, 65),
+    comor = c(2, 4),
+    smoke100 = c(1, 0),
+    hx_depress = c(0, 1),
+    bmi = c(25, 32),
+    activity = c("Highly_Active", "Inactive")
+)
+
+preds_m_2cc <- predict(m_2cc, newdata = new2, 
+                       interval = "prediction")
+
+preds_m_2cc
+```
+
+Now, we need to back-transform the predictions and the confidence intervals that describe `phys_tr` to build predictions for `physhealth`.
+
+```{r}
+preds_m_2cc <- preds_m_2cc %>%
+    tbl_df() %>%
+    mutate(names = c("Sheena", "Jacob"),
+           pred_physhealth = exp(fit) - 1,
+           conf_low = exp(lwr) - 1,
+           conf_high = exp(upr) - 1) %>%
+    select(names, pred_physhealth, conf_low, conf_high, 
+           everything())
+
+preds_m_2cc %>% kable(digits = 3)
+```
+
+
+## Using `mice` to perform Multiple Imputation
+
+Let's focus on the main effects model, and look at the impact of performing multiple imputation to account for the missing data. Recall that in our `smart_16` data, the most "missingness" is shown in the `activity` variable, which is still missing less than 10% of the time. So we'll try a set of 10 imputations, using the default settings in the `mice` package.
+
+```{r}
+# requires library(mice)
+
+set.seed(432)
+
+# create small data set including only variables to
+# be used in building the imputation model
+
+sm16 <- smart_16 %>% 
+    select(physhealth, phys_tr, activity, age_imp, bmi, comor, 
+           hx_depress, smoke100)
+
+smart_16_mice10 <- mice(sm16, m = 10)
+
+summary(smart_16_mice10)
+```
+
+## Running the Linear Regression in `lm` with Multiple Imputation
+
+Next, we'll run the linear model (main effects) on each of the 10 imputed data sets.
+
+```{r}
+m10_mods <- 
+    with(smart_16_mice10, lm(phys_tr ~ age_imp + comor + 
+                                 smoke100 + hx_depress + 
+                                 bmi + activity))
+
+summary(m10_mods)
+```
+
+Then, we'll pool results across the 10 imputations
+
+```{r}
+m10_pool <- pool(m10_mods)
+summary(m10_pool, conf.int = TRUE) %>%
+    select(-statistic, -df) %>%
+    kable(digits = 3)
+```
+
+And we can compare these results to the complete case analysis we completed earlier.
+
+```{r}
+tidy(m_1cc, conf.int = TRUE) %>%
+    select(term, estimate, std.error, p.value, conf.low, conf.high) %>%
+    kable(digits = 3)
+```
+
+Note that there are some sizeable differences here, although nothing enormous.
+
+If we want the pooled $R^2$ or pooled adjusted $R^2$ after imputation, R will provide it (and a 95% confidence interval around the estimate) with ...
+
+```{r}
+pool.r.squared(m10_mods)
+```
+
+```{r}
+pool.r.squared(m10_mods, adjusted = TRUE)
+```
+
+We can see the fraction of missing information about each coefficient due to non-response (`fmi`) and other details with the following code...
+
+```{r}
+m10_pool
+```
+
+## Fit the Multiple Imputation Model with `aregImpute`
+
+Here, we'll use `aregImpute` to deal with missing values through multiple imputation, and use the `ols` function in the `rms` package to fit the model. 
+
+The first step is to fit the multiple imputation model. We'll use `n.impute` = 10 imputations, with `B` = 10 bootstrap samples for the preditive mean matching, and fit both linear models and models with restricted cubic splines with 3 knots (`nk = c(0, 3)`) allowing the target variable to have a non-linear transformation when `nk` is 3, via `tlinear = FALSE`. 
+
+```{r}
+set.seed(43201602)
+dd <- datadist(smart_16)
+options(datadist = "dd")
+
+fit16_imp <- 
+    aregImpute(~ phys_tr + age_imp + comor + smoke100 + 
+                   hx_depress + bmi + activity,
+               nk = c(0, 3), tlinear = FALSE, 
+               data = smart_16, B = 10, n.impute = 10)
+```
+
+Here are the results of that imputation model.
+
+```{r}
+fit16_imp
+```
+
+```{r, fig.height = 8}
+par(mfrow = c(3,2))
+plot(fit16_imp)
+par(mfrow = c(1,1))
+```
+
+The plot helps us see where the imputations are happening.
+
+## Fit Linear Regression using `ols` and `fit.mult.impute`
+
+```{r}
+m16_imp <- 
+    fit.mult.impute(phys_tr ~ age_imp + comor + smoke100 +
+                        hx_depress + bmi + activity,
+                    fitter = ols, xtrans = fit16_imp,
+                    data = smart_16, x = TRUE, y = TRUE)
+```
+
+### Summaries and Coefficients
+
+Here are the results:
+
+```{r}
+m16_imp
+```
+
+### Effect Sizes
+
+We can plot and summarize the effect sizes using the usual `ols` tools:
+
+```{r}
+summary(m16_imp)
+
+plot(summary(m16_imp))
+```
+
+### Making Predictions with this Model
+
+Once again, let's make predictions for our two subjects, and use this model (and the ones that follow) to predict their `physhealth` values.
+
+- Sheena is age 50, has 2 comorbidities, has smoked 100 cigarettes in her life, has no history of depression, a BMI of 25, and is Highly Active.
+- Jacob is age 65, has 4 comorbidities, has never smoked, has a history of depression, a BMI of 32 and is Inactive.
+
+```{r}
+new2 <- tibble(
+    name = c("Sheena", "Jacob"),
+    age_imp = c(50, 65),
+    comor = c(2, 4),
+    smoke100 = c(1, 0),
+    hx_depress = c(0, 1),
+    bmi = c(25, 32),
+    activity = c("Highly_Active", "Inactive")
+)
+
+preds_m_16imp <- predict(m16_imp, 
+                         newdata = data.frame(new2))
+
+preds_m_16imp
+```
+
+```{r}
+preds_m_16imp <- preds_m_16imp %>%
+    tbl_df() %>%
+    mutate(names = c("Sheena", "Jacob"),
+           pred_physhealth = exp(value) - 1) %>%
+    select(names, pred_physhealth)
+
+preds_m_16imp %>% kable(digits = 3)
+```
+
+### Nomogram
+
+We can also develop a nomogram, if we like. As a special touch, we'll add a prediction at the bottom which back-transforms out of the predicted `phys_tr` back to the `physhealth` days.
+
+```{r, fig.height = 7}
+plot(nomogram(m16_imp, 
+              fun = list(function(x) exp(x) - 1),
+              funlabel = "Predicted physhealth days",
+              fun.at = seq(0, 30, 3)))
+```
+
+We can see the big role of `comor` and `hx_depress` in this model.
+
+### Validating Summary Statistics
+
+We can cross-validate summary measures, like $R^2$...
+
+```{r}
+validate(m16_imp)
+```
+
+### Is the model well-calibrated?
+
+We can cross-validate summary measures, like $R^2$...
+
+```{r}
+plot(calibrate(m16_imp))
+```
+
+Looks pretty close to the ideal line.
+

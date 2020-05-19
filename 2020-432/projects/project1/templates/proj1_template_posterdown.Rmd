@@ -1,0 +1,133 @@
+---
+title: "A Template for 432 Project Posters: REMEMBER YOUR AUDIENCE"
+author:
+  - name: D. First Author
+    affil: 1
+  - name: D. Second Author
+    affil: 2
+affiliation:
+  - num: 1
+    address: Ph.D. Program in Creative Accounting, Department of Whatever, Case Western Reserve University
+    email: dfirst@case.edu
+  - num: 2
+    address: Physician-Scientist-Superhero, Department of Whatever, MetroHealth Medical Center
+    email: dsecond@metrohealth.org
+date: "`r Sys.Date()`"
+column_numbers: 4
+output:
+   posterdown::posterdown_html
+---
+
+```{r setup, echo = FALSE, cache=FALSE}
+knitr::opts_chunk$set(comment=NA, 
+               echo = FALSE,
+               warning = FALSE,
+               message = FALSE) 
+```
+
+```{r packages}
+library(knitr); library(rmdformats)
+library(here); library(janitor); library(magrittr)
+library(rms); library(broom); library(patchwork)
+
+# you may not need all packages you needed in the portfolio
+
+library(tidyverse)
+
+theme_set(theme_bw())
+```
+
+# Data Source
+
+Brief but sufficient motivating material from the text you wrote in Tasks 1-3, being sure to acknowledge the people or organizations that did the work of gathering the data you're using. An example might be...
+
+These data come from a study done at UCLA, and provided by Alan Garfinkel, Ph.D. at UCLA's Department of Physiology. These data is from a study of whether a drug called "dobutamine" could be used effectively in a test for measuring a patient's risk of having a heart attack, or "cardiac event." The study sought to pinpoint which measurements taken during a stress echocardiography test, where the stress was caused by the dobutamine were most helpful in predicting whether or not a patient suffered a cardiac event over the next year.
+
+# Project Objectives
+
+Here you will explain (using the material you built for Tasks 7-8) what you are trying to do with your study, and your two models, and pose 2 questions (one for your final linear model and one for your final logistic model) that you will answer using those models. An example might be...
+
+Linear Model: How well can a patient's ejection fraction while on dobutamine be predicted on the basis of their baseline clinical, demographic and behavioral characteristics and the dose of dobutamine they received during dobutamine stress echocardiography (DSE)?
+
+Logistic Model: How well can we predict the probability of having one of four adverse clinical events in the 12 months after DSE, on the basis of several characteristics observed at the time of the DSE?
+
+# The Data
+
+Concise, but effective and atractive summary that lets us understand who the subjects are, and what information you have about them. Drawn from Tasks 4-6 of your Portfolio.
+
+The data describe 220 men and 338 women who underwent dobutamine stress echocardiography, and then were followed for 12 months. Besides a subject code, these 12 variables are available...
+
+Variable | Description
+-----------: | ------------------------------------------
+**age** | age at baseline (time of DSE)
+**female** | 1 = female, 0 = male 
+**bhr** | baseline heart rate (beats/minute)
+**basebp** | baseline Systolic BP, in mm Hg
+**base_ef** | baseline ejection fraction, in %
+**dose** | dose of dobutamine in ug/kg/min
+**hx_smoking** | current or past or non-smoker
+**chest_pain** | chest pain during echocardiogram?
+**ecg** | resting echo (Normal, Equivocal, or MI)
+**se_res** | stress echo result (Positive or Negative)
+**dob_ef** | ejection fraction while on dobutamine
+**event** | composite outcome (death, MI, PCIA or CABG) in the year post-DSE
+
+I should note that I expect you'll have to cut material enough that the Linear Regression can begin close to the top of column 2 in your poster.
+
+# Linear Regression
+
+- Adapted from Task 10, primarily
+- Restate modeling goals, identify outcome and predictors you studied
+- Data Prep: What you did about missingness, transforming your outcome, non-linearity in your predictors, and why
+- Analytic Models: What the results were (why did you pick the final model you picked) and what do the results of that model mean?
+- Important, Useful, Attractive Graphs with annotations that guide us through key decisions you made but not by any means a play-by-play of your adventures in R. You should also show at least one table describing the coefficients of your final model, so that you can call out and interpret key effect sizes.
+
+A table might look like this. Note that I've set up a chunk code to make this work out well and some code in my call to the `kable` function to create a caption and align the results, which you should use, too.
+
+```{r mytable, out.width='80%'}
+knitr::kable(iris[1:6, 1:4], caption = 'Table caption.', 
+             align = 'c', "html")
+```
+
+Here is an example of a graph so you can see what one might look like here. Note that I've set up a chunk code to make this work out well, which you should use, too.
+
+```{r, out.width='90%', fig.align='center', fig.cap='Great figure!', fig.height=5}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2) + 
+  labs(title = "Some Irrelevant Faceted Plotting")
+```
+
+# Logistic Regression
+
+- Adapted from Task 11, primarily
+- Restate modeling goals, identify outcome and predictors you studied
+- Data Prep: What you did about missingness, non-linearity in your predictors, and why
+- Analytic Models: What the results were (why did you pick the final model you picked) and what do the results of that model mean?
+- Important, Useful, Attractive Graphs with annotations that guide us through key decisions you made but not by any means a play-by-play of your adventures in R. You should also show at least one table describing the coefficients of your final model, so that you can call out and interpret key effect sizes.
+
+Another utterly irrelevant set of plots to show you what they might look like...
+
+```{r, out.width='90%', fig.align='center', fig.cap='Another Great figure!', fig.height=5}
+p1 <- ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+
+p2 <- ggplot(data = mpg) + 
+  geom_smooth(mapping = aes(x = displ, y = hwy))
+
+p1 + p2 + 
+  plot_annotation("Another Completely Irrelevant Set of Plots")
+```
+
+# Key Findings
+
+- Interpreting the findings of your models in such a way as to answer your Questions/address your Objectives from the start of the poster clearly, and concisely.
+- Description of potential next steps to improve the modeling or improve the data.
+
+# Discussion
+
+Adapted from Task 12 of the Portfolio.
+
+# References (if any)
+
+- Krivokapich J Child JS Walter DO Garfinkel A [Prognostic Value of Dobutamine Stress Echocardiography in Predicting Cardiac Events in Patients With Known or Suspected Coronary Artery Disease](http://www.onlinejacc.org/content/33/3/708),  *J Amer Coll Cardiology* (1999) 33.3, 708-16.

@@ -1,0 +1,127 @@
+---
+title: "Modern Dive Tools: A Quick Example"
+date: "432 Class 6: 2020-01-30"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment=NA)
+```
+
+```{r, warning = FALSE, message = FALSE}
+library(here); library(magrittr); library(janitor)
+library(broom); library(patchwork)
+library(moderndive)
+library(tidyverse)
+
+theme_set(theme_bw())
+
+smart1_sh <- readRDS(here("data/smart1_sh.Rds"))
+```
+
+It will be helpful for our little example here to take a sample of 200 subjects.
+
+```{r}
+set.seed(4322020)
+small_smart <- smart1_sh %>% 
+    sample_n(size = 200, replace = FALSE)
+
+small_smart %>% tabyl(dm_status)
+```
+
+We're also going to predict the logarithm of BMI, and I'll create a variable containing that information.
+
+```{r}
+small_smart <- small_smart %>%
+    mutate(logbmi = log(bmi))
+```
+
+We'll fit a linear regression model to predict the natural logarithm of `bmi` using one categorical variable (`dm_status`) and one quantitative variable (`drinks_wk`). We'll include an interaction term between the two predictors.
+
+```{r}
+model1_interaction <- small_smart %$%
+    lm(logbmi ~ dm_status * drinks_wk)
+```
+
+## Summarizing a Linear Model (with `moderndive` tools)
+
+The `moderndive` package includes several tools for presenting a regression model quickly, including `get_regression_table`, `get_regression_summaries` and `get_regression_points`. All of these tools do the same thing (essentially) as the tools we've developed using the `broom` package.
+
+### `get_regression_table()` and `broom::tidy()`
+
+```{r}
+get_regression_table(model1_interaction)
+```
+
+- We can mirror this `get_regression_table()` output using the `tidy()` function in the `broom` package.
+
+```{r}
+tidy(model1_interaction, conf.int = TRUE)
+```
+
+### `get_regression_summaries()` and `broom::glance()`
+
+```{r}
+get_regression_summaries(model1_interaction)
+```
+
+- The `get_regression_summaries` tool mostly mirrors what we get from the `glance()` function in `broom`.
+
+```{r}
+glance(model1_interaction)
+```
+
+### `get_regression_points()` and `broom::augment()`
+
+```{r}
+get_regression_points(model1_interaction)
+```
+
+The `get_regression_points()` function is, of course, similar to what we get from `broom`'s `augment()`.
+
+```{r}
+augment(model1_interaction)
+```
+
+## Plotting the Model with and without Interaction (`geom_parallel_slopes`)
+
+### Model with Interaction
+
+Suppose we want to plot our `model1_interaction`, which includes the interaction between `dm_status` and `drinks_wk`. We'd use something like this:
+
+```{r}
+ggplot(small_smart, aes(x = drinks_wk, y = logbmi, color = dm_status)) + 
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE) +
+    labs(x = "Alcoholic Drinks per week", 
+         y = "Logarithm of Body Mass Index",
+         color = "Diabetes Status",
+         title = "Interaction model for log(BMI) on diabetes and drinks per week") 
+```
+
+The slopes here are not parallel, of course, because our model includes diabetes status, drinks per week, **and** their interaction.
+
+### "Parallel Slopes" Model (No Interaction)
+
+Suppose we wanted to plot what the model would look like if we fit it without the interaction, in other words a model with parallel slopes for the diabetes = Yes and diabetes = No groups. The `moderndive` package provides `geom_parallel_slopes` to let us do this easily.
+
+```{r}
+ggplot(small_smart, aes(x = drinks_wk, y = logbmi, color = dm_status)) + 
+    geom_point() +
+    geom_parallel_slopes(se = FALSE) +
+    labs(x = "Alcoholic Drinks per week", 
+         y = "Logarithm of Body Mass Index",
+         color = "Diabetes Status",
+         title = "Parallel slopes model for log(BMI) on diabetes and drinks per week") 
+```
+
+We see that in the parallel slopes model, the two lines (one for those with diabetes, one without) have the same slope but differing intercepts. To fit the parallel slopes model in `lm`, we'd use
+
+```{r}
+model1_parallel_slopes <- small_smart %$%
+    lm(logbmi ~ dm_status + drinks_wk)
+
+get_regression_table(model1_parallel_slopes)
+```
+
+See [ModernDive's Chapter on Multiple Regression](https://moderndive.com/6-multiple-regression.html) for more information.

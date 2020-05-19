@@ -1,0 +1,201 @@
+# Model Selection and Out-of-Sample Validation
+
+Sometimes, we use a regression model for description of a multivariate relationship which requires only that we provide an adequate fit to the data at hand. Should we want to use the model for prediction, then a more appropriate standard which requires us to fit a model that does each of the following three things:
+
+1.	[fits well] Provides an adequate fit to the data at hand
+2.	[parsimonious] Includes only those predictors which actually have detectable predictive value
+3.	[predicts well out of sample] Does a better job predicting our outcome in new data than other alternative models
+
+We'll spend considerable time in 432 studying how best to validate a regression model, but for now, we'll focus on a pair of issues:
+
+a.	Given a set of predictors, how should we let the computer help us understand which subsets of those predictors are most worthy of our additional attention?
+b.	Given a pair of models to compare, what tools should we use to determine which one better predicts new data?
+
+## Using the WCGS Data to predict Cholesterol Level
+
+To address these issues, I'll look at one of our old examples: the `wcgs` data (Western Collaborative Group Study), described in Section \@ref(WCGS-Study). We'll try to predict the variable `chol` on the basis of some subset of the following five predictors: `age`, `bmi`, `sbp`, `dbp` and `smoke`.
+
+The steps are:
+
+0. Check the `wcgs` data for missing or out-of-range values in the variables under study\footnote{Actually, I will skip this range and missingness check here, and will wind up regretting that later.}.
+1. Separate the `wcgs` data into a test sample of 500 observations selected at random, and a model development (training) sample consisting of the remaining 2654 observations.
+2.	Using only the model development sample, run a stepwise regression algorithm working off of the kitchen sink model using backwards selection to identify a reasonable candidate for a model. Call this model A.
+3.	Develop a second potential model (called model B) for the model development data by eliminating the least clearly helpful predictor in model A.
+4.	Use the AIC to compare model A to model B in the development sample.
+5.	Finally, moving forward to the holdout sample, compare the quality of predictions made by model A to those made by model B in terms of two of the many possible criteria: 
+    - [i] mean squared prediction error and 
+    - [ii] mean absolute prediction error 
+    - to see if either model (A or B) is clearly superior in terms of out-of-sample prediction.
+
+## Separating the Data into a Training and a Test Sample
+
+There are several ways to partition the data into training (model development) and test (model checking) samples. For example, we could develop separate data frames for a holdout sample of 500 randomly selected subjects (`wcgs.test`), and then use the remainder as the model development sample (`wcgs.dev`). Remember to set a seed so that you can replicate the selection.
+
+```{r p44 wcgs for model selection materials}
+set.seed(4311); wcgs.test <- wcgs %>% sample_n(500)
+## hold out exactly 500 randomly selected observations
+
+wcgs.dev <- anti_join(wcgs, wcgs.test, "id") 
+## model development sample - 2654 observations
+
+wcgs.test
+dim(wcgs.dev) # verify size of development sample
+```
+
+### Using a specified fraction of the data in the test sample
+
+If we'd wanted to select 20% of the data for our test sample, we could have instead used the `sample_frac` and `anti_join` commands. For the `wcgs` data which has a unique `id` variable that identifies each subject, we'd have...
+
+```{r build training and test samples}
+set.seed(43199); wcgs.train80 <- wcgs %>% sample_frac(0.80)
+wcgs.test20 <- anti_join(wcgs, wcgs.train80, by="id")
+dim(wcgs.train80)
+dim(wcgs.test20)
+```
+
+Given a large sample size (at least 500 observations in the full data set) I would usually think about holding out somewhere between 15% and 25% of the data in this manner.
+
+## Stepwise Regression to Select Predictors
+
+We next select the `wcgs.dev` (development sample) and run a stepwise procedure, beginning with the kitchen sink model, that includes all potential predictors.
+
+### The Kitchen Sink Model
+
+```{r p45}
+summary(lm(chol ~ age + bmi + sbp + dbp + smoke, data = wcgs.dev))
+```
+
+### Stepwise (Backward Elimination) Procedure
+
+```{r p45a}
+step(lm(chol ~ age + bmi + sbp + dbp + smoke, data = wcgs.dev))
+```
+
+The stepwise process first eliminates `sbp` from the model, then sees no substantial improvement in AIC after this has been done, so it lands on a four-predictor model with `age`, `bmi`, `dbp` and `smoke`.
+
+### Three Candidate Models
+
+For purposes of this exercise, we'll call this four-predictor model `model.A` and compare it to a three-predictor model with `age`, `dbp` and `smoke`, which we'll call `model.B`
+
+```{r p45b}
+model.kitchensink <- lm(chol ~ age + bmi + sbp + dbp + smoke, data = wcgs.dev)
+model.A <- lm(chol ~ age + bmi + dbp + smoke, data = wcgs.dev)
+model.B <- lm(chol ~ age + dbp + smoke, data = wcgs.dev)
+```
+
+
+
+## AIC, ANOVA and BIC to assess Candidate Models
+
+The stepwise regression output specifies the AIC value for each model, but we can also look at other characteristics, like the ANOVA table comparing the various models, or the Bayesian Information Criterion, abbreviated BIC.
+
+```{r p46a}
+AIC(model.kitchensink, model.A, model.B)
+```
+
+AIC suggests model A (since it has the smallest AIC of these choices)
+
+```{r p46b}
+anova(model.kitchensink, model.A, model.B)
+```
+
+The ANOVA model also suggests model A, for the following reasons:
+
+- The *p* value of 0.35 indicates that moving from what we've called the kitchen sink model (model 1 in the ANOVA output) to what we've called model A (model 2 in the ANOVA output) does not have a statistically significant impact on predictive value.
+- On the other hand, the *p* value of 0.013 indicates that moving from what we've called model A (model 2 in the ANOVA output) to what we've called model B (model 3 in the ANOVA output) does have a statistically significant impact on predictive value.
+- Because these models are **nested** (model B is a proper subset of model A which is a proper subset of the kitchen sink) we can make these ANOVA comparisons directly.
+
+```{r p46c}
+BIC(model.kitchensink, model.A, model.B)
+```
+
+BIC disagrees, and prefers model B, since its BIC is smaller. The penalty for fitting additional predictors in BIC varies with the number of observations, and so (especially with larger samples) we can get meaningfully different AIC and BIC selections.
+
+## Comparing Models in the Test Sample (MSPE, MAPE)
+
+Finally, we'll use our two candidate models (Model A and Model B) to predict the results in our holdout sample of 500 observations to see which model performs better in these new data (remember that our holdout sample was **not** used to identify or fit Models A or B.)
+
+To do this, we first carefully specify the two models being compared
+
+```{r p47a}
+model.A <- lm(chol ~ age + bmi + dbp + smoke, data=wcgs.dev)
+model.B <- lm(chol ~ age + dbp + smoke, data=wcgs.dev)
+```
+
+Next, use `predict` to make predictions for the test data:
+
+```{r p47b}
+modA.pre <- predict(model.A, newdata=wcgs.test)
+modB.pre <- predict(model.B, newdata=wcgs.test)
+```
+
+Just to fix ideas, here are the first few predictions for Model A...
+
+```{r p47c}
+head(modA.pre)
+```
+
+We can compare these to the first few observed values of `chol` in the test sample.
+
+```{r p47d}
+head(wcgs.test$chol)
+```
+
+Next, calculate errors (observed value minus predicted value) for each model:
+
+```{r p47e}
+modA.err <- wcgs.test$chol - modA.pre
+modB.err <- wcgs.test$chol - modB.pre
+```
+
+Again, just to be sure we understand, we look at the first few errors for Model A.
+
+```{r p47f}
+head(modA.err)
+```
+
+Next, we calculate the absolute errors (as |observed - predicted|) from each model in turn:
+
+```{r p47g}
+modA.abserr <- abs(modA.err)
+modB.abserr <- abs(modB.err)
+```
+
+Let's look at the first few absolute errors for Model A.
+
+```{r p47h}
+head(modA.abserr)
+```
+
+Next, we calculate the squared prediction errors from each model in turn:
+
+```{r p47i}
+modA.sqerr <- modA.err^2
+modB.sqerr <- modB.err^2
+```
+
+And again, we look at the first few squared errors for Model A.
+```{r p47j}
+head(modA.sqerr)
+```
+
+To obtain our two key summaries: mean absolute prediction error and mean squared prediction error, I just use the `summary` function.
+
+```{r p47k}
+summary(modA.abserr)
+summary(modB.abserr)
+summary(modA.sqerr)
+summary(modB.sqerr)
+```
+
+Model | MAPE | MSPE | Maximum Abs. Error
+----: | -:| -: | -:
+A (`age + bmi + dbp + smoke`) | 32.39 | 1669 | 125
+B (`age + dbp + smoke`) | 32.45 | 1668 | 123
+
+Note that smaller values on these metrics are better, so that MAPE (barely) selects Model A over Model B, and MSPE (barely) selects Model B over Model A. We also sometimes look at the maximum absolute error, and here we see that Model B is slightly favored again. But really, there's little to choose from. The NAs you see above refer to patients in the `wcgs` data with missing values on one or more of the variables included in our kitchen sink model. I absolutely should have identified that problem at the beginning, and either omitted those or done some imputation back at the start. I'll show that in the next section.
+
+So, based on the test sample results, we might slightly favor Model B, but really, there's no meaningful difference.
+
+
+

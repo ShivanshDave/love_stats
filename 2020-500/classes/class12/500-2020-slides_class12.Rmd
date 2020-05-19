@@ -1,0 +1,273 @@
+---
+title: "500 Class 12 Slides"
+author: "github.com/THOMASELOVE/2020-500"
+date: "2020-04-23"
+output:
+  beamer_presentation: 
+    colortheme: lily
+    fonttheme: structurebold
+    keep_tex: yes
+    theme: Madrid
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 60)
+```
+
+# Posner MA Ash AS Freund KM Moskowitz MA Shwartz M 2001 Comparing Standard Regression, Propensity Score Matching and Instrumental Variables Methods for Determining the Influence of Mammography on Stage of Diagnosis. Health Services and Outcomes Research Methodology
+
+## Goals of Posner et al. 2001
+
+- Mammography screening and its effectiveness in detecting cancer at an earlier stage.
+
+Compare results of three analytic approaches:
+
+1. Standard (regression-based) adjustment for baseline risk plus a treatment indicator
+2. Propensity score matching to account for selection bias through evening out covariate distributions
+3. Instrumental variables to address unmeasured differences between treated and untreated patients
+
+## The Research Question
+
+Use of mammography for screening women over age 70; as of 2001, the value hasn't been established
+
+- Most RCTs of mammography include no women over age 70 (focus is on the 50-70 year olds)
+- No RCT has reported age-specific data within the 50-70 age group so that trends can be studied
+- Breast cancer incidence continues to rise beyond age 65 - 48\% of new cases are > 65.
+
+## The Data
+
+Linked Medicare - Tumor Registry Database
+
+- Sample consisted of all women with a first diagnosis of breast cancer ... 
+    + In one of three regions (metropolitan Atlanta, state of Connecticut, or Seattle-Puget Sound)
+    + whose utilization of mammography could be tracked for the 2 years prior to the diagnosis of breast cancer
+    + who were either regular mammography users or mammography non-users (excluded "tweeners")
+
+## Treatment Variable
+
+- Regular mammography users had claims for two separate bilateral mammograms within the two years prior to their breast cancer diagnosis, which were at least 10 months apart.
+- Non-users were women with no mammography claims in the two years prior to their diagnosis.
+
+## Primary Outcome
+
+Stage at diagnosis, dichotomized
+
+- Early (in situ, or Stage I)
+- Late (Stage II, III or IV)
+
+Excluded the 7.4\% of women with unstaged cancer
+
+## Covariates
+
+- Age at diagnosis 
+    + Categorical: 67-69, 70-74, 75-79, 80-84, 85+
+- Comorbidity (Charlson Comorbidity Index)
+- Race (black vs. other)
+- Income (median income of patient's zip code)
+    + Dichotomized to highest 40\% vs. lowest 60\% of incomes within each region
+- \# of claims for primary-care office visits over the last two years (also categorized)
+
+# Approach 1: Risk Adjustment
+
+## Approach 1: Risk Adjustment
+
+Developed a logistic regression model to predict stage at diagnosis (early or late) from user status (regular user or non-user), controlling for:
+
+- Region, Age, Race, Comorbidity, Median income [zip code], Primary care visits
+
+### Conclusion
+
+Regular users have **2.97** times the odds of being diagnosed at an early stage relative to non-users (95\% CI: 2.56, 3.45)
+
+# Approach 2: Propensity "Matching", sort of...
+
+## Approach 2: Propensity "Matching"
+
+Propensity model included same covariates as risk adjustment model:
+
+- Region, Age, Race, Comorbidity, Median income [zip code], Primary care visits
+
+Steps:
+
+1. Split data into deciles based on propensity score
+2. Within each decile, take a random sample from the larger group (users or non-users) to get the same number as in the smaller group
+3. Matched sub-samples combined to yield final data set
+
+I'd call this "Stratification" more than "Matching"
+
+## Propensity "Matching" inside Deciles
+
+Decile | Non-Users | Users | *Matched* Non-Users | *Matched* Users
+------:| --------: | -----: | :-----: | :-----:
+1 | 416 | 57 | 57 | 57
+2 | 339 | 89 | 89 | 89
+3 | 359 | 136 | 136 | 136
+4 | 239 | 205 | 205 | 205
+5 | 193 | 289 | 193 | 193
+6 | 159 | 277 | 159 | 159
+7 | 145 | 347 | 145 | 145
+8 | 96 | 327 | 96 | 96
+9 | 113 | 394 | 113 | 113
+10 | 81 | 395 | 81 | 81 
+
+## Covariate Balance Pre- and Post-"Matching"
+
+Variable | Pre-match $p$ | Post-match $p$
+--------:| -----------: | -------:
+Age at diagnosis | 0.001 | 0.98
+Comorbidity Index | 0.001 | 0.73
+Race | 0.001 | 0.35
+Income | 0.061 | 0.49
+Primary Care Visits | 0.001 | 0.51
+Location (Region) | 0.001 | 0.98
+
+- And, looking at our outcome ...
+
+Variable | Pre-match $p$ | Post-match $p$
+--------:| -----------: | -------:
+*Stage of Cancer* | 0.001 | 0.001
+
+## Results from Propensity Analysis
+
+- Most extreme propensity scores were examined, and were close to the others, so no pairs were excluded on that basis.
+- Balance dramatically improved (in terms of significance) for all variables.
+
+### Conclusion
+
+Regular users have **3.24** times the odds of being diagnosed at an early stage relative to non-users.
+
+- 95\% CI for odds ratio: (2.69, 3.88)
+
+> [The propensity] approach estimates the impact of being a user of mammography for the population whose measured covariates conform to the matched sample ... This result being so close to that of the standard model provides some reassurance that the standard model has adjusted correctly for any differences in measured covariates between the user and non-user groups.
+
+# Approach 3: Instrumental Variables
+
+## Approach 3: Instrumental Variables
+
+Which variable to use as the instrument? We need:
+
+1. An association between the instrument and the exposure (must predict user status)
+2. **AND** a lack of correlation between the instrument and the unmeasured covariates that are associated with the outcome.
+    + no residual predictive power on stage at diagnosis, after controlling for the other covariates in the model
+
+## Region as the Instrument
+
+Trichotomous variable (Atlanta, Seattle, Connecticut)
+
+1. Is there an association between region and use of mammography?
+    + Literature suggests that there is.
+    + These data seem to back the claim up.
+
+## Region as Instrument?
+
+2. Is there no correlation between region and the unobserved covariates associated with the outcome (once we've adjusted for observed covariates in the model)?
+    + Cannot test this statistically.
+    + "Seems reasonable" that outcome for someone using mammography in one region shouldn't differ from outcome for someone of similar characteristics using mammography in another.
+
+### The Detailed Argument
+
+- We have to agree that we would expect that a woman with certain characteristics (age, race, etc.) receiving regular screening in Seattle would have the same likelihood of early stage disease diagnosed from mammography had she lived in Atlanta or Connecticut.
+- If this is not true, implies that follow-up after a positive mammogram differs by region.
+
+## Two-Stage Model for Instrumental Variables Approach
+
+1. Predict user status using covariates and the instrument(s). 
+   + Obtain predicted probability of mammography use for each subject.
+
+2. Predict stage at diagnosis (early or late) using the usual covariates (not including the instrument) along with the predicted probability of mammography use (instead of actual user status).
+
+## Instrumental Variable Results
+
+- Precision will be drastically reduced from what we've seen in the previous analyses.
+   + Replacing 0/1 user status with a prediction that can vary across (0, 1).
+   
+### Conclusion
+
+Regular users have **3.01** times the odds of being diagnosed at an early stage relative to non-users.
+ 
+- 95\% CI for odds ratio: (1.09, 8.34)
+
+## Comparison of Approaches
+
+We start with the **standard analysis**, a logistic regression predicting stage at diagnosis that includes as independent variables a set of covariates to adjust for differences in baseline risk plus an indicator variable for whether the woman used screening. Next, we employ **propensity score matching**, which evens out the distribution of measured baseline characteristics across groups, and is more robust to model misspecification than the standard analysis. Lastly, we conduct an **instrumental variable** analysis, which addresses unmeasured differences between the users and non-users.
+
+Approach | *OR* | 95\% CI
+-------: | ----: | -----:
+Risk Adjustment       | 2.97 | 2.56, 3.45
+Propensity "Matching" | 3.24 | 2.69, 3.88
+Instrumental Variable | 3.01 | 1.09, 8.34
+
+*OR* = odds of regular users being diagnosed at an early stage relative to non-users
+
+## Posner et al. Conclusions (1/2)
+
+> In summary, all three analyses - the standard regression, the propensity score matching, and the instrumental variable analysis using region as the instrument - produced very similar results. The similarity of these results helps strengthen the credibility of the standard regression analysis. There is little model mis-specification, either from measured variables, as seen via the propensity score matching, nor from unmeasured variables (that meet the instrumental variable criteria), as seen via the instrumental variable analysis. 
+
+## Posner et al. Conclusions (2/2)
+
+> We recommend that investigators analyzing administrative databases or other observational studies consider the sources of bias that may affect their results. ... It is important to look beyond the standard analysis and to consider propensity score matching when there is concern about group differences in measured covariates and instrumental variable analysis when there is concern about differences in unmeasured covariates.
+
+## Characteristics that should get you more interested in a health study
+
+*Finally, A Formula for Decoding Health News*\footnote{http://fivethirtyeight.com/features/a-formula-for-decoding-health-news/}, by Jeff Leek
+
+![](leeklist.png)
+
+
+# What might we find in a REPORT on an observational study that would make us think it was a good or important one?
+
+## Some suggestions about good/important elements of such a report
+
+- Were the treatment groups well matched on all important covariates?
+- Would a lot of hidden bias be necessary to alter the study's conclusions?
+- The variables measured for outcomes and covariates make sense.
+- Is there adequate follow-up to address all of the key endpoints?
+- Do the findings tell us something new and/or surprising?
+- Was the study designed to minimize confounding and/or bias?
+- Are any large unmeasured potential biases apparent?
+- I look for candor - are we implicitly or explicitly convinced that selection bias has been adequately addressed?
+- The approach makes biologically plausible sense, and does not miss some glaringly obvious confounder.
+- Severity/acuity of illness is addressed.
+
+## More suggestions about good/important elements of such a report
+
+- Does the study address a meaningful issue - either one that affects large numbers of people, or a small group with serious medical concerns?
+- Has confounding been accounted for? 
+- Are the conclusions appropriate given the statistical design/methodology?
+- Do baseline characteristics describe the study population well?
+- Are the groups actually comparable?
+- Does the outcome of the study change the way medicine is practiced?
+- Can subgroup analyses be done?
+
+## How Can We Avoid Being Misled by Observational Studies?
+
+1. What differentiates an observational study from a randomized controlled trial?
+    + One key element: potential for selection bias.
+2. What is selection bias, and why should I care about it?
+    + Baseline characteristics of comparison groups are different in ways that affect the outcome.
+3. What can be done to deal with selection bias in observational studies?
+    + Propensity score methods for overt bias.
+    + Sensitivity analyses to deal with hidden bias.
+
+## How Should We Approach Strategizing About Impact?
+
+One faces the choice between using one's brain and finding the optimum strategy, or using one's ears and doing what everyone else is doing.
+
+- How can we make our investigations compelling to our intended audience?
+- Why is this hard?
+    + Audience is not focused on statistical techniques
+    + Audience may have limited training in statistics
+- Why is this important?
+    + Who makes key policy decisions?
+    + Who needs to be convinced by the evidence?
+
+## Strategic Issues in Observational Studies
+
+- Design observational studies
+    + Exert as much experimental control as possible, carefully consider the selection process, and anticipate hidden biases
+- Focus on simple comparisons
+    + Increase impact of results on consumers
+- Compare subjects who looked comparable prior to treatment
+- Use sensitivity analyses to delimit discussions of hidden biases due to unobserved covariates
+

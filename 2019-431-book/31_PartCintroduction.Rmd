@@ -1,0 +1,83 @@
+# (PART\*) Part C. Building Models {-}
+
+# Introduction for Part C
+
+In 431, my primary goal is to immerse you in several cases, which will demonstrate good statistical practice in the analysis of data using multiple regression models. Often, we will leave gaps for 432, but the principal goal is to get you to the point where you can do a solid (if not quite complete) analysis of data for the modeling part of your project.
+
+The ten main topics to be discussed or reviewed in these notes are:
+
+1.	Describing the multivariate relationship
+    a.	Scatterplots and smoothing
+    b.	Correlation coefficients, Correlation matrices
+2.	Transformations and Re-expression
+    a.	The need for transformation
+    b.	Using a Box-Cox method to help identify effective transformation choices
+3.	Testing the significance of a multiple regression model
+    a.	T tests for individual predictors as last predictor in
+    b.	Global F tests based on ANOVA to assess overall predictive significance
+    c.	Incremental and Sequential testing of groups of predictors
+4.	Interpreting the predictive value of a model
+    a.	R^2^ and Adjusted R^2^, along with AIC and BIC 
+    b.	Residual standard deviation and RMSE
+    c.	Estimating the effect size in terms of raw units, standard deviations or IQRs
+    d.	Fitted values; Distinguishing prediction from confidence intervals
+5.	Checking model assumptions
+    a.	Residual Analysis including studentized residuals, and the major plots
+    b.	Identifying points with high Leverage
+    c.	Assessing Influence numerically and graphically
+    d.	Measuring and addressing collinearity
+6.	Model Selection
+    a.	The importance of parsimony
+    b.	Stepwise regression and other automated techniques
+7.	Assessing Predictive Accuracy through Cross-Validation
+    a.	Summaries of predictive error
+8.	Dealing with Missing Values sensibly
+    a.	Imputation vs. Complete Case analyses
+    b.	Including a missing data category vs. simple imputation vs. removal
+9.	Dealing with Categorical Predictors
+    a.	Indicator variables
+    b.	Impact of Categorical Variables on the rest of our Modeling 
+10.	Summarizing the Key Findings of the Model, briefly and accurately
+    a.	Making the distinction between causal findings and associations
+    b.	The importance of logic, theory and empirical evidence. (LTE)
+
+## Additional Reading 
+
+@Vittinghoff is strong in this area. The relevant sections of the text for 431 Part C are
+
+- Section 3.3 on the Simple Linear Regression Model
+- Chapter 4 on Linear Regression, where most of the material is relevant to 431, although we'll postpone the discussion of cubic splines, mostly, to 432.
+- Chapters 10 (Model Selection) in particular the alternatives to R^2^ in 10.1.3.2 and some of the material on cross-validation, though we'll do much more in 432.
+- A little of Chapter 11 (Missing Data), specifically, section 11.1.1 and a little of section 11.3, although we'll do more on this in 432 as well.
+
+## Scatterplots
+
+We have often accompanied our scatterplots with regression lines estimated by the method of least squares, and by loess smooths which permit local polynomial functions to display curved relationships, and occasionally presented in the form of a scatterplot matrix to enable simultaneous comparisons of multiple two-way associations.
+
+## Correlation Coefficients
+
+By far the most commonly used is the Pearson correlation, which is a unitless (scale-free) measure of bivariate linear association  for the variables X and Y, symbolized by r, and ranging from -1 to +1. The Pearson correlation is a function of the slope of the least squares regression line, divided by the product of the standard deviations of X and Y.
+
+We have also mentioned the Spearman rank correlation coefficient, which is obtained by using the usual formula for a Pearson correlation, but on the ranks (1 = minimum, n = maximum, with average ranks are applied to the ties) of the X and Y values. This approach (running a correlation of the orderings of the data) substantially reduces the effect of outliers. The result still ranges from -1 to +1, with 0 indicating no linear association.
+
+## Fitting a Linear Model
+
+We have fit several styles of linear model to date, including both *simple* regressions, where our outcome Y is modeled as a linear function of a single predictor X, and *multiple* regression models, where more than one predictor is used. Important elements of a regression fit, obtained through the `summary` function for a `lm` object, include
+
+- the estimated coefficients (intercept and slope(s)) of the fitted model, and 
+- the R^2^ or coefficient of determination, which specifies the proportion of variation in our outcome accounted for by the linear model.
+
+## Building Predictions from a Linear Model
+
+We've also used the `predict` function applied to a `lm` object to obtain point and interval estimates for our outcome based on new values of the predictor(s). We've established both *confidence intervals* from such models, which describe the mean result across a population of subjects with the new predictor values, and *prediction intervals* which describe an individual result for a new subject with those same new values. Prediction intervals are much wider than confidence intervals.
+
+## Data Sets for Part C
+
+```{r partcdata}
+hydrate <- read.csv("data/hydrate.csv") %>% tbl_df
+hers1race <- read.csv("data/hers1race.csv") %>% tbl_df
+wcgs <- read.csv("data/wcgs.csv") %>% tbl_df
+emp_bmi <- read.csv("data/emp_bmi.csv") %>% tbl_df
+gala <- read.csv("data/gala.csv") %>% tbl_df
+```
+

@@ -1,0 +1,60 @@
+--- 
+title: "Fall 2019 Project Instructions for 431"
+author: "Thomas E. Love"
+date: "Version: `r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+github-repo: THOMASELOVE/2019-431-project
+description: "These are the Fall 2019 instructions for the Course Project work in PQHS / CRSP / MPHP 431 with Professor Love."
+---
+
+# Overview {-}
+
+This website contains the Fall 2019 project information for PQHS / CRSP / MPHP 431: Statistical Methods in Biological & Medical Sciences, Section 1, with Professor Love. 
+
+- All materials related to the project (including these instructions) are maintained and linked at https://github.com/THOMASELOVE/2019-431-project. 
+- The direct link to this document is https://thomaselove.github.io/2019-431-project.
+
+## You Will Be Doing Two Studies {-}
+
+You will complete two separate studies this semester. Your final course project includes a portfolio of work, including material from each study.
+
+**Study A - Class Survey**. In the first study, you (sometimes working individually, sometimes in a group) will design, administer, analyze and present the results of a survey designed to compare two or three groups of subjects on some *categorical* and *quantitative* outcomes we will develop.
+
+**Study B - Your Data**. In the second study, you (working individually) will propose a research question and relevant data of interest to you, and then complete all elements of a data science project designed to create a statistical (regression) model for a *quantitative* outcome, then use it for prediction and assess the quality of those predictions.
+
+## Your Tasks this Semester {-}
+
+The project involves two analyses (one for the class survey and one for your personal study), and a series of nine tasks associated with each study, as listed below. Due dates for all tasks appear within their detailed instructions later in this document, and also [in the Course Calendar](https://github.com/THOMASELOVE/2019-431/blob/master/calendar.md).
+
+Task # | Study A: Class Survey | Study B: Your Data
+:-----: | :---------------------- | :----------------------
+1 | [Scheduling Your Presentation](#task1) | [Scheduling Your Presentation](#task1)
+2 | [Study A Proposal](#task2a) | [Study B Proposal](#task2b)
+3 | [Review/Edit Survey Items](#task3a) | [Data Collection Update](#task3b)
+4 | [Taking the Survey](#task4a) | [Sharing Your Raw Data](#task4b)
+5 | [Planned Comparisons: Six Analyses](#task5a) | [Sharing Tidied Data and Codebook](#task5b)
+6 | [The Study A Portfolio](#task6a) | [The Study B Portfolio](#task6b)
+7 | [Portfolio Presentation](#task7) | [Portfolio Presentation](#task7)
+
+The bulk of this document contains specific instructions for these tasks.
+
+## Working with This Document {-}
+
+1. This document is broken down into multiple sections. Use the table of contents at left to navigate. 
+2. At the top of the document, you'll see icons which you can click to 
+    - search the document, 
+    - change the size, font or color scheme of the page, and 
+    - download a PDF or EPUB (Kindle-readable) version of the entire document.
+3. The document is a work in progress, and will be updated occasionally through the semester. Check the Version information above to verify the date of the last update.
+
+## Need Help? {-}
+
+Questions about the project or the course should be directed to **431-help at case dot edu** or to Dr. Love directly at `thomas dot love at case dot edu`.
+
+- The course home page is at https://github.com/THOMASELOVE/2019-431
+

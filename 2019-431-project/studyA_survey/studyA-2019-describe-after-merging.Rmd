@@ -1,0 +1,37 @@
+---
+title: "Study A Survey Data After Merging"
+author: "Thomas E. Love"
+date: "2019-11-22"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+
+library(magrittr); library(here); library(janitor)
+library(tidyverse)
+
+studyA <- read.csv("Data_for_Students/studyA-2019-complete-responses.csv") %>%
+    mutate(subject = as.character(subject)) %>%
+    tbl_df
+```
+
+# `Hmisc::describe` for the entire data set
+
+```{r}
+Hmisc::describe(studyA)
+```
+
+# Check All That Apply items
+
+```{r}
+studyA %>% tabyl(Q029)
+```
+
+```{r}
+studyA %>% tabyl(Q030)
+```
+
+```{r}
+studyA %>% tabyl(Q055)
+```

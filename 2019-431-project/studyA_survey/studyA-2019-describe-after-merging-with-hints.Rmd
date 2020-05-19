@@ -1,0 +1,71 @@
+---
+title: "Study A Survey Data After Merging"
+author: "Thomas E. Love"
+date: "2019-11-22"
+output: pdf_document
+---
+
+# Steps to use the data I provided
+
+1. Create a directory called `431projectA` on your computer.
+2. Create a subdirectory called `studyAdata` on your computer, underneath `431projectA.`
+3. Place the five data sets in your `studyAdata` directory.
+4. Create a subdirectory called `R` on your computer, also underneath `431projectA`.
+5. Place the `Love-boost.R` file in the `R` subdirectory you just created.
+6. Open R Studio
+7. Create a new R project in your `431projectA` directory using **File ... New Project** and then select Existing Directory, and feed it your `431projectA` main directory. That is where your R Markdown files will live.
+
+With this setup in mind, I then used the following code to obtain the results below.
+
+# Initial Setup
+
+```{r setup}
+knitr::opts_chunk$set(comment = NA)
+```
+
+```{r}
+library(magrittr); library(here); library(janitor)
+library(readxl); library(tidyverse)
+```
+
+```{r}
+studyA_file1 <- read_csv(here("studyAdata", "studyA-2019-student-data-01.csv")) %>%
+    mutate(subject = as.character(subject)) 
+
+studyA_file2 <- read_xls(here("studyAdata", "studyA-2019-student-data-02.xls")) %>%
+    mutate(subject = as.character(subject)) %>%
+    tbl_df
+
+studyA_file3 <- read_xls(here("studyAdata", "studyA-2019-student-data-03.xls")) %>%
+    mutate(subject = as.character(subject)) %>%
+    tbl_df
+
+studyA_file4 <- read_csv(here("studyAdata", "studyA-2019-student-data-02.csv")) %>%
+    mutate(subject = as.character(subject))
+
+studyA_file5 <- read_csv(here("studyAdata", "studyA-2019-student-data-02.csv")) %>%
+    mutate(subject = as.character(subject))
+
+```
+
+
+
+# `Hmisc::describe` for the entire data set
+
+```{r}
+Hmisc::describe(studyA)
+```
+
+# Check All That Apply items
+
+```{r}
+studyA %>% tabyl(Q029)
+```
+
+```{r}
+studyA %>% tabyl(Q030)
+```
+
+```{r}
+studyA %>% tabyl(Q055)
+```

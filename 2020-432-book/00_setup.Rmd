@@ -1,0 +1,80 @@
+# R Packages used in these notes {-}
+
+Here, we'll load in the packages used in these notes.
+
+```{r load_packages, message = FALSE, warning = FALSE}
+## packages I've used in the first few chapters
+
+library(tableone) 
+library(visdat) 
+library(naniar) 
+library(broom) 
+library(haven) 
+library(here)
+library(caret)
+library(simputation)
+library(car)
+library(patchwork) 
+library(janitor) 
+library(magrittr)
+library(rms)
+library(mice)
+library(leaps)
+library(lars)
+library(Epi)
+library(pROC)
+library(ROCR)
+library(VGAM)
+
+## not yet used, I think
+
+library(ggridges)
+library(pander)
+library(arm)
+library(survival)
+library(survminer)
+
+library(modelr)
+library(kableExtra)
+
+## and of course, we conclude with...
+library(tidyverse) # used
+```
+
+```{r special_functions}
+specify_decimal <- function(x, k) format(round(x, k), nsmall=k)
+```
+
+## General Theme for `ggplot` work {-}
+
+```{r}
+theme_set(theme_bw())
+```
+
+
+## Data used in these notes {-}
+
+Here, we'll load in the data sets used in these notes.
+
+```{r load_data, message = FALSE, warning = FALSE}
+
+## already used
+
+fakestroke <- read.csv("data/fakestroke.csv") %>% tbl_df
+bloodbrain <- read.csv("data/bloodbrain.csv") %>% tbl_df
+prost <- read.csv("data/prost.csv") %>% tbl_df
+pollution <- read.csv("data/pollution.csv") %>% tbl_df
+
+bonding <- read.csv("data/bonding.csv") %>% tbl_df
+cortisol <- read.csv("data/cortisol.csv") %>% tbl_df
+emphysema <- read.csv("data/emphysema.csv") %>% tbl_df
+resect <- read.csv("data/resect.csv") %>% tbl_df
+colscr <- read.csv("data/screening.csv") %>% tbl_df
+colscr2 <- read.csv("data/screening2.csv") %>% tbl_df
+authorship <- read_csv("data/authorship.csv") 
+hem <- read.csv("data/hem.csv") %>% tbl_df
+leukem <- read.csv("data/leukem.csv") %>% tbl_df
+```
+
+
+

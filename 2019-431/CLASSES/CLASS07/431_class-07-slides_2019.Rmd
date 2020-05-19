@@ -1,0 +1,1244 @@
+---
+title: "431 Class 07"
+author: "github.com/THOMASELOVE/2019-431"
+date: "2019-09-17"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    fonttheme: "structurebold"
+    colortheme: "whale"
+    fig_height: 5.5
+    fig_caption: false
+---
+
+```{r set-options, echo=FALSE, cache=FALSE, message = FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+## Today's Agenda
+
+**Are these data well described by a Normal model?**
+
+1. Why should we care?
+2. How can we check?
+  - Histograms
+  - Normal Q-Q plots
+  - Boxplots with Violins
+  - Numerical Approaches
+3. What can we do about non-Normal data?
+  - Summarize it with median and IQR, not mean and SD
+  - Transform the data (perhaps a power transformation)?
+
+## Today's Packages
+
+The R packages we're using today are `NHANES`, `magrittr`, `janitor` and `tidyverse`.
+
+```{r load_packages, message = FALSE}
+library(NHANES); library(magrittr)
+library(janitor); library(tidyverse)
+```
+
+### CWRU Colors
+
+```{r}
+cwru.blue <- '#0a304e'
+cwru.gray <- '#626262'
+```
+
+## Our `nh2` data set, yet again
+
+```{r}
+set.seed(20190910) # so we can get the same sample again
+
+nh2 <- NHANES %>%
+    filter(SurveyYr == "2011_12") %>%
+    select(ID, SurveyYr, Age, Height, Weight, BMI, Pulse,
+           SleepHrsNight, BPSysAve, BPDiaAve, Gender, 
+           PhysActive, SleepTrouble, Smoke100, 
+           Race1, HealthGen, Depressed) %>%
+    rename(SleepHours = SleepHrsNight, Sex = Gender,
+           SBP = BPSysAve, DBP = BPDiaAve) %>%
+    filter(Age > 20 & Age < 80) %>% ## ages 21-79 only
+    drop_na() %>% # removes all rows with NA
+    sample_n(., size = 1000) %>% # sample 1000 rows
+    clean_names() # from the janitor package (snake case)
+```
+
+## Today's Variables
+
+Name | Description
+------: | ------------------------------------------------
+`pulse` | 60 second pulse rate
+
+Name | Levels | Description
+------: | :---: | --------------------------------------------
+`sex` | F, M | Sex of study subject
+
+Name | Levels | Description
+------: | :---: | --------------------------------------------
+`health_gen` | 5 | Self-reported overall general health
+
+## Building a Subset of Interest
+
+Let's look at a subset of the `nh2` data, consisting of males who rated their general health as either Good or Very Good.
+
+```{r}
+nh2 %>% tabyl(sex, health_gen)
+```
+
+How many people are we talking about?
+
+## Obtaining our Subset of Interest
+
+```{r}
+nh2_GVGmales <- nh2 %>%
+  filter(sex == "male" & 
+           health_gen %in% c("Good", "Vgood"))
+
+dim(nh2_GVGmales)
+```
+
+Let's see what we can learn about the pulse rates of these subjects.
+
+## Mean or the Median to describe center?
+
+We're looking at pulse rates in our `nh2_GVGmales` subset of the `nh2` data, consisting of males who rated their general health as either Good or Very Good.
+
+```{r, message = FALSE}
+nh2_GVGmales %$% mosaic::favstats(~ pulse)
+```
+
+1. Should we choose the mean or the median to represent the center of the distribution?
+
+## How should we describe spread?
+
+Same subset:
+
+```{r, message = FALSE}
+nh2_GVGmales %$% mosaic::favstats(~ pulse)
+```
+
+2. Should we choose the standard deviation or the interquartile range to describe the spread of the distribution?
+
+```{r}
+nh2_GVGmales %$% IQR(pulse)
+```
+
+## What Summaries to Report (Notes, Section 7)
+
+It is usually helpful to focus on the shape, center and spread of a distribution. Bock, Velleman and DeVeaux provide some useful advice:
+
+- If the data are skewed, report the median and IQR (or the three middle quantiles). You may want to include the mean and standard deviation, but you should point out why the mean and median differ. The fact that the mean and median do not agree is a sign that the distribution may be skewed. A histogram will help you make that point.
+- If the data are symmetric, report the mean and standard deviation, and possibly the median and IQR as well.
+- If there are clear outliers and you are reporting the mean and standard deviation, report them with the outliers present and with the outliers removed. The differences may be revealing. The median and IQR are not likely to be seriously affected by outliers.
+
+## What is a Normal Model?
+
+By a Normal model, we mean that the data are assumed to be the result of selecting at random from a probability distribution called the Normal (or Gaussian) distribution, which is characterized by a bell-shaped curve, and can be defined by establishing the values of two parameters: the mean and the standard deviation.
+
+```{r, eval = FALSE}
+mean_1 <- 100; sd_1 <- 15
+x_1 <- seq(-4, 4, length = 100)*sd_1 + mean_1
+y_1 <- dnorm(x_1, mean_1, sd_1)
+tempdat <- tibble(x_1, y_1)
+
+ggplot(tempdat, aes(x = x_1, y = y_1)) +
+  geom_area(fill = "slateblue", alpha = 0.6) + 
+  theme_light() + 
+  labs(x = "x ~ Normal(100, 15)", 
+       y = "Probability density") +
+  scale_x_continuous(breaks = c(70, 85, 100, 115, 130))
+```
+
+## Plotting the Normal model with mean 100, sd 15
+
+```{r, echo = FALSE}
+mean_1 <- 100; sd_1 <- 15
+x_1 <- seq(-4, 4, length = 100)*sd_1 + mean_1
+y_1 <- dnorm(x_1, mean_1, sd_1)
+tempdat <- tibble(x_1, y_1)
+
+ggplot(tempdat, aes(x = x_1, y = y_1)) +
+  geom_area(fill = "slateblue", alpha = 0.6) + 
+  theme_light() + 
+  labs(x = "x ~ Normal(100, 15)", 
+       y = "Probability density") +
+  scale_x_continuous(breaks = c(70, 85, 100, 115, 130))
+```
+
+## Normal Model (Mean = 100, SD = 15)
+
+```{r, echo = FALSE}
+mean_1 <- 100; sd_1 <- 15
+x_1 <- seq(-4, 4, length = 100)*sd_1 + mean_1
+y_1 <- dnorm(x_1, mean_1, sd_1)
+tempdat <- tibble(x_1, y_1)
+
+ggplot(tempdat, aes(x = x_1, y = y_1)) +
+  geom_area(fill = "slateblue", alpha = 0.6) + 
+  theme_light() + 
+  labs(x = "x ~ Normal(100, 15)", 
+       y = "Probability density") +
+  scale_x_continuous(breaks = c(70, 85, 100, 115, 130)) +
+  geom_vline(aes(xintercept = 100), col = "red") +
+  geom_text(aes(x = 100, y = 0.0275), col = "red",
+            label = "Mean = 100")
+```
+
+## Normal Model: Mean = Median (symmetric)
+
+```{r, echo = FALSE}
+mean_1 <- 100; sd_1 <- 15
+x_1 <- seq(-4, 4, length = 100)*sd_1 + mean_1
+y_1 <- dnorm(x_1, mean_1, sd_1)
+tempdat <- tibble(x_1, y_1)
+
+ggplot(tempdat, aes(x = x_1, y = y_1)) +
+  geom_area(fill = "slateblue", alpha = 0.6) + 
+  theme_light() + 
+  labs(x = "x ~ Normal(100, 15)", 
+       y = "Probability density") +
+  scale_x_continuous(breaks = c(70, 85, 100, 115, 130)) +
+  geom_vline(aes(xintercept = 100), col = "red") +
+  geom_text(aes(x = 100, y = 0.0275), col = "red",
+            label = "Mean = 100") +
+  geom_text(aes(x = 90, y = 0.008), col = "white",
+            label = "50%", size = 6) +
+  geom_text(aes(x = 110, y = 0.008), col = "white",
+            label = "50%", size = 6)
+```
+
+## Normal Model: 68.26% of data within 1 SD of mean
+
+```{r, echo = FALSE}
+mean_1 <- 100; sd_1 <- 15
+x_1 <- seq(-4, 4, length = 100)*sd_1 + mean_1
+y_1 <- dnorm(x_1, mean_1, sd_1)
+tempdat <- tibble(x_1, y_1)
+
+ggplot(tempdat, aes(x = x_1, y = y_1)) +
+  geom_area(fill = "slateblue", alpha = 0.6) + 
+  theme_light() + 
+  labs(x = "x ~ Normal(100, 15)", 
+       y = "Probability density") +
+  scale_x_continuous(breaks = c(70, 85, 100, 115, 130)) +
+  geom_vline(aes(xintercept = 100), col = "white") +
+  geom_vline(aes(xintercept = 85), col = "white") +
+  geom_vline(aes(xintercept = 115), col = "white") +
+  geom_text(aes(x = 100, y = 0.0275), col = "red",
+            label = "Mean = 100") +
+  geom_text(aes(x = 92.5, y = 0.006), col = "white",
+            label = "34.13%", size = 6) +
+  geom_text(aes(x = 107.5, y = 0.006), col = "white",
+            label = "34.13%", size = 6)
+```
+
+## Normal Model: 95.45% of data within 2 SD of mean
+
+```{r, echo = FALSE}
+mean_1 <- 100; sd_1 <- 15
+x_1 <- seq(-4, 4, length = 100)*sd_1 + mean_1
+y_1 <- dnorm(x_1, mean_1, sd_1)
+tempdat <- tibble(x_1, y_1)
+
+ggplot(tempdat, aes(x = x_1, y = y_1)) +
+  geom_area(fill = "slateblue", alpha = 0.6) + 
+  theme_light() + 
+  labs(x = "x ~ Normal(100, 15)", 
+       y = "Probability density") +
+  scale_x_continuous(breaks = c(70, 85, 100, 115, 130)) +
+  geom_vline(aes(xintercept = 100), col = "white") +
+  geom_vline(aes(xintercept = 70), col = "white") +
+  geom_vline(aes(xintercept = 130), col = "white") +
+  geom_text(aes(x = 100, y = 0.0275), col = "red",
+            label = "Mean = 100") +
+  geom_text(aes(x = 85, y = 0.004), col = "white",
+            label = "~47.7%", size = 6) +
+  geom_text(aes(x = 115, y = 0.004), col = "white",
+            label = "~47.7%", size = 6)
+```
+
+## What a Normal (100, 15) Model Means!
+
+```{r, echo = FALSE}
+ggplot(tempdat, aes(x = x_1, y = y_1)) +
+  geom_area(fill = "wheat") + theme_classic() + 
+  scale_x_continuous(breaks = c(85, 100, 115, 70, 130)) +
+  geom_vline(aes(xintercept = 100), col = "white") +
+  geom_vline(aes(xintercept = 85), col = "white") +
+  geom_vline(aes(xintercept = 115), col = "white") +
+  geom_vline(aes(xintercept = 70), col = "white") +
+  geom_vline(aes(xintercept = 130), col = "white") +
+  geom_text(aes(x = 100, y = 0.0275), col = "red",
+            label = "Mean = 100") +
+  geom_text(aes(x = 92.5, y = 0.008), col = cwru.blue,
+            label = "~34.1%", size = 6) +
+  geom_text(aes(x = 107.5, y = 0.008), col = cwru.blue,
+            label = "~34.1%", size = 6) +
+  geom_text(aes(x = 77.5, y = 0.004), col = cwru.blue,
+            label = "~13.6%", size = 6) +
+  geom_text(aes(x = 122.5, y = 0.004), col = cwru.blue,
+            label = "~13.6%", size = 6) +
+  geom_text(aes(x = 53, y = 0.02), col = "black", size = 5,
+            label = "~68% of distribution \n within 1 SD of mean") +
+  geom_text(aes(x = 147, y = 0.02), col = "black", size = 5,
+            label = "~95% of distribution \n within 2 SD of mean") +
+  labs(x = "x ~ Normal(100, 15)", y = "Probability density")
+```
+
+## What a Normal (0, 1) Model Means!
+
+```{r, echo = FALSE}
+mean_2 <- 0; sd_2 <- 1
+x_2 <- seq(-4, 4, length = 100)*sd_2 + mean_2
+y_2 <- dnorm(x_2, mean_2, sd_2)
+tempdat2 <- tibble(x_2, y_2)
+
+ggplot(tempdat2, aes(x = x_2, y = y_2)) +
+  geom_area(fill = "wheat") + theme_classic() + 
+  scale_x_continuous(breaks = c(-2, -1, 0, 1, 2)) +
+  geom_vline(aes(xintercept = 0), col = "white") +
+  geom_vline(aes(xintercept = -1), col = "white") +
+  geom_vline(aes(xintercept = -2), col = "white") +
+  geom_vline(aes(xintercept = 1), col = "white") +
+  geom_vline(aes(xintercept = 2), col = "white") +
+  geom_text(aes(x = 0, y = 0.41), col = "red",
+            label = "Mean = 0") +
+  geom_text(aes(x = -0.5, y = 0.15), col = cwru.blue,
+            label = "~34.1%", size = 6) +
+  geom_text(aes(x = 0.5, y = 0.15), col = cwru.blue,
+            label = "~34.1%", size = 6) +
+  geom_text(aes(x = -1.5, y = 0.05), col = cwru.blue,
+            label = "~13.6%", size = 6) +
+  geom_text(aes(x = 1.5, y = 0.05), col = cwru.blue,
+            label = "~13.6%", size = 6) +
+  geom_text(aes(x = -2.7, y = 0.2), col = "black", size = 5,
+            label = "~68% of distribution \n within 1 SD of mean") +
+  geom_text(aes(x = 2.7, y = 0.2), col = "black", size = 5,
+            label = "~95% of distribution \n within 2 SD of mean") +
+  labs(x = "x ~ Normal(0, 1)", y = "Probability density")
+```
+
+## Empirical Rule for a Normal Model
+
+If the data followed a Normal distribution, perfectly, then about:
+
+- 68% of the data would fall within 1 standard deviation of the mean
+- 95% of the data would fall within 2 standard deviations of the mean
+- 99.7% of the data would fall within 3 standard deviations of the mean
+
+Remember that, regardless of the distribution of the data:
+
+- Half of the data will fall below the median, and half above it.
+- Half of the data will fall in the Interquartile Range (IQR).
+
+## Histogram of Pulse Rates in `nh2_GVGmales`
+
+```{r, eval = FALSE}
+ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = 4, 
+                 fill = cwru.blue, col = cwru.gray) +
+  labs(title = "Pulse rates from our new NHANES subsample", 
+       subtitle = 
+         paste0(nrow(nh2_GVGmales), 
+               " Males reporting Good or Very Good health"))
+```
+
+Plot on the next slide. Could a Normal model describe these data well?
+
+## Would a Normal Model describe these rates well?
+
+```{r, echo = FALSE}
+ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = 4, 
+                 fill = cwru.blue, col = cwru.gray) +
+  labs(title = "Pulse rates from our new NHANES subsample", 
+       subtitle = 
+         paste0(nrow(nh2_GVGmales), 
+               " Males reporting Good or Very Good health"))
+```
+
+## Superimposing a Normal model
+
+```{r, eval = FALSE}
+res <- mosaic::favstats(~ pulse, data = nh2_GVGmales)
+bin_w <- 4 # specify binwidth
+
+ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = bin_w, 
+                 fill = cwru.blue, 
+                 col = cwru.gray) +
+  theme_bw() +
+  stat_function(
+    fun = function(x) dnorm(x, mean = res$mean, 
+                            sd = res$sd) * res$n * bin_w,
+    col = "tomato", size = 2) +
+labs(title = "Pulse Rates for nh2_GVGmales sample", 
+       subtitle = "With Normal Model Superimposed",
+       x = "Pulse Rate (in beats per minute)")
+```
+
+## Superimposing a Normal model
+
+```{r, echo = FALSE}
+res <- mosaic::favstats(~ pulse, data = nh2_GVGmales)
+bin_w <- 4 # specify binwidth
+
+ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = bin_w, 
+                 fill = cwru.blue, 
+                 col = cwru.gray) +
+  theme_bw() +
+  stat_function(
+    fun = function(x) dnorm(x, mean = res$mean, 
+                            sd = res$sd) * res$n * bin_w,
+    col = "tomato", size = 2) +
+labs(title = "Pulse Rates for nh2_GVGmales sample", 
+       subtitle = "With Normal Model Superimposed",
+       x = "Pulse Rate (in beats per minute)")
+```
+
+## Boxplot Identification of Outlier Candidates
+
+- Upper fence = Q75 + 1.5 `IQR` 
+- Lower fence = Q25 - 1.5 `IQR`
+
+```{r}
+nh2_GVGmales %>% select(pulse) %>% summary()
+```
+
+## Boxplot Identification of Outlier Candidates
+
+- Upper fence = Q75 + 1.5 `IQR` 
+- Lower fence = Q25 - 1.5 `IQR`
+
+```{r}
+nh2_GVGmales %>% count("high" = pulse > 80 + (1.5*16), 
+                       "low" = pulse < 64 - (1.5*16))
+```
+
+## The actual Boxplot
+
+```{r, fig.height = 3}
+ggplot(nh2_GVGmales, aes(x = "n = 368", y = pulse)) +
+  geom_boxplot(outlier.color = "red", outlier.size = 3) +
+  coord_flip() +
+  theme_bw() +
+  labs(x = "", y = "Pulse Rate (beats/minute)", 
+       title = "Boxplot of Pulse Rates from nh2_GVGmales")
+```
+
+## Outliers and Z scores (Notes, Section 8.2)
+
+The maximum pulse rate in the data is `r max(nh2_GVGmales$pulse)`.
+
+```{r}
+mosaic::favstats(~ pulse, data = nh2_GVGmales)
+```
+
+But how unusual is that value? One way to gauge how extreme this is (or how much of an outlier it is) uses that observation's **Z score**, the number of standard deviations away from the mean that the observation falls.
+
+## Z score for Pulse = 114
+
+$$
+Z = \frac{value - mean}{sd}.
+$$
+
+For the Pulse data, the mean = 71.5 and the standard deviation is 11.9, so we have Z score for 114 = $$\frac{114 - 71.5}{11.9} = \frac{42.5}{11.9} = 3.57$$.
+
+- A negative Z score indicates a point below the mean
+- A positive Z score indicates a point above the mean
+- The Empirical Rule suggests that for a variable that followed a Normal distribution, about 95% of observations would have a Z score in (-2, 2) and about 99.7% would have a Z score in (-3, 3).
+
+## How unusual is a value as extreme as Z = 3.57?
+
+If the data really followed a Normal distribution, we could calculate the probability of obtaining as extreme a Z score as 3.57.
+
+A Standard Normal distribution, with mean 0 and standard deviation 1, is what we want, and we want to find the probability that a random draw from such a distribution would be 3.57 or higher, *in absolute value*. So we calculate the probability of 3.57 or more, and add it to the probability of -3.57 or less, to get an answer to the question of how likely is it to see an outlier this far away from the mean.
+
+```{r}
+pnorm(q = 3.57, mean = 0, sd = 1, lower.tail = FALSE)
+pnorm(q = -3.57, mean = 0, sd = 1, lower.tail = TRUE)
+```
+
+## But the Normal distribution is symmetric
+
+```{r}
+2*pnorm(q = 3.57, mean = 0, sd = 1, lower.tail = FALSE)
+```
+
+The probability that a single draw from a Normal distribution with mean 0 and standard deviation 1 will produce a value as extreme as 3.57 is 0.00036
+
+The probability that a single draw from a Normal distribution with mean 71.5 and standard deviation 11.9 will produce a value as extreme as 114 is also 0.00036, since the Normal model is completely characterized by its mean and standard deviation.
+
+So, is 114 an outlier here? Do the `pulse` data in this sample look like they come from a Normal distribution by this metric?
+
+## Normal Q-Q plot for these Pulse Rates
+
+```{r, fig.height = 2.5, fig.width = 2.5, fig.align = "center"}
+ggplot(nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red")
+```
+
+## What is a Normal Q-Q Plot?
+
+- The y-axis shows the data in our sample.
+- The x-axis shows the "theoretical" values (Z scores) that we would observe in a Normal distribution with the same number of observations as our data.
+- A diagonal line is drawn as a reference, as determined by the mean and standard deviation of the data.
+
+### What is a Z score?
+
+Take a value, x, drawn from a distribution with a known mean and standard deviation. Then
+
+\[
+Z = \frac{x - mean}{sd}
+\]
+
+## Interpreting the Normal Q-Q plot?
+
+The Normal Q-Q plot can help us identify data as well approximated by a Normal distribution, or not, because of:
+
+- skew (including distinguishing between right skew and left skew)
+- behavior in the tails (which could be heavy-tailed [more outliers than expected] or light-tailed)
+
+1. Normally distributed data would be indicated by close adherence of the points to the diagonal reference line.
+2. Skew is indicated by substantial curving (on both ends of the distribution) in the points away from the reference line (if both ends curve up, we have right skew; if both ends curve down, this indicates left skew)
+3. An abundance or dearth of outliers (as compared to the expectations of a Normal model) are indicated in the tails of the distribution by an "S" shape or reverse "S" shape in the points.
+
+## Simulated Data from a Normal Model
+
+```{r, echo = FALSE}
+set.seed(20190915) # so the results can be replicated
+
+# simulate 200 observations from a N(25, 5) distribution
+temp <- data.frame(sampleA = rnorm(200, 25, 5)) 
+
+p1 <- ggplot(temp, aes(sample = sampleA)) +
+    geom_qq(col = cwru.blue) + 
+    geom_qq_line(col = "tomato", size = 1.5) +
+    theme_light() +
+    labs(y = "Ordered Sample A Data",
+         title = "Sample A: Normal / Gaussian")
+
+resA <- mosaic::favstats(~ sampleA, data = temp)
+bin_wA <- 3 # specify binwidth
+
+p2 <- ggplot(temp, aes(x = sampleA)) +
+    geom_histogram(binwidth = bin_wA, 
+                   fill = cwru.blue, 
+                   col = cwru.gray) +
+    theme_bw() +
+    stat_function(
+        fun = function(x) dnorm(x, mean = resA$mean, 
+                                sd = resA$sd) * 
+            resA$n * bin_wA,
+        col = "tomato", size = 1.5) +
+labs(x = "Sample A Data", y = "",
+     title = "Sample A: Normal / Gaussian")
+
+gridExtra::grid.arrange(p1, p2, nrow = 1,
+                        top = "What does Normality Look Like?")
+```
+
+## Simulated Left-Skewed Data
+
+```{r, echo = FALSE}
+set.seed(2019431) # so the results can be replicated
+
+# simulate 200 observations from a beta(5, 1) distribution
+temp <- data.frame(sampleB = rbeta(200, 5, 1)) 
+
+p1 <- ggplot(temp, aes(sample = sampleB)) +
+    geom_qq(col = cwru.blue) + 
+    geom_qq_line(col = "tomato", size = 1.5) +
+    theme_light() +
+    labs(y = "Ordered Sample B Data",
+         title = "Sample B: Left Skewed")
+
+resB <- mosaic::favstats(~ sampleB, data = temp)
+bin_wB <- 0.025 # specify binwidth
+
+p2 <- ggplot(temp, aes(x = sampleB)) +
+    geom_histogram(binwidth = bin_wB, 
+                   fill = cwru.blue, 
+                   col = cwru.gray) +
+    theme_bw() +
+    stat_function(
+        fun = function(x) dnorm(x, mean = resB$mean, 
+                                sd = resB$sd) * 
+            resB$n * bin_wB,
+        col = "tomato", size = 1.5) +
+labs(x = "Sample B Data", y = "",
+     title = "Sample B: Left Skewed")
+
+gridExtra::grid.arrange(p1, p2, nrow = 1,
+                        top = "What does Left Skew Look Like?")
+```
+
+## Simulated Right-Skewed Data
+
+```{r, echo = FALSE}
+set.seed(2019431) # so the results can be replicated
+
+# simulate 200 observations from a beta(1, 5) distribution
+temp <- data.frame(sampleC = rbeta(200, 1, 5)) 
+
+p1 <- ggplot(temp, aes(sample = sampleC)) +
+    geom_qq(col = cwru.blue) + 
+    geom_qq_line(col = "tomato", size = 1.5) +
+    theme_light() +
+    labs(y = "Ordered Sample C Data",
+         title = "Sample C: Right Skewed")
+
+resC <- mosaic::favstats(~ sampleC, data = temp)
+bin_wC <- 0.025 # specify binwidth
+
+p2 <- ggplot(temp, aes(x = sampleC)) +
+    geom_histogram(binwidth = bin_wC, 
+                   fill = cwru.blue, 
+                   col = cwru.gray) +
+    theme_bw() +
+    stat_function(
+        fun = function(x) dnorm(x, mean = resC$mean, 
+                                sd = resC$sd) * 
+            resC$n * bin_wC,
+        col = "tomato", size = 1.5) +
+labs(x = "Sample C Data", y = "",
+     title = "Sample C: Right Skewed")
+
+gridExtra::grid.arrange(p1, p2, nrow = 1,
+                        top = "What does Right Skew Look Like?")
+```
+
+## Simulated Data from a Symmetric, Light-Tailed Distribution
+
+```{r, echo = FALSE}
+set.seed(20190915) # so the results can be replicated
+
+# simulate 200 observations from a uniform(1, 100) distribution
+temp <- data.frame(sampleD = runif(n = 200, min = 1, max = 100)) 
+
+p1 <- ggplot(temp, aes(sample = sampleD)) +
+    geom_qq(col = cwru.blue) + 
+    geom_qq_line(col = "tomato", size = 1.5) +
+    theme_light() +
+    labs(y = "Ordered Sample D Data",
+         title = "Sample D: Symmetric, Light-Tailed")
+
+p2 <- ggplot(temp, aes(x = "D", y = sampleD)) +
+    geom_violin(col = cwru.blue) +
+    geom_boxplot(fill = "tomato", width = 0.2) +
+    theme_bw() +
+labs(y = "Sample D Data", x = "",
+     title = "Sample D: Symmetric, Light-Tailed")
+
+gridExtra::grid.arrange(p1, p2, nrow = 1,
+    top = "What does a Symmetric but Light-Tailed distribution Look Like?")
+```
+
+## Simulated Data from a Symmetric, Heavy-Tailed Distribution
+
+```{r, echo = FALSE}
+set.seed(20190915) # so the results can be replicated
+
+# simulate 200 observations from a Cauchy(10, 1) distribution
+temp <- data.frame(sampleE = rcauchy(200, location=10, scale = 1)) 
+
+p1 <- ggplot(temp, aes(sample = sampleE)) +
+    geom_qq(col = cwru.blue) + 
+    geom_qq_line(col = "tomato", size = 1.5) +
+    theme_light() +
+    labs(y = "Ordered Sample E Data",
+         title = "Sample E: Symmetric, Heavy-Tailed")
+
+p2 <- ggplot(temp, aes(x = "E", y = sampleE)) +
+    geom_violin(col = cwru.blue) +
+    geom_boxplot(fill = "tomato", width = 0.2) +
+    theme_bw() +
+labs(y = "Sample E Data", x = "",
+     title = "Sample E: Symmetric, Heavy-Tailed")
+
+gridExtra::grid.arrange(p1, p2, nrow = 1,
+    top = "What does a Symmetric but Heavy-Tailed distribution Look Like?")
+```
+
+# Note: This is where we stopped at the end of Class 07. We'll continue in Class 08 with the rest of this material.
+
+## 6 Normal Q-Q plots: Simulated Normal Data
+
+Six simulations from a Normal distribution.
+
+```{r, echo = FALSE}
+set.seed(43101) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(sample = dat1)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 1")
+p2 <- ggplot(tempdat, aes(sample = dat2)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 2")
+p3 <- ggplot(tempdat, aes(sample = dat3)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 3")
+p4 <- ggplot(tempdat, aes(sample = dat4)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 4")
+p5 <- ggplot(tempdat, aes(sample = dat5)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 5")
+p6 <- ggplot(tempdat, aes(sample = dat6)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Normal: Sample 6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Same Six Simulations, in Box + Violin Plots
+
+Six simulations from a Normal distribution.
+
+```{r, echo = FALSE}
+set.seed(43101) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = 1, y = dat1)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 1")
+p2 <- ggplot(tempdat, aes(x = 2, y = dat2)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 2")
+p3 <- ggplot(tempdat, aes(x = 3, y = dat3)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 3")
+p4 <- ggplot(tempdat, aes(x = 4, y = dat4)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 4")
+p5 <- ggplot(tempdat, aes(x = 5, y = dat5)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 5")
+p6 <- ggplot(tempdat, aes(x = 5, y = dat6)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Normal: Sample 6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Same Six Simulations, in Histograms
+
+Six simulations from a Normal distribution.
+
+```{r, echo = FALSE}
+set.seed(43101) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = dat1)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 1")
+p2 <- ggplot(tempdat, aes(x = dat2)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 2")
+p3 <- ggplot(tempdat, aes(x = dat3)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 3")
+p4 <- ggplot(tempdat, aes(x = dat4)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 4")
+p5 <- ggplot(tempdat, aes(x = dat5)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 5")
+p6 <- ggplot(tempdat, aes(x = dat6)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Normal: Sample 6")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## One of these things is not like the others
+
+5 simulations of the Normal distribution, one of a heavy-tailed distribution.
+
+```{r, echo = FALSE}
+set.seed(43102) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rt(250, df = 4) * 15 + 100
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(sample = dat1)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B1")
+p2 <- ggplot(tempdat, aes(sample = dat2)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B2")
+p3 <- ggplot(tempdat, aes(sample = dat3)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B3")
+p4 <- ggplot(tempdat, aes(sample = dat4)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B4")
+p5 <- ggplot(tempdat, aes(sample = dat5)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B5")
+p6 <- ggplot(tempdat, aes(sample = dat6)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample B6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Box + Violin Plots of these 6 Samples
+
+```{r, echo = FALSE}
+set.seed(43102) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rt(250, df = 4) * 15 + 100
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = 1, y = dat1)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B1")
+p2 <- ggplot(tempdat, aes(x = 2, y = dat2)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B2")
+p3 <- ggplot(tempdat, aes(x = 3, y = dat3)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B3")
+p4 <- ggplot(tempdat, aes(x = 4, y = dat4)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B4")
+p5 <- ggplot(tempdat, aes(x = 5, y = dat5)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B5")
+p6 <- ggplot(tempdat, aes(x = 5, y = dat6)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "wheat") + 
+  coord_flip() + labs(title = "Sample B6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Same Six Simulations, in Histograms
+
+```{r, echo = FALSE}
+set.seed(43102) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- rnorm(250, mean = 100, sd = 15)
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rt(250, df = 4) * 15 + 100
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = dat1)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B1")
+p2 <- ggplot(tempdat, aes(x = dat2)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B2")
+p3 <- ggplot(tempdat, aes(x = dat3)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B3")
+p4 <- ggplot(tempdat, aes(x = dat4)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B4")
+p5 <- ggplot(tempdat, aes(x = dat5)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B5")
+p6 <- ggplot(tempdat, aes(x = dat6)) +
+  geom_histogram(bins = 15, fill = "wheat", col = "black") +
+  labs(title = "Sample B6")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Again, one of these is not like the others
+
+5 simulations of the Normal distribution, one of a left-skewed distribution.
+
+```{r, echo = FALSE}
+set.seed(43112) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- log(rnorm(250, mean = 100, sd = 15)) * 100 - 360
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(sample = dat1)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C1")
+p2 <- ggplot(tempdat, aes(sample = dat2)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C2")
+p3 <- ggplot(tempdat, aes(sample = dat3)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C3")
+p4 <- ggplot(tempdat, aes(sample = dat4)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C4")
+p5 <- ggplot(tempdat, aes(sample = dat5)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C5")
+p6 <- ggplot(tempdat, aes(sample = dat6)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") +
+  labs(title = "Sample C6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Box + Violin Plots of these 6 Samples
+
+```{r, echo = FALSE}
+set.seed(43112) 
+dat1 <- rnorm(250, mean = 100, sd = 15) 
+dat2 <- log(rnorm(250, mean = 100, sd = 15)) * 100 - 360
+dat3 <- rnorm(250, mean = 100, sd = 15)
+dat4 <- rnorm(250, mean = 100, sd = 15)
+dat5 <- rnorm(250, mean = 100, sd = 15)
+dat6 <- rnorm(250, mean = 100, sd = 15)
+tempdat <- tibble(dat1, dat2, dat3, dat4, dat5, dat6)
+p1 <- ggplot(tempdat, aes(x = 1, y = dat1)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C1")
+p2 <- ggplot(tempdat, aes(x = 2, y = dat2)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C2")
+p3 <- ggplot(tempdat, aes(x = 3, y = dat3)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C3")
+p4 <- ggplot(tempdat, aes(x = 4, y = dat4)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C4")
+p5 <- ggplot(tempdat, aes(x = 5, y = dat5)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C5")
+p6 <- ggplot(tempdat, aes(x = 5, y = dat6)) +
+  geom_violin() + geom_boxplot(width = 0.2, fill = "yellow") + 
+  coord_flip() + labs(title = "Sample C6")
+gridExtra::grid.arrange(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Two plots, side by side
+
+```{r, eval = FALSE}
+plot_a <- ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = 4, 
+                 fill = cwru.blue, col = cwru.gray) + 
+  labs(title = "Histogram of Pulse Rates")
+
+plot_b <- ggplot(nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") + 
+  labs(title = "Normal Q-Q plot of Pulse Rates")
+
+gridExtra::grid.arrange(plot_a, plot_b, ncol = 2)
+```
+
+Resulting plot on the next slide...
+
+## Would a Normal model work well here?
+
+```{r, echo = FALSE}
+plot_a <- ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = 4, 
+                 fill = cwru.blue, col = cwru.gray) + 
+  labs(title = "Histogram of Pulse Rates")
+
+plot_b <- ggplot(nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") + 
+  labs(title = "Normal Q-Q plot of Pulse Rates")
+
+gridExtra::grid.arrange(plot_a, plot_b, ncol = 2)
+```
+
+## Does a Normal model fit well for my data?
+
+1. Is a Normal Q-Q plot showing something close to a straight line, without clear signs of skew or indications of lots of outliers (heavy-tailedness)?
+2. Does a boxplot, violin plot and/or histogram also show a symmetric distribution, where both the number of outliers is modest, and the distance of those outliers from the mean is modest?
+3. Do numerical measures match up with the expectations of a normal model?
+
+Let's start by looking at 1 and 2.
+
+## Four (potentially) Useful Plots
+
+```{r, echo = FALSE}
+res <- mosaic::favstats(~ pulse, data = nh2_GVGmales)
+bin_w <- 4 # specify binwidth
+
+plot_a <- ggplot(nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(binwidth = bin_w, 
+                 fill = cwru.blue, 
+                 col = cwru.gray) +
+  theme_bw() +
+  stat_function(
+    fun = function(x) dnorm(x, mean = res$mean, 
+                            sd = res$sd) * res$n * bin_w,
+    col = "tomato", size = 2) +
+labs(title = "Histogram with Normal Curve")
+
+plot_b <- ggplot(nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq(col = cwru.blue) + geom_qq_line(col = "red") + 
+  labs(title = "Normal Q-Q plot") +
+  theme_bw()
+
+plot_c <- ggplot(nh2_GVGmales, aes(x = "", y = pulse)) +
+  geom_boxplot(fill = cwru.blue) + coord_flip() +
+  labs(x = "", title = "Box-and-Whiskers plot") + 
+  theme_bw()
+
+plot_d <- ggplot(nh2_GVGmales, aes(x = "", y = pulse)) +
+  geom_violin(fill = "white", col = cwru.blue) +
+  geom_boxplot(fill = "cyan4", width = 0.2) +
+  coord_flip() +
+  labs(x = "", title = "Violin Plot with Boxplot") +
+  theme_bw()
+
+gridExtra::grid.arrange(plot_a, plot_b, plot_c, plot_d, 
+                        ncol = 2, 
+                        top = "Pulse Rates for nh2_GVGmales")
+```
+
+## Does a Normal model fit well for my data?
+
+3. Do numerical measures match up with the expectations of a normal model?
+  - Is the mean close to the median (perhaps so that $skew_1$ is less than 0.2 in absolute value)?
+  - In a Normal model, mean $\pm$ 1 standard deviation covers 68% of the data.
+  - In a Normal model, mean $\pm$ 2 standard deviations covers 95% of the data.
+  - In a Normal model, mean $\pm$ 3 standard deviations covers 99.7% of the data.
+
+## Normal model for pulse rates of `nh2_GVGmales`?
+
+```{r}
+mosaic::favstats(~ pulse, data = nh2_GVGmales)
+```
+
+### What is $skew_1$ here?
+
+```{r}
+nh2_GVGmales %>% 
+  summarize(skew1 = (mean(pulse) - median(pulse))/sd(pulse))
+```
+
+## How many of the observations are within 1 SD of the mean?
+
+```{r}
+nh2_GVGmales %>%
+  count(pulse > mean(pulse) - sd(pulse), 
+        pulse < mean(pulse) + sd(pulse))
+```
+
+So 267 of the 368 (`r round(100*267/368, 1)`%) observations are within 1 SD of the mean. How does this compare to the expectation under a Normal model?
+
+## How about the mean $\pm$ 2 standard deviations rule?
+
+The total sample size here is 368.
+
+```{r}
+nh2_GVGmales %>%
+  count(pulse > mean(pulse) - 2*sd(pulse), 
+        pulse < mean(pulse) + 2*sd(pulse))
+```
+
+So 351 of the 368 (`r round(100*351/368, 1)`%) observations are within 2 SD of the mean. How does this compare to the expectation under a Normal model?
+
+## Hypothesis Testing to assess Normality
+
+Don't. Graphical approaches are **far** better than hypothesis tests.
+
+```{r}
+shapiro.test(nh2_GVGmales$pulse)
+```
+
+The very small p value indicates that the test finds some indications **against** adopting a Normal model for these data.
+
+## Why not test for Normality?
+
+There are multiple hypothesis testing schemes (Kolmogorov-Smirnov, etc.) and each looks for one specific violation of a Normality assumption. None can capture the wide range of issues our brains can envision, and none by itself is great at its job.
+
+- With any sort of reasonable sample size, the test is so poor at detecting non-normality compared to our eyes, that it finds problems we don't care about and ignores problems we do care about.
+
+- And without a reasonable sample size, the test is essentially useless.
+
+Whenever you *can* avoid hypothesis testing and instead actually plot the data, you should plot the data.
+
+## Summing Up: Does a Normal Model fit well?
+
+If a Normal model fits our data well, then we should see the following graphical indications:
+
+1. A histogram that is symmetric and bell-shaped.
+2. A boxplot where the box is symmetric around the median, as are the whiskers, without a serious outlier problem.
+3. A normal Q-Q plot that essentially falls on a straight line.
+
+As for numerical summaries, we'd like to see
+
+4. The mean and median within 0.2 standard deviation of each other.
+5. No real evidence of too many outlier candidates (more than 5% starts to get us concerned about a Normal model)
+6. No real evidence of individual outliers outside the reasonable range for the size of our data (we might expect about 3 observations in 1000 to fall more than 3 standard deviations away from the mean.)
+
+Should our data not be well-modeled by the Normal, what can we do?
+
+## The Ladder of Power Transformations
+
+The key notion in re-expression of a single variable to obtain a better fit to a Normal model, is that of a **ladder of power transformations**, which can apply to any unimodal data. 
+
+Power | Transformation
+:-----: | :----------:
+3 | x^3^
+2 | x^2^
+1 | x (unchanged)
+0.5 | x^0.5^ = $\sqrt{x}$
+0 | ln x
+-0.5 | x^-0.5^ = 1/$\sqrt{x}$
+-1 | x^-1^ = 1/x
+-2 | x^-2^ = 1/x^2^
+
+## `nh2_GVGmales` Pulse Rates, and their Natural Logarithms
+
+```{r, eval = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Raw Pulse Rates")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(sample = log(pulse))) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Logarithm of Pulse Rates")
+
+gridExtra::grid.arrange(p1, p2, ncol = 2)
+```
+
+## `nh2_GVGmales` Pulse Rates, and their Natural Logarithms
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(sample = pulse)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Raw Pulse Rates")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(sample = log(pulse))) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Log of Pulse Rates")
+
+gridExtra::grid.arrange(p1, p2, ncol = 2)
+```
+
+## `nh2_GVGmales` Pulse Rates, and their Natural Logarithms
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(x = pulse)) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Raw Pulse Rates")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(x = log(pulse))) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Log of Pulse Rates")
+
+p3 <- ggplot(data = nh2_GVGmales, aes(x = "Raw Data", y = pulse)) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Raw Pulse Rates")
+
+p4 <-  ggplot(data = nh2_GVGmales, aes(x = "Log(Data)", y = log(pulse))) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Log of Pulse Rates")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+## Using the Ladder
+
+- The ladder is most useful for strictly positive, ratio variables.
+- Sometimes, if 0 is a value in the data set, we will add 1 to each value before applying a transformation like the logarithm.
+- Interpretability is often an important criterion, although back-transformation at the end of an analysis is usually a sensible strategy.
+
+Power | -2 | -1 | -0.5 | 0 | 0.5 | 1 | 2 | 3
+----- | --: | --: | --: | --: | --: | --: | --: | --:
+Transformation | 1/x^2^ | 1/x | 1/$\sqrt{x}$ | ln x | $\sqrt{x}$ | x | x^2^ | x^3^
+
+## nh2_GVGmales BMI Data (Raw data and Log)
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(x = bmi)) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Raw BMI")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(x = log(bmi))) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Log of BMI")
+
+p3 <- ggplot(data = nh2_GVGmales, aes(x = "Raw Data", y = bmi)) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Raw BMI")
+
+p4 <-  ggplot(data = nh2_GVGmales, aes(x = "Log(Data)", y = log(bmi))) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Log of BMI")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+## nh2_GVGmales BMI - down the ladder to 1/BMI?
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(x = bmi)) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: Raw BMI")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(x = 1/bmi)) +
+  geom_histogram(bins = 15) +
+  labs(x = "", title = "Histogram: 1/BMI")
+
+p3 <- ggplot(data = nh2_GVGmales, aes(x = "Raw Data", y = bmi)) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: Raw BMI")
+
+p4 <-  ggplot(data = nh2_GVGmales, aes(x = "1/(Data)", y = 1/bmi)) +
+  geom_boxplot() + coord_flip() +
+  labs(x = "", title = "Boxplot: 1/BMI")
+
+gridExtra::grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+## Normal Q-Q plots for BMI
+
+```{r, echo = FALSE}
+p1 <- ggplot(data = nh2_GVGmales, aes(sample = bmi)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Raw BMI")
+
+p2 <-  ggplot(data = nh2_GVGmales, aes(sample = log(bmi))) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: Logarithm of BMI")
+
+p3 <-  ggplot(data = nh2_GVGmales, aes(sample = 1/bmi)) +
+  geom_qq() + geom_qq_line(col = "red") +
+  labs(title = "Normal Q-Q: 1/BMI")
+
+gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
+```
+
+## Again, does a Normal Model fit our data?
+
+If a Normal model fits our data well, then we should see the following graphical indications:
+
+1. A histogram that is symmetric and bell-shaped.
+2. A boxplot where the box is symmetric around the median, as are the whiskers, without a serious outlier problem.
+3. A normal Q-Q plot that essentially falls on a straight line.
+
+As for numerical summaries, we'd like to see
+
+4. The mean and median within 0.2 standard deviation of each other.
+5. No real evidence of too many outlier candidates (more than 5% starts to get us concerned about a Normal model)
+6. No real evidence of individual outliers outside the reasonable range for the size of our data (we might expect about 3 observations in 1000 to fall more than 3 standard deviations away from the mean.)
+

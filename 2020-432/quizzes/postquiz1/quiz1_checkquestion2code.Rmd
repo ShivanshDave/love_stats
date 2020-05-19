@@ -1,0 +1,1282 @@
+---
+title: "432 Quiz 1 Question 2 Check"
+author: "Thomas E. Love"
+date: 'Due 2020-03-02 at 2 PM. Version: `r Sys.Date()`'
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+```
+
+# Preparatory Materials Taken As Given
+
+```{r packages, message = FALSE}
+library(here)
+library(knitr)
+library(magrittr)
+library(janitor)
+library(patchwork)
+library(tableone)
+library(rms)
+library(leaps)
+library(caret)
+library(simputation)
+library(naniar)
+library(broom)
+library(tidyverse)
+
+theme_set(theme_bw())
+
+lind <- readRDS(here("data/lind.Rds"))
+```
+
+# Professor Love's Version
+
+- Note that you didn't need to remove the temporary variables you created.
+- A correct table has ...
+    - 5 columns (variable names, abcix, usual_care, p and test)
+    - 6 rows (n, stent = 1 (%), acutemi = 1 (%), diabetic = 1 (%), ejecfrac (mean (SD)), ves1proc (mean(SD)), and cardbill (median [IQR]))
+    - two exact tests (`acutemi` and `diabetic`)
+    - 1 non-normal comparison (`cardbill`)
+- As I saw it, you needed to provide code which would do seven things, without creating any extraneous output.
+    - creating the `treatment` variable
+    - sorting the `treatment` factor so that `abcix` appears first, not second
+    - ensuring that `stent`, `acutemi` and `diabetic` are each treated as factors
+    - ensuring that `acutemi` and `diabetic` are tested using exact tests, and that `stent` isn't
+    - ensuring that `cardbill` is tested using the non-normal approach, but that `ejecfrac` and `ves1proc` are not
+    - successfully print the table
+
+Essentially, you got 10 points if you did all of these things correctly and lost two points for each of the items here that your code fails to complete, down to a minimum of 0 points. Also ...
+
+- You lost at least 2 points if your code created extraneous output. This definitely includes warning messages.
+- You lost at least 2 points if you wrote code that was incorrect, but didn't affect the final result.
+- You lost at least 2 points if your code created more than one new tibble/data frame in the process of doing your work. (You didn't actually need to create any new tibbles, but creating one was OK. More than one is wasteful, and unhelpful to those trying to follow your work.)
+
+```{r}
+lind <- lind %>%
+    mutate(treatment = fct_recode(factor(abcix), 
+                               "abcix" = "1", "usual_care" = "0")) %>%
+    mutate(treatment = fct_relevel(treatment, "abcix"))
+
+temp_vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+temp_fac <- c("stent", "acutemi", "diabetic")
+temp_str <- c("treatment")
+tab1 <- CreateTableOne(data = lind, vars = temp_vars, 
+                       factorVars = temp_fac, 
+                       strata = temp_str)
+print(tab1, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+
+rm(temp_vars, temp_fac, temp_str)
+```
+
+
+
+
+# Homework 2010 - 10/10
+
+```{r}
+lind <- lind %>%
+  mutate(treatment = fct_recode(factor(abcix), 
+                                "abcix" = "1",
+                                "usual_care" = "0"),
+         treatment = fct_relevel(treatment, "abcix", "usual_care"))
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+
+fs.trt <- c("treatment")
+
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+att1 <- CreateTableOne(data = lind,
+                       vars = fs.vars,
+                       factorVars = fs.factorvars,
+                       strata = fs.trt)
+
+print(att1, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2011 - 6/10
+
+- Created more than one tibble you don't need (lind1, lind1_new)
+- Printed the wrong table
+- Didn't succeed in printing a correct table.
+
+```{r}
+lind1 <- lind
+lind1_new <- lind1 %>%
+  mutate (treatment = fct_recode(factor(abcix),
+                                   "abcix"="1", "usual_care"="0"),
+                        treatment = fct_relevel(treatment,
+                                                   "1=abcix",
+                                                "0=usual_care"))
+    
+
+ lind1_new <- lind1_new %>%
+   mutate(treatment = fct_relevel(treatment, "abcix", "usual_care"))    
+                                       
+lind1_new$stent <- as.factor(lind1_new$stent)
+lind1_new$acutemi <- as.factor(lind1_new$acutemi)
+lind1_new$diabetic <- as.factor(lind1_new$diabetic)
+glimpse(lind1_new)
+
+
+
+Q2.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", 
+          "ves1proc", "cardbill")
+Q2.strata <- c ("treatment")
+t1<- CreateTableOne(data = lind1_new, 
+                       vars = Q2.vars, 
+                       strata = Q2.strata)
+print(t1)
+
+
+
+t2<-print(t1, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+summary(t2) 
+tt1 <- print(t2)
+write.csv(tt1, "Q2-table1_final.csv")
+```
+
+# Homework 2031 - 10/10
+
+```{r}
+lind <- lind %>%
+  mutate(treatment = fct_recode(factor(abcix),
+                                abcix = "1", usual_care = "0"),
+         treatment = fct_relevel(treatment, "abcix", "usual_care"))
+lind.vars <- c("stent", "acutemi", "diabetic",
+               "ejecfrac", "ves1proc", "cardbill")
+lind.trt <- c("treatment")
+lind.factorvars <- c("stent", "acutemi", "diabetic")
+lind_table1 <- CreateTableOne(data = lind,
+                              vars = lind.vars,
+                              factorVars = lind.factorvars,
+                              strata = lind.trt)
+print(lind_table1,
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+
+# Homework 2032 - 10/10
+
+```{r}
+lind1 <- lind %>% 
+   mutate(treatment = ifelse(abcix == 1, "abcix", "usual_care")) %>%
+  select(stent, acutemi, diabetic, ejecfrac, ves1proc, cardbill, treatment)
+
+myvars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+
+myfactors <- c("stent", "acutemi", "diabetic")
+
+treatment <- c("treatment")
+
+t1 <- CreateTableOne(data = lind1, 
+                       vars = myvars,
+                       factorVars = myfactors,
+                       strata = treatment)
+
+print(t1, 
+      exact = c("acutemi", "diabetic"),
+      nonnormal = "cardbill")
+```
+
+# Homework 2042 - 10/10
+
+- I don't understand why you're making variables numeric that already are numeric.
+
+```{r}
+lind_recode<-lind%>%
+  mutate(treatment = recode(abcix, "1"="abcix", "0" ="usual_care"))%>%
+  mutate(ejecfrac = as.numeric(ejecfrac))%>%
+  mutate(ves1proc = as.numeric(ves1proc))%>%
+  mutate(cardbill = as.numeric(cardbill))
+
+
+vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+factorvars <- c("stent", "acutemi", "diabetic")
+trt <- c("treatment")
+
+
+
+lind_table1<-CreateTableOne(data = lind_recode, 
+                       vars = vars, 
+                       factorVars = factorvars,
+                       strata = trt)
+
+print(lind_table1, nonnormal = "cardbill", exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2069 - 8/10
+
+- Wrong name for treatment variable
+
+```{r}
+lind_t1 <- lind %>%
+  mutate(stent = as.factor(stent)) %>%
+  mutate(acutemi = as.factor(acutemi)) %>%
+  mutate(diabetic = as.factor(diabetic)) %>%
+  mutate(abcix = as.factor(abcix)) %>%
+  mutate(abcix = fct_recode(abcix, 
+                                "abcix" = "1",
+                                "usual_care" = "0")) %>%
+  mutate(abcix = fct_relevel(abcix, "abcix"))
+
+
+
+quiz1.var <- c("stent", "acutemi", "diabetic", "ejecfrac","ves1proc", "cardbill")
+
+quiz1.factorvar <- c("stent", "acutemi", "diabetic")
+
+quiz1.tx <- c("abcix") 
+
+
+quiz1attempt1 <- CreateTableOne(data = lind_t1,
+                              vars = quiz1.var,
+                              factorVars = quiz1.factorvar,
+                              strata = quiz1.tx)
+
+print(quiz1attempt1,
+      exact = c("acutemi", "diabetic"),
+      nonnorm = "cardbill")
+```
+
+# Homework 2105 - 10/10
+
+```{r}
+lind <- lind %>%
+    mutate(treatment = forcats::fct_recode(factor(abcix, levels=c("1","0")), 
+          "abcix" = "1",
+          "usual_care" = "0")) 
+
+vars <-c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+factorVars <- c("stent", "acutemi", "diabetic")
+
+tableone <- CreateTableOne(data = lind, 
+                           vars = vars, 
+                           factorVars = factorVars, 
+                           strata = c("treatment"))
+
+print(tableone, nonnormal = c("cardbill"), 
+      exact=c("acutemi", "diabetic"))
+```
+
+# Homework 2126 - 10/10
+
+```{r}
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+fs.factorvars <- c("abcix", "stent", "acutemi", "diabetic")
+treatment <- factor(lind$abcix)
+
+lind <- lind %>%
+    mutate(abcix = treatment,
+           treatment = fct_recode(abcix,
+                              "abcix" = "1",
+                              "usual_care" = "0")) %>%
+    mutate(treatment = fct_relevel(treatment, "abcix", "usual_care"))
+           
+table1 <- CreateTableOne(data = lind, 
+                       vars = fs.vars,
+                       factorVars = fs.factorvars,
+                       strata = "treatment")
+print(table1,
+      nonnormal = "cardbill",
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2143 - 8/10
+
+- Wrong order for treatment levels
+
+```{r}
+lind <- lind %>% 
+  mutate(stent = as.factor(stent), 
+         acutemi = as.factor(acutemi), 
+         diabetic = as.factor(diabetic)) %>%
+  mutate(treatment = 
+           fct_recode(factor(abcix), "usual_care" = "0",
+                      "abcix" = "1")) %>%
+  mutate(abcix = fct_relevel(factor(treatment), 
+                             "abcix",
+                             "usual_care"))
+
+lind.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", 
+               "ves1proc", "cardbill")
+
+lind.treatment <- c("treatment")
+
+table1 <- CreateTableOne(data = lind, 
+                       vars = lind.vars, 
+                       strata = lind.treatment)
+print(table1,
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+
+# Homework 2153 - 6/10
+
+- Warning message generated because of your incorrect second mutate statement (should be recoding into treatment, not abcix)
+- Treatment not correctly identified (0 and 1 are resulting levels.)
+
+```{r}
+lind <- lind %>%
+    mutate(treatment = abcix) %>%
+    mutate(abcix = fct_recode(factor(treatment), 
+                                "usual_care" = "0",
+                                "abcix" = "1")) %>%
+    mutate(treatment = fct_relevel(factor(treatment),
+                               "abcix", "usual_care"))
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+fs.trt <- c("treatment")
+
+q2t <- CreateTableOne(data = lind, 
+                       vars = fs.vars,
+                      factorVars = fs.factorvars,
+                       strata = fs.trt)
+print(q2t, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2200 - 8/10
+
+- Quantitative variables (`ejecfrac` and `ves1proc`) should not be included in your "exact" test list as that makes no sense. A Fisher's exact test applies only to categorical variables.
+
+```{r}
+lind <- lind %>%
+  mutate(treatment = fct_recode(factor(abcix), 
+                         "usual_care" = "0", 
+                         "abcix" = "1"),
+                  treatment = fct_relevel(treatment, 
+                                          "abcix", 
+                                          "usual_care"))
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac",
+             "ves1proc", "cardbill")
+
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+fs.treatment <- c("treatment")
+
+att1 <- CreateTableOne(data = lind, vars = fs.vars,
+                       factorVars = fs.factorvars,
+                       strata = fs.treatment)
+
+print(att1,
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic", "ejecfrac",
+                "ves1proc"))
+```
+
+# Homework 2232 - 0/10
+
+- Your data management was a problem. The `lind` data has no `treatment` variable: you needed factor(abcix) in your first statement.
+- Then you tried to use fct_relevel without specifying a place for that work to go.
+- You have misspelled trct or trt in your later work.
+- Your code doesn't produce a table, just an error message.
+- You didn't run the exact tests needed for some binary variables.
+
+```{r}
+lindnew <- lind %>% 
+  mutate(treatment = fct_recode(factor(treatment), 
+                                "usual_care" = "0", 
+                                "abcix" = "1"), 
+         fct_relevel(treatment, "abcix", "usual_care"))
+
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+trct <- c("treatment")
+
+att2 <- CreateTableOne(data=lindnew,
+                       vars = vars, 
+                       factorVars = fs.factorvars,
+                       strata = trt)
+
+print(att2, nonnormal = "cardbill")
+```
+
+# Homework 2243 - 10/10
+
+```{r}
+lind <- lind %>% 
+  mutate(treatment = fct_recode(as.factor(abcix), 
+                                "abcix" = "1" , "usual care" = "0"),
+         treatment = fct_relevel(treatment, sort))
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", 
+             "ves1proc", "cardbill")
+
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+fs.trt <- c("treatment")
+
+att1 <- CreateTableOne(data = lind, 
+                       vars = fs.vars,
+                       factorVars = fs.factorvars,
+                       strata = fs.trt)
+
+print(att1, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2262 - 10/10
+
+- OK, but `lapply` is not a great idea these days. All of that stuff at the top before you created lind2 was wasted effort, I think.
+
+```{r}
+varsToFactor <- c("abcix", "stent", "acutemi", "diabetic")
+lind[varsToFactor] <- lapply(lind[varsToFactor], factor)
+
+lind2 <- lind %>%
+    rename(treatment = abcix) %>%
+    mutate(treatment = fct_recode(factor(treatment), 
+                                "abcix" = "1", 
+                                "usual_care" = "0"),
+           treatment = fct_relevel(treatment, "abcix"))
+
+
+vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+trt <- c("treatment")
+
+attempt_1 <- CreateTableOne(data = lind2, 
+                       vars = vars, 
+                       strata = trt)
+
+print(attempt_1, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2284 - 6/10
+
+- We told you not to include things that were already on the quiz, like your first two lines.
+- You didn't close out your print(att1, ... statement properly with the necessary right parenthesis. As it is, your code produces no table. When I fix it, your table is OK
+- All of the saving stuff at the end was not appropriate and shouldn't have been there.
+
+```{r}
+lind <- readRDS("lind.Rds")
+summary(lind)
+
+Q2 <- lind %>% 
+  mutate(treatment= ifelse(abcix >0,
+                           "abcix",
+                           "usual_care"))
+
+fs.factorvars <- c("stent","acutemi","diabetic")
+fs.vars <- c("stent","acutemi","diabetic","ejecfrac","ves1proc","cardbill")
+
+fs.treatment<- c("treatment")
+
+att1 <- CreateTableOne(data = Q2, 
+                       vars = fs.vars,
+                       factorVars = fs.factorvars,
+                       strata = fs.treatment)
+print(att1, nonnormal = c("cardbill"), exact = c("acutemi","diabetic")
+
+fs.table1save <- print(att1, 
+      exact = c("acutemi","diabetic"),
+      nonnormal = c("cardbill"),
+      quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
+
+write.csv(fs.table1save, file = "Q2.csv")
+```
+
+# Homework 2293 - 10/10
+
+- OK, but I encourage you to make only very careful use of the `within` function. There are better approaches.
+
+```{r}
+lind = within(lind,{
+  treatment = ifelse(abcix == 0, "usual_care", "abcix")
+}) 
+
+lind <- lind %>%    
+  mutate(stent = factor(stent)) %>%
+      mutate(acutem1 = factor(acutemi)) %>%
+    mutate(diabetic = factor(diabetic))
+
+
+vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc","cardbill")
+factorvars <- c("stent", "acutemi", "diabetic")
+trt <- c("treatment")
+
+attempt_2 <- CreateTableOne(data = lind, 
+                       vars = vars, 
+                       factorVars = factorvars,
+                       strata = trt)
+print(attempt_2,
+      nonnormal = "cardbill",
+       exact = c("acutemi", "diabetic")
+      )
+```
+
+# Homework 2349 - 10/10
+
+```{r}
+lind <- lind %>%
+  mutate(treatment = ifelse(
+    abcix == 0, "usual_care", "abcix"
+    ))
+
+fs.factorvars <- c("abcix", "stent", "acutemi", "diabetic")
+fs.vars <- c("stent", "acutemi", "diabetic",
+             "ejecfrac", "ves1proc", "cardbill")
+fs.trt <- c("treatment")
+
+lindTable <- CreateTableOne(data = lind, 
+                            vars = fs.vars,
+                            factorVars = fs.factorvars,
+                            strata = fs.trt)
+
+print(lindTable,
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2368 - 10/10
+
+```{r}
+lind <- lind %>%
+  mutate(treatment = case_when(abcix == 1 ~ "abcix",
+                               abcix == 0 ~ "usual_care"
+                               ))
+
+lindt <-CreateTableOne(data = lind,
+                       vars = c("stent","acutemi",
+                                "diabetic","ejecfrac",
+                                "ves1proc","cardbill"),
+                       factorVars = c("stent","acutemi",
+                                      "diabetic"),
+                       strata = "treatment")
+
+print(lindt, nonnormal = c("cardbill"), 
+      exact = c("acutemi","diabetic"))
+```
+
+# Homework 2384 - 10/10
+
+- You really should put your `as.factor` statements into mutate groups, if not just avoid the problem entirely with something like `type.convert()`
+
+```{r}
+lind1 <- lind %>%
+  mutate(treatment = fct_recode(factor(abcix), "usual_care" = "0", "abcix" = "1")) %>%
+  mutate(treatment = fct_relevel(factor(treatment), "abcix", "usual_care"))
+lind1$stent <- as.factor(lind1$stent)
+lind1$acutemi <- as.factor(lind1$acutemi)
+lind1$diabetic <- as.factor(lind1$diabetic)
+fs.var <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc",
+          "cardbill")
+fs.pra <- c("treatment")
+Q2 <-CreateTableOne(data = lind1,vars = fs.var,strata = fs.pra)
+print(Q2,nonnormal = c("cardbill"), exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2391 - 10/10
+
+```{r}
+lind_t1 <- lind %>%
+  mutate(abcix = as.character(abcix),
+         treatment = abcix,
+         treatment = fct_recode(treatment, 
+                                    "abcix" = "1",
+                                    "usual_care" = "0"),
+         treatment = fct_relevel(treatment, "abcix", "usual_care")
+         )
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac",
+                        "ves1proc", "cardbill")
+
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+table1 <- CreateTableOne(data = lind_t1, 
+                         vars = fs.vars, 
+                         factorVars = fs.factorvars, 
+                         strata = c("treatment")) 
+
+print(table1, nonnormal = c("cardbill"), exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2404 - 8/10
+
+- Running fct_recode repeatedly. Why would you do that? There are much more appropriate ways to create a factor.
+- I don't understand why you're making variables numeric that already are numeric.
+- You printed your lind_rev data frame.
+
+```{r}
+lind_rev <-lind %>%
+   mutate(cardbill = as.numeric(cardbill))%>%
+  mutate(abcix= fct_recode(factor(abcix)))%>%
+  mutate(stent= fct_recode(factor(stent))) %>% 
+  mutate(acutemi = fct_recode(factor(acutemi))) %>% 
+   mutate(ejecfrac = as.numeric(ejecfrac))%>%
+  mutate(diabetic = fct_recode(factor(diabetic))) %>%
+ mutate(treatment = fct_recode(factor(abcix), "abcix" = "1", "usual_care" = "0")) %>%
+ mutate(treatment = fct_relevel(factor(treatment), "abcix", "usual_care")) 
+
+lind_rev
+
+lind.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+
+lind.prac <- c("treatment")
+
+lind2.0 <-CreateTableOne(data = lind_rev, 
+                       vars = lind.vars,
+                       strata = lind.prac) 
+
+print(lind2.0, exact = c("acutemi", "diabetic"), nonnormal = c("cardbill"))
+```
+
+# Homework 2422 - 10/10
+
+- OK, but there are definitely better ways to build your new factors than what you've done here. Use the tidyverse, or use factorVars in the table itself, or use type_convert. 
+
+```{r}
+lind_new <- lind %>%
+  mutate(treatment = fct_recode(factor(abcix), "usual_care" = "0", "abcix" = "1")) %>%
+  mutate(treatment = fct_relevel(factor(treatment), "abcix", "usual_care"))
+
+lind_new$acutemi=as.factor(lind_new$acutemi)
+lind_new$stent=as.factor(lind_new$stent)
+lind_new$diabetic=as.factor(lind_new$diabetic)
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc",
+          "cardbill")
+fs.treat <- c("treatment")
+
+Quiz1.Q2 <-CreateTableOne(data = lind_new, 
+                       vars = fs.vars,
+                       strata = fs.treat) 
+print(Quiz1.Q2, 
+      nonnormal = c("cardbill"), exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2439 - 4/10
+
+- `lind` doesn't contain a variable called `treatment` so your code fails when you try to mutate something that doesn't exist. You needed to first create treatment (from `abcix`) and label it properly and then store it so it produces a result.
+- Your code doesn't create the table successfully. Instead it produces an error message.
+
+```{r}
+lind.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", 
+               "ves1proc", "cardbill")
+
+lind.treat <- c("treatment")
+
+lind.factorvars <- c("stent", "acutemi", "diabetic")
+
+lind <- lind %>% 
+  mutate(treatment = fct_relevel(treatment, "abcix", "usual_care"))
+
+table2 <- CreateTableOne(data = lind, vars = lind.vars, factorVars = lind.factorvars, strata = lind.treat)
+
+print(table2,
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2446 - 10/10
+
+```{r}
+lind <- lind %>% 
+  mutate(treatment=ifelse(abcix== "1", "abcix", "usual_care"))
+
+lind.vars<-c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+
+lind.factorvars<- c("stent", "acutemi", "diabetic")
+
+lind.grp<- c("treatment")
+
+
+tbl1 <- CreateTableOne(data = lind, 
+                       vars = lind.vars,
+                       factorVars = lind.factorvars,
+                       strata = lind.grp)
+
+print(tbl1, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2509 - 10/10
+
+```{r}
+lind <- lind %>%
+  mutate(abcix = as.factor(abcix), 
+         stent = as.factor(stent), 
+         acutemi = as.factor(acutemi), 
+         diabetic = as.factor(diabetic)) %>%
+  mutate(treatment = fct_recode(abcix, 
+                                "abcix" = "1", 
+                                "usual_care" = "0")) %>%
+  mutate(treatment = fct_relevel(treatment, "abcix"))
+  
+vars <- c("stent", "acutemi", "diabetic", "ejecfrac", 
+          "ves1proc", "cardbill")
+treatment <- c("treatment")
+factorvars <- c("stent", "acutemi", "diabetic")
+table_1 <- CreateTableOne(data = lind, 
+                            vars = vars, 
+                            factorVars = factorvars,
+                            strata = treatment)
+
+print(table_1, nonnormal = c("cardbill"), exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2539 - 6/10
+
+- We told you not to include things that were already on the quiz, like your first line, and I don't understand the point of doing so in a way that doesn't match what you knew to be the case from the `here` statement. Also, why `refhook`?
+- There are much better ways to create factors.
+- You neglected to treat acutemi and diabetic with exact tests.
+- You neglected to treat cardbill as non-Normal.
+
+```{r}
+lind <- readRDS("lind.Rds", refhook = NULL) %>% clean_names()
+
+lind$stent <- as_factor(lind$stent)
+lind$acutemi <- as_factor(lind$acutemi)
+lind$diabetic <- as_factor(lind$diabetic)
+lind$treatment <- as_factor(lind$abcix)
+
+lind <- lind %>%
+  mutate(treatment = fct_recode(factor(treatment), 
+                                "usual_care" = "0",
+                                "abcix" = "1")) %>%
+  mutate(treatment = fct_relevel(treatment, "abcix"))
+  
+
+lind.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", 
+          "ves1proc", "cardbill")
+lind.trt <- c("treatment")
+
+q2table <- CreateTableOne(data = lind, 
+                       vars = lind.vars, 
+                       strata = lind.trt)
+print(q2table)
+```
+
+# Homework 2541 - 10/10
+
+```{r}
+lind <- lind %>% mutate(treatment = fct_recode(factor(abcix),
+                        "usual_care" = "0",
+                        "abcix" = "1")) %>%
+  mutate(stent = fct_recode(factor(stent),
+                            "1" = "1",
+                            "0" = "0"))%>%
+  mutate(acutemi = fct_recode(factor(acutemi),
+                            "1" = "1",
+                            "0" = "0"))%>%
+  mutate(diabetic = fct_recode(factor(diabetic),
+                            "1" = "1",
+                            "0" = "0"))
+lind <- lind %>% mutate(treatment = fct_relevel(treatment, c("abcix", "usual_care")))
+
+fs.vars <- c("stent","acutemi","diabetic","ejecfrac","ves1proc","cardbill")
+
+fs.trt <- c("treatment")
+
+att1 <- CreateTableOne(data = lind, 
+                       vars = fs.vars, 
+                       strata = fs.trt)
+print(att1,
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2573 - 10/10
+
+```{r}
+lind <- lind %>%
+  mutate(treatment = fct_recode(as.factor(abcix),
+                                "abcix" = "1",
+                                "usual_care" = "0"),
+         treatment = fct_relevel(treatment,
+                                 "abcix"))
+
+lind_strt <- c("treatment")
+lind_factorvars <- c("stent", "acutemi", "diabetic")
+lind_vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+
+lind_table <- CreateTableOne(data = lind,
+                            factorVars = lind_factorvars,
+                            vars = lind_vars,
+                            strata = lind_strt
+                            )
+
+print(lind_table, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2585 - 8/10
+
+- Your code produces an extraneous NULL from your `levels(Q2T1$practice)` statement
+
+```{r}
+q2table1 <- lind %>%
+  mutate(treatment = `abcix`) %>%
+  mutate(treatment = fct_recode(factor(treatment),
+                            "usual_care" = "0",
+                            "abcix" = "1")) %>%
+  mutate(treatment = fct_relevel(treatment, "abcix", "usual_care"))
+
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", 
+          "ves1proc", "cardbill")
+
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+fs.treatment <- c("treatment")
+
+Q2T1 <-CreateTableOne(data = q2table1, 
+                       vars = fs.vars,
+                       factorVars = fs.factorvars,
+                       strata = fs.treatment) 
+levels(Q2T1$practice)
+print(Q2T1)
+```
+
+# Homework 2601 - 10/10
+
+```{r}
+lind <- lind %>% 
+    mutate(treatment = ifelse(abcix == 0, "usual_care", "abcix"))
+
+lind.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+lind.factors <- c("stent", "acutemi", "diabetic")
+lind.trt <-  c("treatment")
+lind.exact <- c("acutemi", "diabetic")
+lind.nonnormal <-  c("cardbill")
+
+tbl1 <- CreateTableOne(data = lind,
+                       vars = lind.vars,
+                       factorVars =lind.factors, 
+                       strata = lind.trt, 
+                       test = TRUE)
+
+print(tbl1,
+      nonnormal = lind.nonnormal,
+      exact = lind.exact)
+```
+
+# Homework 2649 - 10/10
+
+```{r}
+q2 <- lind %>% mutate(treatment=ifelse(abcix==1,"abcix","usual_care"))
+
+q2_table1 <- CreateTableOne(data = q2,
+             vars = c("stent", "acutemi", "diabetic", "ejecfrac",
+                        "ves1proc", "cardbill"), 
+             factorVars = c("stent","acutemi","diabetic"),
+             strata = c("treatment"))
+print(q2_table1, 
+      nonnormal = "cardbill",
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2650 - 6/10
+
+- You treated `stent` as exact, so you have the wrong table.
+- Quantitative variables (`ejecfrac` and `ves1proc`) should not be included in your "exact" test list as that makes no sense. A Fisher's exact test applies only to categorical variables.
+
+```{r}
+lind <- lind %>%
+  mutate(treatment = 
+           fct_recode(factor(abcix == "1"), abcix = "TRUE", 
+                      usual_care = "FALSE")) %>% 
+  type.convert()
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac",
+             "ves1proc", "cardbill")
+
+fs.treatment <- c("treatment")
+
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+Q2 <- CreateTableOne(data = lind, vars = fs.vars, 
+                     factorVars = fs.factorvars, 
+                     strata = fs.treatment)
+
+print(Q2, nonnormal = c("cardbill"), 
+      exact = c("stent", "acutemi", "diabetic", 
+                "ejecfrac", "ves1proc"))
+```
+
+# Homework 2657 - 10/10
+
+```{r}
+lind_2 <- lind %>%
+  mutate(treatment=fct_recode(factor(abcix), 
+                              "abcix"="1",
+                              "usual_care"="0")) %>%
+  mutate(treatment=fct_relevel(treatment,
+                               "abcix","usual_care"))
+
+lind.vars<-c("stent", "acutemi", "diabetic", "ejecfrac","ves1proc","cardbill")
+lind.trt<-c("treatment")
+lind.factorvars<-c("stent", "acutemi","diabetic")
+
+tab1<-CreateTableOne(data=lind_2,
+                     vars=lind.vars,
+                     factorVars=lind.factorvars,
+                     strata=lind.trt)
+
+print(tab1,nonnormal = c("cardbill"),exact=c("acutemi","diabetic"))
+```
+
+# Homework 2677 - 10/10
+
+```{r}
+lind2 <- lind %>% 
+  mutate(treatment = fct_recode(factor(abcix), 
+                                "abcix" = "1", 
+                                "usual_care" = "0"))
+
+lind3 <- lind2 %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "abcix", "usual_care"))
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", 
+          "ves1proc", "cardbill")
+
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+fs.trt <- c("treatment")
+
+att1 <- CreateTableOne(data = lind3, 
+                       vars = fs.vars,
+                       factorVars = fs.factorvars,
+                       strata = fs.trt)
+print(att1, nonnormal = c("cardbill"), exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2683 - 4/10
+
+- I don't know why you have a semi-colon at the end of your fourth line, or your 9th one.
+- Using select to clean up your data set within the CreateTableOne was (a) unnecessary and (b) done incorrectly
+- Your code doesn't produce a table, but instead an error message.
+- Your code doesn't reflect the need for `acutemi` and `diabetic` to be studied with exact tests.
+
+```{r}
+lind2 <- lind %>%
+  mutate(treatment = ifelse(abcix == 1, "abcix", "usual_care"),
+         treatment = as.factor(treatment)) %>%
+  select(-ptid);
+
+tb1 <- CreateTableOne(vars = colnames(lind2[,1:(ncol(lind2)-1)]),
+               strata = "treatment",
+               data = select(lind, -c(ptid)),
+               factorVars = c("stent", "acutemi", "diabetic"));
+
+print(tb1, nonnormal = "cardbill")
+```
+
+# Homework 2723 - 10/10
+
+- There are better ways to create factors than fct_recode.
+- I don't understand why you're making variables numeric that already are numeric.
+
+
+```{r}
+lindQ2 <- lind %>% 
+  mutate(ptid = as.character(ptid)) %>%
+  mutate(stent= fct_recode(factor(stent))) %>% 
+  mutate(acutemi = fct_recode(factor(acutemi))) %>% 
+  mutate(diabetic = fct_recode(factor(diabetic))) %>%
+   mutate(ejecfrac = as.numeric(ejecfrac))%>%
+  mutate(cardbill = as.numeric(cardbill))%>%
+      mutate(treatment = fct_recode(factor(abcix), "usual_care"  = "0", "abcix" = "1")) %>%  
+      mutate(treatment = fct_relevel(treatment, "abcix"))
+ 
+
+vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+prac <- c("treatment")
+
+table1 <- CreateTableOne(data = lindQ2, 
+                       vars = vars, 
+                       strata = prac)
+print(table1 ,nonnormal = c("cardbill"), exact = c( "acutemi", "diabetic"))
+```
+
+# Homework 2735 - 10/10
+
+```{r}
+lind <- lind %>%
+  mutate(treatment = ifelse(abcix < 1,
+                            "usual_care", "abcix"))
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+TableOne <- CreateTableOne(data = lind, 
+                         vars = fs.vars,
+                         factorVars = fs.factorvars,
+                       strata = c("treatment"))
+
+print(TableOne, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2840 - 10/10
+
+```{r}
+lind <- lind %>% 
+  mutate(treatment = ifelse(abcix == 1, "abcix", "usual_care"), 
+         stent = as.factor(stent), 
+         acutemi = as.factor(acutemi), 
+         diabetic = as.factor(diabetic))
+
+q2.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+
+q2.trt <- c("treatment")
+
+q2t1 <- CreateTableOne(data = lind, 
+                       vars = q2.vars, 
+                       strata = q2.trt)
+print(q2t1, nonnormal = "cardbill", exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2857 - 10/10
+
+- There are better ways to create factors than using `fct_recode()`, and I don't understand why you're making variables numeric that already are numeric.
+
+```{r}
+lind <- lind %>%
+  mutate(cardbill = as.numeric(cardbill))%>%
+  mutate(abcix= fct_recode(factor(abcix)))%>%
+  mutate(stent= fct_recode(factor(stent))) %>% 
+  mutate(acutemi = fct_recode(factor(acutemi))) %>% 
+   mutate(ejecfrac = as.numeric(ejecfrac))%>%
+  mutate(diabetic = fct_recode(factor(diabetic))) 
+
+
+
+lind_ttt <- lind %>% mutate(treatment= fct_recode(factor(abcix), 
+                                "abcix" = "1", 
+                                "usual_care"  = "0")) %>% 
+  
+mutate(treatment = fct_relevel(factor(treatment), "abcix", "usual_care"))
+
+
+
+
+vars <- c("stent", "acutemi", "diabetic", "ejecfrac",  "ves1proc","cardbill")
+
+prac <- c("treatment")
+
+tab1 <- CreateTableOne(data = lind_ttt, 
+                       vars = vars, 
+                       strata = prac)
+
+print(tab1 ,nonnormal = c("cardbill"), exact = c( "acutemi", "diabetic"))
+```
+
+# Homework 2861 - 6/10
+
+- Levels of treatment are not sorted correctly.
+- `acutemi` and `diabetic` are not tested with exact tests.
+
+```{r}
+lind <- lind %>%
+  mutate(treatment = fct_recode(factor(abcix),
+                                "abcix" = "1",
+                                "usual_care" = "0"))
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+
+fs.factorvars <- c("stent", "acutemi", "diabetic")
+
+fs.trt <- c("treatment")
+
+att1 <- CreateTableOne(data = lind,
+                       vars = fs.vars,
+                       factorVars = fs.factorvars,
+                       strata = fs.trt)
+print(att1,
+      nonnormal = c("cardbill"))
+```
+
+# Homework 2872 - 10/10
+
+- There are definitely better ways to create factors.
+
+```{r}
+lind$stent = as.factor(lind$stent)
+lind$acutemi = as.factor(lind$acutemi)
+lind$diabetic = as.factor(lind$diabetic)
+lind <- lind %>%
+  mutate(
+    treatment = fct_recode(factor(abcix), "abcix" = "1", "usual_care" = "0"),
+    treatment = fct_relevel(treatment,"abcix", "usual_care")
+  )
+l.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill" )
+l.practice <- c("treatment")
+q2tableone <- CreateTableOne(data = lind,
+                             vars = l.vars,
+                             strata = l.practice)
+print(q2tableone, 
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2894 - 10/10
+
+```{r}
+lind_new <- lind %>%
+  rename(treatment = abcix) %>%
+  mutate(treatment = as.factor(treatment)) %>%
+  mutate(stent = as.factor(stent)) %>%
+  mutate(acutemi = as.factor(acutemi)) %>%
+  mutate(diabetic = as.factor(diabetic)) %>%
+  mutate(treatment = fct_recode(factor(treatment), "abcix" = "1", "usual_care" = "0")) %>%
+  mutate(treatment = fct_relevel(treatment, "abcix", "usual_care"))
+  
+var <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+trt <- c("treatment")
+
+attempt_1 <- CreateTableOne(data = lind_new, vars = var, strata = trt)
+print(attempt_1, nonnormal = c("cardbill" ), exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2910 - 10/10
+
+```{r}
+lind <- lind %>%
+  mutate(stent = as.factor(stent)) %>%
+  mutate(acutemi = as.factor(acutemi)) %>%
+  mutate(diabetic = as.factor(diabetic)) %>%
+  mutate(abcix = as.factor(abcix)) %>%
+    mutate(treatment = fct_recode(abcix,
+                                  "abcix" = "1",
+                                  "usual_care" = "0")) %>%
+  mutate(treatment = fct_relevel(treatment, "abcix"))
+
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+
+fs.treatment <- c("treatment")
+
+hwt1 <- CreateTableOne(data = lind, 
+                       vars = fs.vars, 
+                       strata = fs.treatment)
+print(hwt1, 
+       nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2949 - 6/10
+
+- We told you not to include things that were already on the quiz, like your first line, and you shouldn't have used read_rds instead of readRDS, since you needed to match what we'd done. 
+- There's no good reason to do what you did with `abcix`, or to convert things to factors and then back to character. 
+
+```{r}
+# lind <- read_rds(here("data", "lind.Rds")) %>% 
+
+lind <- lind %>%
+  mutate(abcix = as.character(abcix))%>% mutate(abcix = fct_recode(factor(abcix),abcix = "1", usual_care = "0"))%>% 
+ type.convert() %>%
+  mutate(stent = as.character(stent)) %>%
+  mutate(acutemi = as.character(acutemi)) %>%
+  mutate(diabetic = as.character(diabetic))
+fs.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", 
+          "ves1proc", "cardbill")
+fs.trt <- c("abcix")
+att1 <- CreateTableOne(data = lind, 
+                       vars = fs.vars, 
+                       strata = fs.trt)
+print(att1,  nonnormal = c("cardbill"), exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2951 - 10/10
+
+```{r}
+lind <- lind %>% mutate(treatment = ifelse(abcix == 1, "abcix", "usual_care"))
+
+lind.vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+f.vars <- c("stent", "acutemi", "diabetic")
+treat <- c("treatment")
+
+lind_t1 <- CreateTableOne(data = lind, vars = lind.vars, factorVars = f.vars, strata = treat)
+
+print(lind_t1, exact = c("acutemi", "diabetic"), nonnormal = "cardbill")
+```
+
+# Homework 2965 - 10/10
+
+```{r}
+lind<-lind %>% 
+  mutate(treatment=ifelse(abcix==1,"abcix","usual_care"), 
+         treatment=fct_relevel(treatment,"abcix"),
+         stent=as.factor(stent),
+         acutemi=as.factor(acutemi),
+         diabetic=as.factor(diabetic))
+fs.vars <- c("stent","acutemi","diabetic","ejecfrac","ves1proc","cardbill")
+
+fs.trt <- c("treatment")
+
+table_1 <- CreateTableOne(data = lind, 
+                       vars = fs.vars, 
+                       strata = fs.trt)
+print(table_1, nonnormal=c("cardbill"), exact=c("acutemi","diabetic"))
+```
+
+# Homework 2978 - 10/10
+
+```{r}
+lind %>% 
+  mutate(treatment = ifelse(abcix == 1, "abcix","usual_care"),
+         stent = as_factor(stent),
+         acutemi = as_factor(acutemi),
+         diabetic = as_factor(diabetic)) %>% 
+  CreateTableOne(data = .,
+                 vars = c("stent","acutemi","diabetic","ejecfrac","ves1proc","cardbill"), 
+                 strata = "treatment") %>% 
+  print(., 
+        exact = c("acutemi", "diabetic"),
+        nonnormal = c("cardbill"))
+```
+
+# Homework 2982 - 10/10
+
+```{r}
+lind$treatment <- ifelse(lind$abcix == 1, "abcix", "usual_care")
+
+vars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+factorvars <- c("stent", "acutemi", "diabetic", "treatment")
+st <- c("treatment")
+
+table1 <- CreateTableOne(data = lind, 
+                       vars = vars, 
+                       factorVars = factorvars,
+                       strata = st)
+print(table1, nonnormal = c("cardbill"), exact = c("acutemi", "diabetic"))
+```
+
+# Homework 2995 - 10/10
+
+```{r}
+q2 <- lind %>%
+  mutate(treatment = ifelse(abcix == 1, "abcix","usual_care"))
+
+MyVars <- c("stent", "acutemi", "diabetic", "ejecfrac", "ves1proc", "cardbill")
+catVars <- c("stent", "acutemi", "diabetic")
+table1 <- CreateTableOne (vars = MyVars, strata="treatment", data = q2, factorVars = catVars)
+
+print(table1,
+      nonnormal = c("cardbill"),
+      exact = c("acutemi", "diabetic"))
+```
+
+
+
+

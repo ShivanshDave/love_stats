@@ -1,0 +1,242 @@
+# A Paired Sample Study: Lead in the Blood of Children {#Blood-Lead-Study}
+
+> One of the best ways to eliminate a source of variation and the errors of interpretation associated with it is through the use of matched pairs. Each subject in one group is matched as closely as possible by a subject in the other group. If a 45-year-old African-American male with hypertension is given a [treatment designed to lower their blood pressure], then we give a second, similarly built 45-year old African-American male with hypertension a placebo.
+
+- @Good2005, section 5.2.4
+
+## The Lead in the Blood of Children Study
+
+@Morton1982 studied the absorption of lead into the blood of children. This was a matched-sample study, where the exposed group of interest contained 33 children of parents who worked in a battery manufacturing factory (where lead was used) in the state of Oklahoma. Specifically, each child with a lead-exposed parent was matched to another child of the same age, exposure to traffic, and living in the same neighborhood whose parents did not work in lead-related industries. So the complete study had 66 children, arranged in 33 matched pairs. The outcome of interest, gathered from a sample of whole blood from each of the children, was lead content, measured in mg/dl. 
+
+One motivation for doing this study is captured in the Abstract from @Morton1982. 
+
+> It has been repeatedly reported that children of employees in a lead-related industry are at increased risk of lead absorption because of the high levels of lead found in the household dust of these workers. 
+
+The data are available in several places, including Table 5 of @Pruzek2009, in the BloodLead data set within the `PairedData` package in R, but we also make them available in the `bloodlead.csv` file. A table of the first few pairs of observations (blood lead levels for one child exposed to lead and the matched control) is shown below.
+
+```{r}
+bloodlead
+```
+
+- In each pair, one child was exposed (to having a parent working in the factory) and the other was not. 
+- Otherwise, though, each child was very similar to its matched partner.
+- The data under `exposed` and `control` are the blood lead content, in mg/dl.
+
+Our primary goal will be to estimate the difference in lead content between the exposed and control children, and then use that sample estimate to make inferences about the difference in lead content between the population of all children like those in the exposed group and the population of all children like those in the control group.
+
+### Our Key Questions for a Paired Samples Comparison
+
+1. What is the **population** under study?
+
+- All pairs of children living in Oklahoma near the factory in question, in which one had a parent working in a factory that exposed them to lead, and the other did not.
+
+2. What is the **sample**? Is it representative of the population?
+
+- The sample consists of 33 pairs of one exposed and one control child. 
+- This is a case-control study, where the children were carefully enrolled to meet the design criteria. Absent any other information, we're likely to assume that there is no serious bias associated with these pairs, and that assuming they represent the population effectively (and perhaps the broader population of kids whose parents work in lead-based industries more generally) may well be at least as reasonable as assuming they don't.
+
+3. Who are the subjects / **individuals** within the sample?
+
+- Each of our 33 pairs of children includes one exposed child and one unexposed (control) child.
+
+4. What **data** are available on each individual?
+
+- The blood lead content, as measured in mg/dl of whole blood.
+
+### Lead Study Caveats
+
+Note that the children were not randomly selected from general populations of kids whose parents did and did not work in lead-based industries.
+
+- To make inferences to those populations, we must make **strong assumptions** to believe, for instance, that the sample of exposed children is as representative as a random sample of children with similar exposures across the world would be. 
+- The researchers did have a detailed theory about how the exposed children might be at increased risk of lead absorption, and in fact as part of the study gathered additional information about whether a possible explanation might be related to the quality of hygiene of the parents (all of them were fathers, actually) who worked in the factory.
+- This is an observational study, so that the estimation of a causal effect between parental work in a lead-based industry and children's blood lead content can be made, without substantial (and perhaps heroic) assumptions.
+
+## Exploratory Data Analysis for Paired Samples
+
+We'll begin by adjusting the data in two ways. 
+
+- We'd like that first variable (`pair`) to be a `factor` rather than a `character` type in R, because we want to be able to summarize it more effectively. So we'll make that change. 
+- Also, we'd like to calculate the difference in lead content between the exposed and the control children in each pair, and we'll save that within-pair difference in a variable called `lead_diff`. We'll take `lead_diff` = `exposed` - `control` so that positive values indicate increased lead in the exposed child.
+
+```{r}
+bloodlead_original <- bloodlead
+
+bloodlead <- bloodlead_original %>%
+    mutate(pair = factor(pair),
+           lead_diff = exposed - control)
+
+bloodlead
+```
+
+### The Paired Differences
+
+To begin, we focus on `lead_diff` for our exploratory work, which is the `exposed` - `control` difference in lead content within each of the 33 pairs. So, we'll have 33 observations, as compared to the 462 in the serum zinc data, but most of the same tools are still helpful.
+
+```{r}
+res_lead <- mosaic::favstats(~ lead_diff, data = bloodlead)
+bin_w1 <- 5 # specify binwidth
+
+p1 <- ggplot(bloodlead, aes(x = lead_diff)) +
+    geom_histogram(binwidth = bin_w1, 
+                   fill = "firebrick", 
+                   col = "white") +
+    theme_light() +
+    stat_function(
+        fun = function(x) dnorm(x, mean = res_lead$mean, 
+                                sd = res_lead$sd) * 
+            res_lead$n * bin_w1,
+        col = "blue") +
+labs(x = "Diff. in Lead Content (mg/dl)", y = "")
+
+p2 <- ggplot(bloodlead, aes(sample = lead_diff)) +
+    geom_qq(col = "firebrick") + 
+    geom_qq_line(col = "black") +
+    theme_light() +
+    labs(y = "Diff. in Lead Content (mg/dl)")
+
+p3 <- ggplot(bloodlead, aes(x = "", y = lead_diff)) +
+    geom_violin() +
+    geom_boxplot(width = 0.5, fill = "firebrick", 
+                 outlier.color = "firebrick") +
+    theme_light() +
+    coord_flip() +
+    labs(x = "", y = "Diff. in Lead Content (mg/dl)")
+
+p1 + p2 - p3 + plot_layout(ncol = 1, height = c(3, 1)) +
+    plot_annotation(title = "Difference in Blood Lead Content (mg/dl) for 33 Pairs of Children")
+
+```
+
+Note that in all of this work, I plotted the paired differences. One obvious way to tell if you have paired samples is that you can pair every single subject from one exposure group to a unique subject in the other exposure group. Everyone has to be paired, so the sample sizes will always be the same in the two groups. 
+
+### Numerical Summaries
+
+```{r, message=FALSE}
+mosaic::favstats(~ lead_diff, data = bloodlead)
+
+bloodlead %$% skew1(lead_diff)
+```
+
+### Impact of Matching - Scatterplot and Correlation
+
+Here, the data are paired by the study through matching on neighborhood, age and exposure to traffic. Each individual child's outcome value is part of a pair with the outcome value for his/her matching partner. We can see this pairing in several ways, perhaps by drawing a scatterplot of the pairs.
+
+```{r}
+ggplot(bloodlead, aes(x = control, y = exposed)) +
+    geom_point(size = 2) + 
+    geom_smooth(method = "lm", se = FALSE) +
+    geom_text(x = 20, y = 65, col = "blue", 
+             label = 
+                 paste("Pearson r = ",
+                       round(bloodlead %$% 
+                                 cor(control, exposed),2))) +
+    labs(title = "Paired Samples in Blood Lead study",
+         x = "Blood Lead Content (mg/dl) in Control Child",
+         y = "Blood Lead Content (mg/dl) in Exposed Child")
+```
+
+Each point here represents a **pair** of observations, one from a control child, and one from the matched exposed child. If there is a strong linear relationship (usually with a positive slope, thus positive correlation) between the paired outcomes, then the pairing will be more helpful in terms of improving statistical power of the estimates we build than if there is a weak relationship.
+
+- The stronger the Pearson correlation coefficient, the more helpful pairing will be. 
+- Here, a straight line model using the control child's blood lead content accounts for about `r round(100*(bloodlead %$% cor(control, exposed)^2),1)`% of the variation in blood lead content in the exposed child.
+- As it turns out, pairing will have only a modest impact here on the inferences we draw in the study. We still will treat the data as paired, despite this.
+
+## Looking at Separate Samples: Using `pivot_longer`
+
+For the purpose of estimating the difference between the exposed and control children, the summaries of the paired differences are what we'll need. 
+
+In some settings, however, we might also look at a boxplot, or violin plot, or ridgeline plot that showed the distributions of exposed and control children separately. But we will run into trouble because one variable (blood lead content) is spread across multiple columns (control and exposed.) The solution is to "pivot" the tibble from its current format to build a new, tidy tibble. Because the data aren't *tidied* here, so that we have one row for each subject and one column for each variable, we have to do some work to get them in that form for our usual plotting strategy to work well.
+
+- `pivot_longer()` "lengthens" the data, increasing the number of rows and decreasing the number of columns.
+- `pivot_wider()` performs the inverse of that transformation, "widening" the data.
+
+In our original `bloodlead` data, if we drop the `lead_diff` addition we made, we have *wide* data, with each row representing two different subjects.
+
+```{r}
+head(bloodlead_original, 3)
+```
+
+And what we want to accomplish is to have one row for each subject, instead of one row for each pair of subjects. So we want to make the data **longer**.
+
+```{r}
+bloodlead_longer <- bloodlead_original %>%
+    pivot_longer(
+        cols = -c(pair),
+        names_to = "status",
+        values_to = "lead_level")
+
+bloodlead_longer
+```
+
+For more on this approach (in this case, we're making the data "longer" and its opposite would be be making the data "wider"), visit the Tidy data chapter in @R4DS and the tidyr repository on Github at https://github.com/tidyverse/tidyr.
+
+And now, we can plot as usual to compare the two samples. 
+
+First, we'll look at a boxplot, showing all of the data.
+
+```{r}
+ggplot(bloodlead_longer, aes(x = status, y = lead_level)) +
+    geom_violin() +
+    geom_boxplot(aes(fill = status), width = 0.2) +
+    scale_fill_viridis_d(begin = 0.5) +
+    guides(fill = FALSE) + 
+    coord_flip() +
+    labs(title = "Boxplot of Lead Content in Exposed and Control kids") + 
+    theme_bw()
+```
+
+We'll also look at a ridgeline plot, because Dr. Love likes them, even though they're really more useful when we're comparing more than two samples.
+
+```{r}
+ggplot(bloodlead_longer, aes(x = lead_level, y = status, fill = status)) +
+    ggridges::geom_density_ridges(scale = 0.9) +
+    guides(fill = FALSE) + 
+    labs(title = "Lead Content in Exposed and Control kids") +
+    ggridges::theme_ridges()
+```
+
+Both the center and the spread of the distribution are substantially larger in the exposed group than in the controls. Of course, numerical summaries show these patterns, too.
+
+```{r}
+mosaic::favstats(lead_level ~ status, data = bloodlead_longer)
+```
+
+## Estimating the Difference in Means with Paired Samples
+
+Suppose we want to estimate the difference in the mean blood level across the population of children represented by the sample taken in this study. To do so, we must take advantage of the matched samples design, and complete our estimation on the paired differences, treating them as if they were a single sample of data.
+
+One way to accomplish this is simply to run the usual intercept-only linear regression model on the paired differences.
+
+```{r}
+model_lead <- lm(lead_diff ~ 1, data = bloodlead)
+
+tidy(model_lead, conf.int = TRUE, conf.level = 0.90)
+```
+
+Our point estimate for the difference (exposed - control) in lead levels is 15.97 mg/dl, and our 90% confidence interval is (11.29, 20.65) mg/dl.
+
+### Paired Data in Longer Format?
+
+If we had the data in "longer" format, as in `bloodlead_longer`, with the pairs identified by the `pair` variable, then we could obtained the same confidence interval using:
+
+```{r}
+model2_lead <- lm(lead_level ~ status + factor(pair), data = bloodlead_longer)
+
+tidy(model2_lead, conf.int = TRUE, conf.level = 0.90) 
+```
+
+and the key elements are found in the `statusexposed` row, which we can focus on nicely (since the output of the `tidy()` function is always a tibble) with:
+
+```{r}
+tidy(model2_lead, conf.int = TRUE, conf.level = 0.90) %>%
+    filter(term == "statusexposed") %>% 
+    knitr::kable(digits = 2)
+```
+
+and again, we have our 90% confidence interval estimate of the population mean difference between exposed and control children.
+
+More approaches to making inferences about paired sample means as well as other summaries of quantitative outcomes will be found in Chapter \@ref(CI-Paired-Samples).
+
+## Comparing Proportions in Paired Samples
+
+We discuss some ideas relevant to the comparison of proportions in paired samples in Chapter \@ref(Paired-Props), in the context of a different example.

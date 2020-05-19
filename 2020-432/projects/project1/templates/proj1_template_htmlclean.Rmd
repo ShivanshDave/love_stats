@@ -1,0 +1,132 @@
+---
+title: "Real Title Goes Here"
+author: "Your Name(s) Here"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::html_clean:
+    highlight: haddock
+    number_sections: TRUE
+    code_folding: show
+---
+
+```{r setup, echo = FALSE, cache=FALSE}
+# This is the only chunk where you can use echo = FALSE
+library(knitr)
+options(max.print="75")
+opts_chunk$set(comment=NA) 
+opts_knit$set(width=75)
+```
+
+```{r packages, message = FALSE}
+library(knitr); library(rmdformats)
+library(here); library(janitor); library(magrittr)
+library(rms); library(broom)
+
+# other packages as needed can go here
+
+library(tidyverse)
+```
+
+# Preliminaries {-}
+
+Details, details, details.
+
+## Subsection Title under Preliminaries {-}
+
+More details, details.
+
+# Data Source
+
+Details, details.
+
+## Subsection (if needed) under Data Source
+
+Details, details.
+
+# Loading and Tidying the Data
+
+etc.
+
+# Listing of the Tibble
+
+# The Subjects
+
+# The Code Book
+
+# Describing the Variables
+
+# Plans for the Linear Regression
+
+# Plans for the Logistic Regression
+
+# Affirmation about Sharing
+
+This ends the proposal part. The next three sections only apply to the full portfolio.
+
+# Linear Regression Analysis 
+
+## Missingness
+
+## Outcome Transformation
+
+## Scatterplot Matrix and Collinearity
+
+## Model A: The "Main Effects" Model
+
+### Fitting the Model
+
+### Tidied Table of Regression Coefficients
+
+### Key Fit Summary Statistics for Model A
+
+### Residual Plots for Model A
+
+## Non-Linearity
+
+### Spearman $\rho^2$ Plot
+
+## Model B: The "Augmented" Model
+
+### Fitting the Model
+
+### Key Fit Summary Statistics for Model B
+
+### Plot of Effects in Model B
+
+### Nomogram for Model B
+
+### ANOVA Comparison of Models A and B
+
+### Residual Plots for Model B
+
+## Validating the Models
+
+## Final Model
+
+Details, details, details, with appropriate subheadings.
+
+# Logistic Regression Analysis
+
+## Missingness
+
+## Model Y: The "Main Effects" Model
+
+## Non-Linearity
+
+## Model Z: The "Augmented" Model
+
+## Validating the Models
+
+## Final Model
+
+Details, details, details, with appropriate subheadings.
+
+# Discussion
+
+Blah, blah, blah.
+
+# Session Information
+
+```{r}
+sessioninfo::session_info()
+```

@@ -1,0 +1,40 @@
+---
+title: "Observational Studies Spring 2020 Syllabus"
+author: "Thomas E. Love, Ph.D."
+date: "Version `r Sys.time()`"
+site: bookdown::bookdown_site
+documentclass: book
+output:
+  bookdown::gitbook: default
+  bookdown::pdf_book: default
+github-repo: thomaselove/2020-500-syllabus
+description: "Syllabus for Spring 2020 edition of PQHS 500"
+---
+
+```{r cwrulogo-fig, echo = FALSE, out.width = '20%'}
+knitr::include_graphics("figures/cwru-stacked-logo-blue-no-tag.jpg")
+```
+
+# Key Information {-}
+
+This is the Spring 2020 syllabus page for PQHS / CRSP / MPHP 500: Observational Studies, taught by Professor Thomas Love. The course is given on Thursdays from 8:30 to 11 AM, in Wolstein Research Building room 1217.
+
+## Course Home Page {-}
+
+The course home page, with links to everything else you'll need, is at https://github.com/THOMASELOVE/2020-500. 
+
+## Course Text {-}
+
+As the semester progresses, we are going to read a book together. The book we're reading is
+
+- Paul Rosenbaum's *Observation and Experiment: An Introduction to Causal Inference*, published in 2017 by Harvard University Press. The ISBN-13 number is 978-0674975576. The book is available electronically or in hardcover from Amazon and other retailers. The schedule for reading the book is part of the [course calendar](https://github.com/THOMASELOVE/2020-500/blob/master/calendar.md)
+
+Additional sources will be presented and/or referenced in class, and those are gathered at the [sources page](https://github.com/THOMASELOVE/2020-500/tree/master/sources) of our web site.
+
+## Getting Help {-}
+
+To get help for anything related to the course, email Dr. Love, and/or the TA, Harry Persaud.
+
+- Dr. Love is available on Tuesdays and Thursdays at CWRU, by appointment. To make an appointment, email him at `thomas.love@case.edu`. He is also available from 11 to 11:30 AM after each class for drop-in conversations. His office is Wood WG-82 J.
+    + If you have any special concerns about the course, need special accommodations or any other issues for Dr. Love, please email or speak with him before or after class.
+- Harry Persaud has agreed to volunteer as a teaching assistant for the course. Harry will be available to answer questions (mostly about coding in R, propensity scores and data management) either in person (by arrangement) or via email, at `hpersaud92@gmail.com`.

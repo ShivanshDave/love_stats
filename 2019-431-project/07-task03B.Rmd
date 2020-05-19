@@ -1,0 +1,26 @@
+# Study B Task 3. Data Collection Update {#task3b}
+
+## The Task
+
+In this Task, you will merely be updating Professor Love as to the status of your data collection.
+
+- If you do not already have the data, you will provide Professor Love with an update on your data collection process. This should be at least a few sentences long, and should explain in detail what you're waiting for, and any concerns you have about getting/cleaning/working with the data. Again, all data must be in your hands on November 1.
+- Once you have the data, you will submit the number of non-missing observations you have for each of the variables you listed in your [Task 2 proposal](#task2), as well as specifying the number of observations you have after omitting all cases with any missing values across any of those variables.
+
+## Deadline and Submission information
+
+The deadline is **2019-10-25 at 2 PM** for Study B Task 3. Note that this is a change from what was originally posted.
+
+Study B Task 3 should be submitted to Canvas. 
+
+- You will submit an R Markdown file and the Word, PDF or HTML result (Dr. Love prefers HTML) containing your responses to the task.
+- You **do** need to write this Task using R Markdown. Obviously, if you have the data, this will be necessary to generate the counts of non-missing observations.
+
+*If you are working with a partner*, one of you should submit the materials to Canvas (be sure that both partners' names are on the top of the document) and the other should submit a one-page Word document stating "My partner, INSERT NAME OF PARTNER, has submitted the work on Task 3 for Study B for us."
+
+### "Grading"
+
+Assuming Dr. Love understands what you've sent, he'll mark your work as OK. If he needs revisions, you'll get a REDO, and will need to respond to that REDO within 24 hours.
+
+You will receive 15 points once you have successfully completed Tasks 2, 3, 4 and 5 for Study B in a timely fashion.
+

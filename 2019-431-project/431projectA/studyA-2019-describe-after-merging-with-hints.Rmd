@@ -1,0 +1,109 @@
+---
+title: "Study A Survey Data After Merging with HINTS"
+author: "Thomas E. Love"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+# Steps to use the data I provided
+
+1. Create a directory called `431projectA` on your computer.
+2. Create a subdirectory called `studyAdata` on your computer, underneath `431projectA.`
+3. Place the five data sets in your `studyAdata` directory.
+    - Be sure to use the revised data sets posted on 2019-11-22 to 
+4. Create a subdirectory called `R` on your computer, also underneath `431projectA`.
+5. Place the `Love-boost.R` file in the `R` subdirectory you just created.
+6. Open R Studio
+7. Create a new R project in your `431projectA` directory using **File ... New Project** and then select Existing Directory, and feed it your `431projectA` main directory. That is where your R Markdown files will live.
+
+With this setup in mind, I then used the following code to obtain the results below.
+
+# Initial Setup
+
+```{r setup}
+knitr::opts_chunk$set(comment = NA)
+```
+
+```{r, message = FALSE}
+library(magrittr); library(here); library(janitor)
+library(readxl); library(tidyverse)
+```
+
+## Read in the data files
+
+```{r, message = FALSE}
+studyA_raw1 <- read_csv(here("studyAdata", "studyA-2019-student-data-01.csv")) 
+
+studyA_raw2 <- read_xls(here("studyAdata", "studyA-2019-student-data-02.xls")) 
+
+studyA_raw3 <- read_xls(here("studyAdata", "studyA-2019-student-data-03.xls")) 
+
+studyA_raw4 <- read_csv(here("studyAdata", "studyA-2019-student-data-04.csv")) 
+
+studyA_raw5 <- read_xls(here("studyAdata", "studyA-2019-student-data-05.xls")) 
+```
+
+## Combine raw2 and raw3
+
+```{r}
+studyA_raw23 <- bind_rows(studyA_raw2, studyA_raw3)
+
+dim(studyA_raw23)
+```
+
+## Combine raw4 and raw5
+
+```{r}
+studyA_raw45 <- bind_rows(studyA_raw4, studyA_raw5)
+
+dim(studyA_raw45)
+```
+
+## Merge raw1 with raw23
+
+```{r}
+studyA_raw123 <- inner_join(studyA_raw1, studyA_raw23, by = "subject")
+
+dim(studyA_raw123)
+```
+
+## Merge raw123 with raw45
+
+```{r}
+studyA_raw12345 <- inner_join(studyA_raw123, studyA_raw45, by = "subject")
+
+dim(studyA_raw12345)
+```
+
+## Change character variables to factors throughout, except "subject"
+
+```{r}
+studyA_clean <- studyA_raw12345 %>%
+    mutate_if(is.character, as.factor) %>%
+    mutate(subject = as.character(subject))
+
+studyA_clean
+```
+
+# `Hmisc::describe` for the entire data set
+
+```{r}
+Hmisc::describe(studyA_clean)
+```
+
+
+# `tabyl`s for the "Check All That Apply" items
+
+```{r}
+studyA_clean %>% tabyl(Q029)
+```
+
+```{r}
+studyA_clean %>% tabyl(Q030)
+```
+
+```{r}
+studyA_clean %>% tabyl(Q055)
+```
+
+Good luck!

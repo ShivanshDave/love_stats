@@ -1,0 +1,396 @@
+---
+title: "431 Class 13"
+author: "github.com/THOMASELOVE/2019-431"
+date: "2019-10-08"
+output:
+  beamer_presentation:
+    theme: "Madrid"
+    fonttheme: "structurebold"
+    colortheme: "whale"
+    fig_height: 5.5
+    fig_caption: false
+---
+
+```{r set-options, echo=FALSE, cache=FALSE, message = FALSE}
+knitr::opts_chunk$set(comment=NA)
+options(width = 55)
+```
+
+## Our Agenda (Notes Chapters 16-18)
+
+1. Statistical Inference and the `dm431` data
+    - Point Estimates and Confidence Intervals for a Population Mean (quantitative data)
+    - Point Estimates and Confidence Intervals for a Population Proportion (binary data)
+2. Group Work on Project Study A Proposal
+
+## Today's Setup and Data
+
+```{r load_packages, message = FALSE}
+library(magrittr); library(janitor) 
+library(patchwork); library(here); 
+library(boot); library(broom)
+library(tidyverse)
+
+source(here("R", "Love-boost.R"))
+
+dm431 <- readRDS(here("data", "dm431.Rds"))
+```
+
+The `boot` package will be introduced today.
+
+## Graphical Summaries: `sbp` in `dm431`
+
+```{r, echo = FALSE, message = FALSE, fig.height = 5, fig.width = 8}
+res <- mosaic::favstats(~ sbp, data = dm431)
+bin_w <- 4
+
+p1 <- ggplot(dm431, aes(x = sbp)) +
+  geom_histogram(binwidth = bin_w,
+                 fill = "dodgerblue", col = "white") +
+  stat_function(fun = function(x) dnorm(x, mean = res$mean, sd = res$sd) * res$n * bin_w,
+                col = "navy") +
+  theme_bw() +
+  labs(title = "Histogram with Normal Curve",
+       x = "Systolic BP", y = "# of Subjects")
+
+p2 <- ggplot(dm431, aes(x = "", y = sbp)) +
+  geom_violin(col = "navy") +
+  geom_boxplot(width = 0.3, fill = "dodgerblue", notch = TRUE, outlier.color = "dodgerblue") +
+  theme_bw() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  labs(title = "Boxplot with Violin",
+       y = "Systolic BP (mm Hg)", x = "")
+
+p3 <- ggplot(dm431, aes(sample = sbp)) +
+  geom_qq(col = "dodgerblue", size = 2) +
+  geom_qq_line(col = "navy") +
+  theme_bw() +
+  labs(title = "Normal Q-Q",
+       y = "Systolic BP (mm Hg)", x = "")
+
+p1 + p2 + p3 + 
+  plot_annotation(title = "Systolic BP (mm Hg) for 431 NE Ohio Adults with Diabetes")
+```
+
+# Confidence Intervals for a Population Mean
+
+## Available Methods
+
+To build a point estimate and confidence interval for the population mean, we could use
+
+1. A **t-based** estimate and confidence interval, available from an intercept-only linear model, or (equivalently) from a t test.
+    - This approach will require an assumption that the population comes from a Normal distribution.
+2. A **bootstrap** confidence interval, which uses resampling to estimate the population mean.
+    - This approach won't require the Normality assumption, but has some other constraints.
+3. A **Wilcoxon signed rank** approach, but that won't describe the mean, only a pseudo-median.
+    - This also doesn't require the Normality assumption, but no longer describes the population mean (or median) unless the population can be assumed symmetric. Instead it describes the *pseudo-median*.
+
+## Our Goal
+
+Our first inferential goal will be to produce a **confidence interval for the true (population) mean** systolic blood pressure of all adults with diabetes ages 31-70 living in NE Ohio based on our sample of 431 such adults.
+
+### Results so far (from Class 12)
+
+90% Confidence Intervals for $\mu$
+
+Basis | 90% CI
+------------: | :----------------------:
+t-distribution | (129.79, 132.74) mm Hg
+bootstrap | (129.85, 132.79) mm Hg
+
+(used `set.seed(4312019)` in bootstrap)
+
+## Bootstrap Resampling: Advantages and Caveats
+
+Bootstrap procedures exist for virtually any statistical comparison - the t-test analog above is just one many possibilities, and bootstrap methods are rapidly gaining on more traditional approaches in the literature thanks mostly to faster computers.
+
+The bootstrap produces clean and robust inferences (such as confidence intervals) in many tricky situations. 
+
+It is still possible that the results can be both:
+
+- **inaccurate** (i.e. they can, include the true value of the unknown population mean less often than the stated confidence probability) and 
+- **imprecise** (i.e., they can include more extraneous values of the unknown population mean than is desirable).
+
+## Bootstrap CI for the Population Median, Step 1
+
+If we are willing to do a small amount of programming work in R, we can obtain bootstrap confidence intervals for other population parameters besides the mean. One statistic of common interest is the median. How do we find a confidence interval for the population median using a bootstrap approach? Use the `boot` package, as follows.
+
+In step 1, we specify a new function to capture the medians from our sample. 
+
+```{r boot_median_step1}
+f.median <- function(y, id) 
+{    median ( y[id])  }
+```
+
+## Bootstrap CI for the Population Median, Step 2
+
+In step 2, we summon the `boot` package and call the `boot.ci` function:
+
+```{r boot_median_step2, message=FALSE}
+set.seed(2019431)
+boot.ci(boot (dm431$sbp, f.median, 1000), 
+        conf=0.90, type="basic")
+```
+
+## Bootstrap CI for the Population Median vs. Mean
+
+- Note that the sample **median** of the SBP data is `r median(dm431$sbp)` mm Hg.
+
+- Our 90% confidence interval for the population **median** SBP among NE Ohio adults with diabetes is (`r set.seed(2019431); boot.ci(boot (dm431$sbp, f.median, 1000), conf=0.90, type="basic")$basic[4]`, `r set.seed(2019431); boot.ci(boot (dm431$sbp, f.median, 1000), conf=0.90, type="basic")$basic[5]`) according to the bootstrap, using the random seed `2019431`. 
+
+- The sample **mean** of the SBP data is `r round(mean(dm431$sbp),1)` mm Hg.
+
+- The 90% bootstrap CI for the population **mean** SBP, $\mu$, is (`r set.seed(2019431); round(Hmisc::smean.cl.boot(dm431$sbp, conf = 0.90)[2],1)`, `r set.seed(2019431); round(Hmisc::smean.cl.boot(dm431$sbp, conf = 0.90)[3],1)`) if we use the random seed `2019431`.
+
+## The Wilcoxon Signed Rank Procedure for CIs
+
+The Wilcoxon signed rank approach can be used as an alternative to t-based procedures to build interval estimates for the population *pseudo-median* when the population cannot be assumed to follow a Normal distribution. 
+
+As it turns out, if you're willing to assume the population is **symmetric** (but not necessarily Normally distributed) then the pseudo-median is actually equal to the population median.
+
+## What is a Pseudo-Median?
+
+The pseudo-median of a particular distribution G is the median of the distribution of (u + v)/2, where both u and v have the same distribution (G). 
+
+- If the distribution G is symmetric, then the pseudomedian is equal to the median. 
+- If the distribution is skewed, then the pseudomedian is not the same as the median. 
+- For any sample, the pseudomedian is defined as the median of all of the midpoints of pairs of observations in the sample. 
+
+## Getting the Wilcoxon Signed Rank-based CI in R
+
+```{r}
+wilcox.test(dm431$sbp, conf.int=TRUE, conf.level=0.90)
+```
+
+## Interpreting the Wilcoxon Signed Rank CI
+
+If we're willing to believe the `sbp` values come from a population with a symmetric distribution, the 90% Confidence Interval for the population median would be (`r round(wilcox.test(dm431$sbp, conf.int=TRUE, conf.level=0.9)$conf.int,1)`)
+
+For a non-symmetric population, this only applies to the *pseudo-median*.
+
+Note that the pseudo-median is actually fairly close in this situation to the sample mean as well as to the sample median, as it usually will be if the population actually follows a symmetric distribution, as the Wilcoxon approach assumes.
+
+```{r}
+mosaic::favstats(~ sbp, data = dm431)
+```
+
+## Tidying the Wilcoxon Results
+
+```{r}
+w1 <- wilcox.test(dm431$sbp, conf.int=TRUE, conf.level=0.90)
+
+tidy(w1) %>% 
+  select(estimate, conf.low, conf.high, method, alternative)
+```
+
+```{r tidyw-fig, out.width = '100%', fig.align = "center", echo = FALSE}
+knitr::include_graphics("images/tidiedw.png")
+```
+
+# Confidence Intervals for a Population Proportion
+
+## Moving on from Means to Proportions
+
+We've focused on creating statistical inferences about a population mean when we have a quantitative outcome. Now, we'll tackle a **categorical** outcome. 
+
+We'll estimate a confidence interval around an unknown population proportion, or rate, symbolized with $\pi$, on the basis of a random sample of *n* observations from the population of interest.
+
+The sample proportion is called $\hat{p}$, which is sometimes, unfortunately, symbolized as $p$. 
+
+- This $\hat{p}$ is the sample proportion - not a *p* value.
+
+## Hemoglobin A1c < 8 rate?
+
+The `dm431` data yields these results on whether each subject's Hemoglobin A1c level (a measure of blood sugar control) is below 8%\footnote{Having an A1c < 8 is a good thing, generally, if you have diabetes.}.
+
+```{r}
+dm431 %$% 
+  tabyl(a1c < 8)
+```
+
+What can we conclude about the true proportion of Northeast Ohio adults ages 31-70 who live with diabetes whose A1c is below 8%?
+
+
+## Our Sample and Our Population
+
+Sample: 431 adult patients living in Northeast Ohio between the ages of 31 and 70, who have a diagnosis of diabetes.
+
+- `r sum(dm431$a1c < 8, na.rm = TRUE)` of our 431 adult patients, or `r round(sum(dm431$a1c < 8, na.rm = TRUE) / 4.31, 1)`% have A1c < 8.
+
+Our population: **All** adult patients living in Northeast Ohio between the ages of 31 and 70, who have a diagnosis of diabetes.
+
+Our first inferential goal will be to produce a **confidence interval for the true (population) proportion** with A1c < 8, across all adults with diabetes ages 31-70 living in NE Ohio, based on this sample.
+
+
+## A Confidence Interval for a Proportion
+
+A 100(1-$\alpha$)% confidence interval for the population proportion $\pi$ can be created by using the standard normal distribution, the sample proportion, $\hat{p}$, and the standard error of a sample proportion, which is defined as the square root of $\hat{p}$ multiplied by $(1 - \hat{p})$ divided by the sample size, $n$. 
+
+Specifically, that confidence interval estimate is $\hat{p} \pm Z_{\alpha/2} \sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$
+
+where $Z_{\alpha/2}$ = the value from a standard Normal distribution cutting off the top $\alpha/2$ of the distribution, obtained in R by substituting the desired $\alpha/2$ value into: `qnorm(alpha/2, lower.tail=FALSE)`.
+
+- *Note*: This interval is reasonably accurate so long as $n \hat{p}$ and $n(1- \hat{p})$ are each at least 5.
+
+## Estimating $\pi$ in the A1c < 8 data
+
+- We'll build a 95% confidence interval for the true population proportion, so $\alpha$ = 0.05
+- We have n = 431 subjects 
+- Sample proportion is $\hat{p}$ = .652, since 281/431 = 0.652.
+
+The standard error of that sample proportion will be
+
+$$
+\textrm{SE}(\hat{p}) = \sqrt{\frac{\hat{p}(1 - \hat{p})}{n}} = \sqrt{\frac{0.652(1-0.652)}{431}} = 0.023
+$$ 
+
+## Confidence Interval for $\pi$ = Pr(A1c < 8)
+
+Our 95% confidence interval for the true population proportion, $\pi$, of people whose A1c is below 8 is:
+
+$$
+\hat{p} \pm Z_{.025} \sqrt{\frac{\hat{p}(1 - \hat{p})}{n}} = 0.652 \pm 1.96 (0.023) = 0.652 \pm 0.045
+$$
+
+or (0.607, 0.697).
+
+To verify that $Z_{0.025} = 1.96$...
+
+```{r z for 0.025}
+qnorm(0.025, lower.tail=FALSE)
+```
+
+## Likely Accuracy of this Confidence Interval?
+
+Since $n \hat{p} = (431)(0.652) = 281$ and $n (1 - \hat{p}) = (431)(1-0.652) = 150$ are substantially greater than 5, the CI should be reasonably accurate.
+
+What can we conclude from this analysis?
+
+- Point estimate of the population proportion with A1c < 8 is 0.652
+- 95% confidence interval for the population proportion is (0.607, 0.697) 
+
+What is the "margin of error" in this confidence interval?
+
+- The entire confidence interval has width 0.09 (or 9 percentage points.)
+- The margin of error (or half-width) is 0.045, or 4.5 percentage points.
+
+Happily, that's our last "by hand" calculation.
+
+## R Methods to get a CI for a Population Proportion
+
+I am aware of at least three different procedures for estimating a confidence interval for a population proportion using R. All have minor weaknesses: none is importantly different from the others in many practical situations.
+
+1. The `prop.test` approach (also called the Wald test)
+
+```{r Wald, eval = FALSE}
+prop.test(x = 281, n = 431)
+```
+
+2. The `binom.test` approach (Clopper and Pearson "exact" test)
+
+```{r Clopper_Pearson, eval = FALSE}
+binom.test(x = 281, n = 431)
+```
+
+3. Building a confidence interval via a `SAIFS` procedure
+
+```{r SAIFS_CI, eval = FALSE}
+saifs.ci(x = 281, n = 431)
+```
+
+## The `prop.test` approach (Wald test)
+
+The `prop.test` function estimates a confidence interval for $\pi$:
+
+```{r}
+prop.test(x = 281, n = 431)
+```
+
+## `binom.test` (Clopper-Pearson "exact" test)
+
+```{r}
+binom.test(x = 281, n = 431)
+```
+
+## Estimating a Rate More Accurately
+
+Suppose you have some data involving n independent tries, with x successes. The most natural estimate of the "success rate" in the data is x / n. 
+
+But, strangely enough, it turns out this isn't an entirely satisfying estimator. Alan Agresti provides substantial motivation for the (x + 1)/(n + 2) estimate as an alternative\footnote{This note comes largely from a May 15 2007 entry in Andrew Gelman's blog at http://andrewgelman.com/2007/05/15}. This is sometimes called a *Bayesian augmentation*.
+
+## Use (x + 1)/(n + 2) rather than x/n
+
+- The big problem with x / n is that it estimates p = 0 or p = 1 when x = 0 or x = n. 
+- It's also tricky to compute confidence intervals at these extremes, since the usual standard error for a proportion, $\sqrt{n p (1-p)}$, gives zero, which isn't quite right. 
+- (x + 1)/(n + 2) is much cleaner, especially when you build a confidence interval for the rate. 
+- The only place where (x + 1)/(n + 2) will go wrong (as in the SAIFS approach) is if n is small and the true probability is very close to 0 or 1. 
+    + For example, if n = 10, and p is 1 in a million, then x will almost certainly be zero, and an estimate of 1/12 is much worse than the simple 0/10. 
+    + However, how big a deal is this?  If p might be 1 in a million, are you going to estimate it with an experiment using n = 10?
+
+## Practical Impact of Bayesian Augmentation
+
+It is likely that the augmented `(x + 1) / (n + 2)` version yields more accurate estimates for the odds ratio or relative risk or probability difference, but the two sets of estimates (with and without the augmentation) will be generally comparable, so long as... 
+
+a. the sample size in each exposure group is more than, say, 30 subjects, and/or 
+b. the sample probability of the outcome is between 0.1 and 0.9 in each exposure group. 
+
+## Bayesian Augmentation: Add a Success and a Failure
+
+You'll get slightly better results if you use $\frac{x + 1}{n + 2}$ rather than $\frac{x}{n}$ as your point estimate, and to fuel your confidence interval using either the `binom.test` or `prop.test` approach.
+
+- The results will be better in the sense that they'll be slightly more likely to meet the nominal coverage probability of the confidence intervals.
+- This won't make a meaningful difference if $\frac{x}{n}$ is near 0.5, or if the sample size $n$ is large. Why?
+
+Suppose you want to find a confidence interval when you have 2 successes in 10 trials. I'm suggesting that instead of `binom.test(x = 2, n = 10)` you might want to try `binom.test(x = 3, n = 12)`
+
+## SAIFS confidence interval procedure
+
+SAIFS = single augmentation with an imaginary failure or success\footnote{see Notes Part B for more details.}
+
+- Uses a function I built in R for you (Part of `Love-boost.R`)
+
+```{r}
+saifs.ci(x = 281, n = 431)
+```
+
+`saifs.ci` already builds in a Bayesian augmentation, so we don't need to do that here.
+
+## Results for "A1c < 8" Rate (x = 281, n = 431)
+
+Method       | 95% CI for $\pi$
+-----------: | :----------------:
+`prop.test`  | 0.605, 0.697
+`binom.test` | 0.605, 0.697
+`saifs.ci`   | 0.605, 0.698
+
+Our "by hand" result, based on the Normal distribution, with no continuity correction, was (0.607, 0.697).
+
+So in this case, it really doesn't matter which one you choose. With a smaller sample, we may not come to the same conclusion about the relative merits of these different approaches.
+
+## Assumptions behind Inferences about $\pi$
+
+We are making the following assumptions, when using these inferential approaches:
+
+1. There are $n$ identical trials.
+2. There are exactly two possible outcomes (which may be designated as success and failure) for each trial.
+3. The true probability of success, $\pi$, remains constant across trials.
+4. Each trial is independent of all of the other trials.
+
+### Accuracy of these Inferences about a Proportion
+
+We'd like to see that both $n \hat{p}$ = observed successes and $n(1 - \hat{p})$ = observed failures exceed 5. 
+
+- If not, then the intervals may be both incorrect (in the sense of being shifted away from the true value of $\pi$), and also less efficient (wider) than necessary.
+
+## None of these approaches is always best
+
+When we have a sample size below 100, or the sample proportion of success is either below 0.10 or above 0.90, caution is warranted\footnote{We might consider using the Bayesian augmentation, especially for `prop.test` or `binom.test`}, although the various methods often yield similar responses.
+
+95% CI Approach | Wald | Clopper-Pearson | SAIFS
+----:|:-----------:|:----------------------:|:------------:
+X = 10, n = 30  | `r round(prop.test(x = 10, n = 30)$conf.int,3)` | `r round(binom.test(x = 10, n = 30)$conf.int,3)` | `r saifs.ci(x = 10, n = 30)[2:3]`
+X = 10, n = 50  | `r round(prop.test(x = 10, n = 50)$conf.int,3)` | `r round(binom.test(x = 10, n = 50)$conf.int,3)` | `r saifs.ci(x = 10, n = 50)[2:3]`
+X = 90, n = 100 | `r round(prop.test(x = 90, n = 100)$conf.int,3)` | `r round(binom.test(x = 90, n = 100)$conf.int,3)` | `r saifs.ci(x = 90, n = 100)[2:3]`
+X = 95, n = 100 | `r round(prop.test(x = 95, n = 100)$conf.int,3)` | `r round(binom.test(x = 95, n = 100)$conf.int,3)` | `r saifs.ci(x = 95, n = 100)[2:3]`
+
+# Next Up: Comparing Two Populations (Chapters 19-24 in the Notes)

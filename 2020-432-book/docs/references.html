@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>References | Data Science for Biological, Medical and Health Research: Notes for 432</title>
+  <meta name="description" content="Course Notes for PQHS 432 in Spring 2020." />
+  <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="References | Data Science for Biological, Medical and Health Research: Notes for 432" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="Course Notes for PQHS 432 in Spring 2020." />
+  <meta name="github-repo" content="thomaselove/2020-432-book" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="References | Data Science for Biological, Medical and Health Research: Notes for 432" />
+  
+  <meta name="twitter:description" content="Course Notes for PQHS 432 in Spring 2020." />
+  
+
+<meta name="author" content="Thomas E. Love, Ph.D." />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="cox-regression-models-for-survival-data-example-2.html"/>
+
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+
+
+<style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="" data-path="r-packages-used-in-these-notes.html"><a href="r-packages-used-in-these-notes.html"><i class="fa fa-check"></i>R Packages used in these notes</a><ul>
+<li><a href="r-packages-used-in-these-notes.html#general-theme-for-ggplot-work">General Theme for <code>ggplot</code> work</a></li>
+<li class="chapter" data-level="" data-path="r-packages-used-in-these-notes.html"><a href="r-packages-used-in-these-notes.html#data-used-in-these-notes"><i class="fa fa-check"></i>Data used in these notes</a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="building-table-1.html"><a href="building-table-1.html"><i class="fa fa-check"></i><b>1</b> Building Table 1</a><ul>
+<li class="chapter" data-level="1.1" data-path="building-table-1.html"><a href="building-table-1.html#two-examples-from-the-new-england-journal-of-medicine"><i class="fa fa-check"></i><b>1.1</b> Two examples from the <em>New England Journal of Medicine</em></a><ul>
+<li class="chapter" data-level="1.1.1" data-path="building-table-1.html"><a href="building-table-1.html#a-simple-table-1"><i class="fa fa-check"></i><b>1.1.1</b> A simple Table 1</a></li>
+<li class="chapter" data-level="1.1.2" data-path="building-table-1.html"><a href="building-table-1.html#a-group-comparison"><i class="fa fa-check"></i><b>1.1.2</b> A group comparison</a></li>
+</ul></li>
+<li class="chapter" data-level="1.2" data-path="building-table-1.html"><a href="building-table-1.html#the-mr-clean-trial"><i class="fa fa-check"></i><b>1.2</b> The MR CLEAN trial</a></li>
+<li class="chapter" data-level="1.3" data-path="building-table-1.html"><a href="building-table-1.html#simulated-fakestroke-data"><i class="fa fa-check"></i><b>1.3</b> Simulated <code>fakestroke</code> data</a></li>
+<li class="chapter" data-level="1.4" data-path="building-table-1.html"><a href="building-table-1.html#building-table-1-for-fakestroke-attempt-1"><i class="fa fa-check"></i><b>1.4</b> Building Table 1 for <code>fakestroke</code>: Attempt 1</a><ul>
+<li class="chapter" data-level="1.4.1" data-path="building-table-1.html"><a href="building-table-1.html#some-of-this-is-very-useful-and-other-parts-need-to-be-fixed."><i class="fa fa-check"></i><b>1.4.1</b> Some of this is very useful, and other parts need to be fixed.</a></li>
+<li class="chapter" data-level="1.4.2" data-path="building-table-1.html"><a href="building-table-1.html#fakestroke-cleaning-up-categorical-variables"><i class="fa fa-check"></i><b>1.4.2</b> <code>fakestroke</code> Cleaning Up Categorical Variables</a></li>
+</ul></li>
+<li class="chapter" data-level="1.5" data-path="building-table-1.html"><a href="building-table-1.html#fakestroke-table-1-attempt-2"><i class="fa fa-check"></i><b>1.5</b> <code>fakestroke</code> Table 1: Attempt 2</a><ul>
+<li class="chapter" data-level="1.5.1" data-path="building-table-1.html"><a href="building-table-1.html#what-summaries-should-we-show"><i class="fa fa-check"></i><b>1.5.1</b> What summaries should we show?</a></li>
+</ul></li>
+<li class="chapter" data-level="1.6" data-path="building-table-1.html"><a href="building-table-1.html#obtaining-a-more-detailed-summary"><i class="fa fa-check"></i><b>1.6</b> Obtaining a more detailed Summary</a></li>
+<li class="chapter" data-level="1.7" data-path="building-table-1.html"><a href="building-table-1.html#exporting-the-completed-table-1-from-r-to-excel-or-word"><i class="fa fa-check"></i><b>1.7</b> Exporting the Completed Table 1 from R to Excel or Word</a><ul>
+<li class="chapter" data-level="1.7.1" data-path="building-table-1.html"><a href="building-table-1.html#approach-a-save-and-open-in-excel"><i class="fa fa-check"></i><b>1.7.1</b> Approach A: Save and open in Excel</a></li>
+<li class="chapter" data-level="1.7.2" data-path="building-table-1.html"><a href="building-table-1.html#approach-b-produce-the-table-so-you-can-cut-and-paste-it"><i class="fa fa-check"></i><b>1.7.2</b> Approach B: Produce the Table so you can cut and paste it</a></li>
+</ul></li>
+<li class="chapter" data-level="1.8" data-path="building-table-1.html"><a href="building-table-1.html#a-controlled-biological-experiment---the-blood-brain-barrier"><i class="fa fa-check"></i><b>1.8</b> A Controlled Biological Experiment - The Blood-Brain Barrier</a></li>
+<li class="chapter" data-level="1.9" data-path="building-table-1.html"><a href="building-table-1.html#the-bloodbrain.csv-file"><i class="fa fa-check"></i><b>1.9</b> The <code>bloodbrain.csv</code> file</a></li>
+<li class="chapter" data-level="1.10" data-path="building-table-1.html"><a href="building-table-1.html#a-table-1-for-bloodbrain"><i class="fa fa-check"></i><b>1.10</b> A Table 1 for <code>bloodbrain</code></a><ul>
+<li class="chapter" data-level="1.10.1" data-path="building-table-1.html"><a href="building-table-1.html#generate-final-table-1-for-bloodbrain"><i class="fa fa-check"></i><b>1.10.1</b> Generate final Table 1 for <code>bloodbrain</code></a></li>
+<li class="chapter" data-level="1.10.2" data-path="building-table-1.html"><a href="building-table-1.html#a-more-finished-version-after-cleanup-in-word"><i class="fa fa-check"></i><b>1.10.2</b> A More Finished Version (after Cleanup in Word)</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html"><i class="fa fa-check"></i><b>2</b> BRFSS SMART Data</a><ul>
+<li class="chapter" data-level="2.1" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#key-resources"><i class="fa fa-check"></i><b>2.1</b> Key resources</a></li>
+<li class="chapter" data-level="2.2" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#ingesting-the-raw-data"><i class="fa fa-check"></i><b>2.2</b> Ingesting the Raw Data</a></li>
+<li class="chapter" data-level="2.3" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#ingesting-from-our-csv-file"><i class="fa fa-check"></i><b>2.3</b> Ingesting from our CSV file</a></li>
+<li class="chapter" data-level="2.4" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#what-does-the-raw-data-look-like"><i class="fa fa-check"></i><b>2.4</b> What does the raw data look like?</a></li>
+<li class="chapter" data-level="2.5" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#cleaning-the-brfss-data"><i class="fa fa-check"></i><b>2.5</b> Cleaning the BRFSS Data</a><ul>
+<li class="chapter" data-level="2.5.1" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#identifying-information"><i class="fa fa-check"></i><b>2.5.1</b> Identifying Information</a></li>
+<li class="chapter" data-level="2.5.2" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#survey-method"><i class="fa fa-check"></i><b>2.5.2</b> Survey Method</a></li>
+<li class="chapter" data-level="2.5.3" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#health-status-1-item"><i class="fa fa-check"></i><b>2.5.3</b> Health Status (1 item)</a></li>
+<li class="chapter" data-level="2.5.4" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#healthy-days---health-related-quality-of-life-3-items"><i class="fa fa-check"></i><b>2.5.4</b> Healthy Days - Health-Related Quality of Life (3 items)</a></li>
+<li class="chapter" data-level="2.5.5" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#health-care-access-4-items"><i class="fa fa-check"></i><b>2.5.5</b> Health Care Access (4 items)</a></li>
+<li class="chapter" data-level="2.5.6" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#blood-pressure-2-measures"><i class="fa fa-check"></i><b>2.5.6</b> Blood Pressure (2 measures)</a></li>
+<li class="chapter" data-level="2.5.7" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#cholesterol-3-items"><i class="fa fa-check"></i><b>2.5.7</b> Cholesterol (3 items)</a></li>
+<li class="chapter" data-level="2.5.8" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#chronic-health-conditions-14-items"><i class="fa fa-check"></i><b>2.5.8</b> Chronic Health Conditions (14 items)</a></li>
+<li class="chapter" data-level="2.5.9" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#arthritis-burden-4-items"><i class="fa fa-check"></i><b>2.5.9</b> Arthritis Burden (4 items)</a></li>
+<li class="chapter" data-level="2.5.10" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#demographics-25-items"><i class="fa fa-check"></i><b>2.5.10</b> Demographics (25 items)</a></li>
+<li class="chapter" data-level="2.5.11" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#tobacco-use-2-items"><i class="fa fa-check"></i><b>2.5.11</b> Tobacco Use (2 items)</a></li>
+<li class="chapter" data-level="2.5.12" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#e-cigarettes-2-items"><i class="fa fa-check"></i><b>2.5.12</b> E-Cigarettes (2 items)</a></li>
+<li class="chapter" data-level="2.5.13" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#alcohol-consumption-6-items"><i class="fa fa-check"></i><b>2.5.13</b> Alcohol Consumption (6 items)</a></li>
+<li class="chapter" data-level="2.5.14" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#fruits-and-vegetables-8-items"><i class="fa fa-check"></i><b>2.5.14</b> Fruits and Vegetables (8 items)</a></li>
+<li class="chapter" data-level="2.5.15" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#exercise-and-physical-activity-8-items"><i class="fa fa-check"></i><b>2.5.15</b> Exercise and Physical Activity (8 items)</a></li>
+<li class="chapter" data-level="2.5.16" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#seatbelt-use-1-item"><i class="fa fa-check"></i><b>2.5.16</b> Seatbelt Use (1 item)</a></li>
+<li class="chapter" data-level="2.5.17" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#immunization-3-items"><i class="fa fa-check"></i><b>2.5.17</b> Immunization (3 items)</a></li>
+<li class="chapter" data-level="2.5.18" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#hivaids-2-items"><i class="fa fa-check"></i><b>2.5.18</b> HIV/AIDS (2 items)</a></li>
+</ul></li>
+<li class="chapter" data-level="2.6" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#imputing-age-and-income-as-quantitative-from-thin-air"><i class="fa fa-check"></i><b>2.6</b> Imputing Age and Income as Quantitative from Thin Air</a><ul>
+<li class="chapter" data-level="2.6.1" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#age_imp-imputing-age-data"><i class="fa fa-check"></i><b>2.6.1</b> <code>age_imp</code>: Imputing Age Data</a></li>
+<li class="chapter" data-level="2.6.2" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#inc_imp-imputing-income-data"><i class="fa fa-check"></i><b>2.6.2</b> <code>inc_imp</code>: Imputing Income Data</a></li>
+</ul></li>
+<li class="chapter" data-level="2.7" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#clean-data-in-the-state-of-ohio"><i class="fa fa-check"></i><b>2.7</b> Clean Data in the State of Ohio</a><ul>
+<li class="chapter" data-level="2.7.1" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#summary-of-the-smart_ohio-file"><i class="fa fa-check"></i><b>2.7.1</b> Summary of the <code>smart_ohio</code> file</a></li>
+</ul></li>
+<li class="chapter" data-level="2.8" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#clean-cleveland-elyria-data"><i class="fa fa-check"></i><b>2.8</b> Clean Cleveland-Elyria Data</a><ul>
+<li class="chapter" data-level="2.8.1" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#cleveland---elyria-data"><i class="fa fa-check"></i><b>2.8.1</b> Cleveland - Elyria Data</a></li>
+<li class="chapter" data-level="2.8.2" data-path="brfss-smart-data.html"><a href="brfss-smart-data.html#inspecting-the-cleveland-elyria-data"><i class="fa fa-check"></i><b>2.8.2</b> Inspecting the Cleveland-Elyria Data</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html"><i class="fa fa-check"></i><b>3</b> Dealing with Missingness: Single Imputation</a><ul>
+<li class="chapter" data-level="3.1" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#selecting-some-variables-from-the-smart_cle-data"><i class="fa fa-check"></i><b>3.1</b> Selecting Some Variables from the <code>smart_cle</code> data</a></li>
+<li class="chapter" data-level="3.2" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#smart_cle1-seeing-our-missing-data"><i class="fa fa-check"></i><b>3.2</b> <code>smart_cle1</code>: Seeing our Missing Data</a><ul>
+<li class="chapter" data-level="3.2.1" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#plotting-missingness"><i class="fa fa-check"></i><b>3.2.1</b> Plotting Missingness</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#missing-data-mechanisms"><i class="fa fa-check"></i><b>3.3</b> Missing-data mechanisms</a></li>
+<li class="chapter" data-level="3.4" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#options-for-dealing-with-missingness"><i class="fa fa-check"></i><b>3.4</b> Options for Dealing with Missingness</a></li>
+<li class="chapter" data-level="3.5" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#complete-case-and-available-case-analyses"><i class="fa fa-check"></i><b>3.5</b> Complete Case (and Available Case) analyses</a></li>
+<li class="chapter" data-level="3.6" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#single-imputation"><i class="fa fa-check"></i><b>3.6</b> Single Imputation</a></li>
+<li class="chapter" data-level="3.7" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#multiple-imputation"><i class="fa fa-check"></i><b>3.7</b> Multiple Imputation</a></li>
+<li class="chapter" data-level="3.8" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#approach-1-building-a-complete-case-analysis-smart_cle1_cc"><i class="fa fa-check"></i><b>3.8</b> Approach 1: Building a Complete Case Analysis: <code>smart_cle1_cc</code></a></li>
+<li class="chapter" data-level="3.9" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#approach-2-single-imputation-to-create-smart_cle1_sh"><i class="fa fa-check"></i><b>3.9</b> Approach 2: Single Imputation to create <code>smart_cle1_sh</code></a><ul>
+<li class="chapter" data-level="3.9.1" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#what-type-of-missingness-do-we-have"><i class="fa fa-check"></i><b>3.9.1</b> What Type of Missingness Do We Have?</a></li>
+<li class="chapter" data-level="3.9.2" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#single-imputation-into-smart_cle1_sh"><i class="fa fa-check"></i><b>3.9.2</b> Single imputation into <code>smart_cle1_sh</code></a></li>
+<li class="chapter" data-level="3.9.3" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#imputing-binary-categorical-variables"><i class="fa fa-check"></i><b>3.9.3</b> Imputing Binary Categorical Variables</a></li>
+<li class="chapter" data-level="3.9.4" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#imputing-quantitative-variables"><i class="fa fa-check"></i><b>3.9.4</b> Imputing Quantitative Variables</a></li>
+<li class="chapter" data-level="3.9.5" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#imputation-results"><i class="fa fa-check"></i><b>3.9.5</b> Imputation Results</a></li>
+<li class="chapter" data-level="3.9.6" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#imputing-multi-categorical-variables"><i class="fa fa-check"></i><b>3.9.6</b> Imputing Multi-Categorical Variables</a></li>
+<li class="chapter" data-level="3.9.7" data-path="dealing-with-missingness-single-imputation.html"><a href="dealing-with-missingness-single-imputation.html#saving-the-new-tibbles"><i class="fa fa-check"></i><b>3.9.7</b> Saving the new tibbles</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html"><i class="fa fa-check"></i><b>4</b> Summarizing the <code>smart_cle1</code> data</a><ul>
+<li class="chapter" data-level="4.1" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#general-approaches-to-obtaining-numeric-summaries"><i class="fa fa-check"></i><b>4.1</b> General Approaches to Obtaining Numeric Summaries</a><ul>
+<li class="chapter" data-level="4.1.1" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#summary-for-a-data-frame"><i class="fa fa-check"></i><b>4.1.1</b> <code>summary</code> for a data frame</a></li>
+<li class="chapter" data-level="4.1.2" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#the-inspect-function-from-the-mosaic-package"><i class="fa fa-check"></i><b>4.1.2</b> The <code>inspect</code> function from the <code>mosaic</code> package</a></li>
+<li class="chapter" data-level="4.1.3" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#the-describe-function-in-hmisc"><i class="fa fa-check"></i><b>4.1.3</b> The <code>describe</code> function in <code>Hmisc</code></a></li>
+</ul></li>
+<li class="chapter" data-level="4.2" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#counting-as-exploratory-data-analysis"><i class="fa fa-check"></i><b>4.2</b> Counting as exploratory data analysis</a><ul>
+<li class="chapter" data-level="4.2.1" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#did-genhealth-vary-by-smoking-status"><i class="fa fa-check"></i><b>4.2.1</b> Did <code>genhealth</code> vary by smoking status?</a></li>
+<li class="chapter" data-level="4.2.2" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#whats-the-distribution-of-physhealth"><i class="fa fa-check"></i><b>4.2.2</b> What’s the distribution of <code>physhealth</code>?</a></li>
+<li class="chapter" data-level="4.2.3" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#whats-the-distribution-of-bmi"><i class="fa fa-check"></i><b>4.2.3</b> What’s the distribution of <code>bmi</code>?</a></li>
+<li class="chapter" data-level="4.2.4" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#how-many-of-the-respondents-have-a-bmi-below-30"><i class="fa fa-check"></i><b>4.2.4</b> How many of the respondents have a BMI below 30?</a></li>
+<li class="chapter" data-level="4.2.5" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#how-many-of-the-respondents-with-a-bmi-30-are-highly-active"><i class="fa fa-check"></i><b>4.2.5</b> How many of the respondents with a BMI &lt; 30 are highly active?</a></li>
+<li class="chapter" data-level="4.2.6" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#is-obesity-associated-with-smoking-history"><i class="fa fa-check"></i><b>4.2.6</b> Is obesity associated with smoking history?</a></li>
+<li class="chapter" data-level="4.2.7" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#comparing-drinks_wk-summaries-by-obesity-status"><i class="fa fa-check"></i><b>4.2.7</b> Comparing <code>drinks_wk</code> summaries by obesity status</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#can-bmi-predict-physhealth"><i class="fa fa-check"></i><b>4.3</b> Can <code>bmi</code> predict <code>physhealth</code>?</a><ul>
+<li class="chapter" data-level="4.3.1" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#fitting-a-simple-regression-model"><i class="fa fa-check"></i><b>4.3.1</b> Fitting a Simple Regression Model</a></li>
+<li class="chapter" data-level="4.3.2" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#model-summary-for-a-simple-one-predictor-regression"><i class="fa fa-check"></i><b>4.3.2</b> Model Summary for a Simple (One-Predictor) Regression</a></li>
+<li class="chapter" data-level="4.3.3" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#using-the-broom-package"><i class="fa fa-check"></i><b>4.3.3</b> Using the <code>broom</code> package</a></li>
+<li class="chapter" data-level="4.3.4" data-path="summarizing-the-smart-cle1-data.html"><a href="summarizing-the-smart-cle1-data.html#how-does-the-model-do-residuals-vs.-fitted-values"><i class="fa fa-check"></i><b>4.3.4</b> How does the model do? (Residuals vs. Fitted Values)</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html"><i class="fa fa-check"></i><b>5</b> Analysis of Variance with SMART</a><ul>
+<li class="chapter" data-level="5.1" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#a-one-factor-analysis-of-variance"><i class="fa fa-check"></i><b>5.1</b> A One-Factor Analysis of Variance</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#can-activity-be-used-to-predict-bmi"><i class="fa fa-check"></i><b>5.1.1</b> Can <code>activity</code> be used to predict <code>bmi</code>?</a></li>
+<li class="chapter" data-level="5.1.2" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#should-we-transform-bmi"><i class="fa fa-check"></i><b>5.1.2</b> Should we transform <code>bmi</code>?</a></li>
+<li class="chapter" data-level="5.1.3" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#building-the-anova-model"><i class="fa fa-check"></i><b>5.1.3</b> Building the ANOVA model</a></li>
+<li class="chapter" data-level="5.1.4" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#the-anova-table"><i class="fa fa-check"></i><b>5.1.4</b> The ANOVA table</a></li>
+<li class="chapter" data-level="5.1.5" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#the-model-coefficients"><i class="fa fa-check"></i><b>5.1.5</b> The Model Coefficients</a></li>
+<li class="chapter" data-level="5.1.6" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#using-broomtidy-to-explore-the-coefficients"><i class="fa fa-check"></i><b>5.1.6</b> Using <code>broom::tidy</code> to explore the coefficients</a></li>
+<li class="chapter" data-level="5.1.7" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#using-broomglance-to-summarize-the-models-fit"><i class="fa fa-check"></i><b>5.1.7</b> Using <code>broom::glance</code> to summarize the model’s fit</a></li>
+<li class="chapter" data-level="5.1.8" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#using-broomaugment-to-make-predictions"><i class="fa fa-check"></i><b>5.1.8</b> Using <code>broom::augment</code> to make predictions</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#a-two-factor-anova-without-interaction"><i class="fa fa-check"></i><b>5.2</b> A Two-Factor ANOVA (without Interaction)</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#model-coefficients"><i class="fa fa-check"></i><b>5.2.1</b> Model Coefficients</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#a-two-factor-anova-with-interaction"><i class="fa fa-check"></i><b>5.3</b> A Two-Factor ANOVA (with Interaction)</a><ul>
+<li class="chapter" data-level="5.3.1" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#model-coefficients-1"><i class="fa fa-check"></i><b>5.3.1</b> Model Coefficients</a></li>
+<li class="chapter" data-level="5.3.2" data-path="analysis-of-variance-with-smart.html"><a href="analysis-of-variance-with-smart.html#is-the-interaction-term-necessary"><i class="fa fa-check"></i><b>5.3.2</b> Is the interaction term necessary?</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html"><i class="fa fa-check"></i><b>6</b> Analysis of Variance</a><ul>
+<li class="chapter" data-level="6.1" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#the-bonding-data-a-designed-dental-experiment"><i class="fa fa-check"></i><b>6.1</b> The <code>bonding</code> data: A Designed Dental Experiment</a></li>
+<li class="chapter" data-level="6.2" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#a-one-factor-analysis-of-variance-1"><i class="fa fa-check"></i><b>6.2</b> A One-Factor Analysis of Variance</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#look-at-the-data"><i class="fa fa-check"></i><b>6.2.1</b> Look at the Data!</a></li>
+<li class="chapter" data-level="6.2.2" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#table-of-summary-statistics"><i class="fa fa-check"></i><b>6.2.2</b> Table of Summary Statistics</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#a-two-way-anova-looking-at-two-factors"><i class="fa fa-check"></i><b>6.3</b> A Two-Way ANOVA: Looking at Two Factors</a></li>
+<li class="chapter" data-level="6.4" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#a-means-plot-with-standard-deviations-to-check-for-interaction"><i class="fa fa-check"></i><b>6.4</b> A Means Plot (with standard deviations) to check for interaction</a><ul>
+<li class="chapter" data-level="6.4.1" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#summarizing-the-data-after-grouping-by-resin-and-light"><i class="fa fa-check"></i><b>6.4.1</b> Summarizing the data after grouping by <code>resin</code> and <code>light</code></a></li>
+</ul></li>
+<li class="chapter" data-level="6.5" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#fitting-the-two-way-anova-model-with-interaction"><i class="fa fa-check"></i><b>6.5</b> Fitting the Two-Way ANOVA model with Interaction</a><ul>
+<li class="chapter" data-level="6.5.1" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#the-anova-table-for-our-model"><i class="fa fa-check"></i><b>6.5.1</b> The ANOVA table for our model</a></li>
+<li class="chapter" data-level="6.5.2" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#is-the-interaction-important"><i class="fa fa-check"></i><b>6.5.2</b> Is the interaction important?</a></li>
+<li class="chapter" data-level="6.5.3" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#interpreting-the-interaction"><i class="fa fa-check"></i><b>6.5.3</b> Interpreting the Interaction</a></li>
+</ul></li>
+<li class="chapter" data-level="6.6" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#comparing-individual-combinations-of-resin-and-light"><i class="fa fa-check"></i><b>6.6</b> Comparing Individual Combinations of <code>resin</code> and <code>light</code></a></li>
+<li class="chapter" data-level="6.7" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#the-bonding-model-without-interaction"><i class="fa fa-check"></i><b>6.7</b> The <code>bonding</code> model without Interaction</a></li>
+<li class="chapter" data-level="6.8" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#cortisol-a-hypothetical-clinical-trial"><i class="fa fa-check"></i><b>6.8</b> <code>cortisol</code>: A Hypothetical Clinical Trial</a><ul>
+<li class="chapter" data-level="6.8.1" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#codebook-and-raw-data-for-cortisol"><i class="fa fa-check"></i><b>6.8.1</b> Codebook and Raw Data for <code>cortisol</code></a></li>
+</ul></li>
+<li class="chapter" data-level="6.9" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#creating-a-factor-combining-sex-and-waist"><i class="fa fa-check"></i><b>6.9</b> Creating a factor combining sex and waist</a></li>
+<li class="chapter" data-level="6.10" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#a-means-plot-for-the-cortisol-trial-with-standard-errors"><i class="fa fa-check"></i><b>6.10</b> A Means Plot for the <code>cortisol</code> trial (with standard errors)</a></li>
+<li class="chapter" data-level="6.11" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#a-two-way-anova-model-for-cortisol-with-interaction"><i class="fa fa-check"></i><b>6.11</b> A Two-Way ANOVA model for <code>cortisol</code> with Interaction</a></li>
+<li class="chapter" data-level="6.12" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#a-two-way-anova-model-for-cortisol-without-interaction"><i class="fa fa-check"></i><b>6.12</b> A Two-Way ANOVA model for <code>cortisol</code> without Interaction</a><ul>
+<li class="chapter" data-level="6.12.1" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#the-graph"><i class="fa fa-check"></i><b>6.12.1</b> The Graph</a></li>
+<li class="chapter" data-level="6.12.2" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#the-anova-model"><i class="fa fa-check"></i><b>6.12.2</b> The ANOVA Model</a></li>
+<li class="chapter" data-level="6.12.3" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#the-regression-summary"><i class="fa fa-check"></i><b>6.12.3</b> The Regression Summary</a></li>
+<li class="chapter" data-level="6.12.4" data-path="analysis-of-variance.html"><a href="analysis-of-variance.html#tukey-hsd-comparisons"><i class="fa fa-check"></i><b>6.12.4</b> Tukey HSD Comparisons</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html"><i class="fa fa-check"></i><b>7</b> Analysis of Covariance</a><ul>
+<li class="chapter" data-level="7.1" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#an-emphysema-study"><i class="fa fa-check"></i><b>7.1</b> An Emphysema Study</a><ul>
+<li class="chapter" data-level="7.1.1" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#codebook"><i class="fa fa-check"></i><b>7.1.1</b> Codebook</a></li>
+</ul></li>
+<li class="chapter" data-level="7.2" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#does-sex-affect-the-mean-change-in-theophylline"><i class="fa fa-check"></i><b>7.2</b> Does <code>sex</code> affect the mean change in theophylline?</a></li>
+<li class="chapter" data-level="7.3" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#is-there-an-association-between-age-and-sex-in-this-study"><i class="fa fa-check"></i><b>7.3</b> Is there an association between <code>age</code> and <code>sex</code> in this study?</a></li>
+<li class="chapter" data-level="7.4" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#adding-a-quantitative-covariate-age-to-the-model"><i class="fa fa-check"></i><b>7.4</b> Adding a quantitative covariate, <code>age</code>, to the model</a><ul>
+<li class="chapter" data-level="7.4.1" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#the-ancova-model"><i class="fa fa-check"></i><b>7.4.1</b> The ANCOVA model</a></li>
+<li class="chapter" data-level="7.4.2" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#the-ancova-table"><i class="fa fa-check"></i><b>7.4.2</b> The ANCOVA Table</a></li>
+</ul></li>
+<li class="chapter" data-level="7.5" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#rerunning-the-ancova-model-after-simple-imputation"><i class="fa fa-check"></i><b>7.5</b> Rerunning the ANCOVA model after simple imputation</a></li>
+<li class="chapter" data-level="7.6" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#looking-at-a-factor-covariate-interaction"><i class="fa fa-check"></i><b>7.6</b> Looking at a factor-covariate interaction</a></li>
+<li class="chapter" data-level="7.7" data-path="analysis-of-covariance.html"><a href="analysis-of-covariance.html#centering-the-covariate-to-facilitate-ancova-interpretation"><i class="fa fa-check"></i><b>7.7</b> Centering the Covariate to Facilitate ANCOVA Interpretation</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html"><i class="fa fa-check"></i><b>8</b> Analysis of Covariance with the SMART data</a><ul>
+<li class="chapter" data-level="8.1" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#a-new-small-study-predicting-bmi"><i class="fa fa-check"></i><b>8.1</b> A New Small Study: Predicting BMI</a><ul>
+<li class="chapter" data-level="8.1.1" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#does-female-predict-bmi-well"><i class="fa fa-check"></i><b>8.1.1</b> Does <code>female</code> predict <code>bmi</code> well?</a></li>
+</ul></li>
+<li class="chapter" data-level="8.2" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#c8_m1-a-simple-t-test-model"><i class="fa fa-check"></i><b>8.2</b> <code>c8_m1</code>: A simple t-test model</a></li>
+<li class="chapter" data-level="8.3" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#c8_m2-adding-another-predictor-two-way-anova-without-interaction"><i class="fa fa-check"></i><b>8.3</b> <code>c8_m2</code>: Adding another predictor (two-way ANOVA without interaction)</a></li>
+<li class="chapter" data-level="8.4" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#c8_m3-adding-the-interaction-term-two-way-anova-with-interaction"><i class="fa fa-check"></i><b>8.4</b> <code>c8_m3</code>: Adding the interaction term (Two-way ANOVA with interaction)</a></li>
+<li class="chapter" data-level="8.5" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#c8_m4-using-female-and-physhealth-in-a-model-for-bmi"><i class="fa fa-check"></i><b>8.5</b> <code>c8_m4</code>: Using <code>female</code> and <code>physhealth</code> in a model for <code>bmi</code></a></li>
+<li class="chapter" data-level="8.6" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#making-predictions-with-a-linear-regression-model"><i class="fa fa-check"></i><b>8.6</b> Making Predictions with a Linear Regression Model</a><ul>
+<li class="chapter" data-level="8.6.1" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#fitting-an-individual-prediction-and-95-prediction-interval"><i class="fa fa-check"></i><b>8.6.1</b> Fitting an Individual Prediction and 95% Prediction Interval</a></li>
+<li class="chapter" data-level="8.6.2" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#confidence-interval-for-an-average-prediction"><i class="fa fa-check"></i><b>8.6.2</b> Confidence Interval for an Average Prediction</a></li>
+<li class="chapter" data-level="8.6.3" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#fitting-multiple-individual-predictions-to-new-data"><i class="fa fa-check"></i><b>8.6.3</b> Fitting Multiple Individual Predictions to New Data</a></li>
+</ul></li>
+<li class="chapter" data-level="8.7" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#centering-the-model"><i class="fa fa-check"></i><b>8.7</b> Centering the model</a><ul>
+<li class="chapter" data-level="8.7.1" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#plot-of-model-4-on-centered-physhealth-c8_m4_c"><i class="fa fa-check"></i><b>8.7.1</b> Plot of Model 4 on Centered <code>physhealth</code>: <code>c8_m4_c</code></a></li>
+</ul></li>
+<li class="chapter" data-level="8.8" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#rescaling-an-input-by-subtracting-the-mean-and-dividing-by-2-standard-deviations"><i class="fa fa-check"></i><b>8.8</b> Rescaling an input by subtracting the mean and dividing by 2 standard deviations</a><ul>
+<li class="chapter" data-level="8.8.1" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#refitting-model-c8_m4-to-the-rescaled-data"><i class="fa fa-check"></i><b>8.8.1</b> Refitting model <code>c8_m4</code> to the rescaled data</a></li>
+<li class="chapter" data-level="8.8.2" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#interpreting-the-model-on-rescaled-data"><i class="fa fa-check"></i><b>8.8.2</b> Interpreting the model on rescaled data</a></li>
+<li class="chapter" data-level="8.8.3" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#plot-of-model-on-rescaled-data"><i class="fa fa-check"></i><b>8.8.3</b> Plot of model on rescaled data</a></li>
+</ul></li>
+<li class="chapter" data-level="8.9" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#c8_m5-what-if-we-add-more-variables"><i class="fa fa-check"></i><b>8.9</b> <code>c8_m5</code>: What if we add more variables?</a></li>
+<li class="chapter" data-level="8.10" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#c8_m6-would-adding-self-reported-health-help"><i class="fa fa-check"></i><b>8.10</b> <code>c8_m6</code>: Would adding self-reported health help?</a></li>
+<li class="chapter" data-level="8.11" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#key-regression-assumptions-for-building-effective-prediction-models"><i class="fa fa-check"></i><b>8.11</b> Key Regression Assumptions for Building Effective Prediction Models</a><ul>
+<li class="chapter" data-level="8.11.1" data-path="analysis-of-covariance-with-the-smart-data.html"><a href="analysis-of-covariance-with-the-smart-data.html#checking-assumptions-in-model-c8_m6"><i class="fa fa-check"></i><b>8.11.1</b> Checking Assumptions in model <code>c8_m6</code></a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html"><i class="fa fa-check"></i><b>9</b> Logistic Regression: The Foundations</a><ul>
+<li class="chapter" data-level="9.1" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html#a-first-attempt-a-linear-probability-model"><i class="fa fa-check"></i><b>9.1</b> A First Attempt: A Linear Probability Model</a></li>
+<li class="chapter" data-level="9.2" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html#logistic-regression"><i class="fa fa-check"></i><b>9.2</b> Logistic Regression</a></li>
+<li class="chapter" data-level="9.3" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html#the-logistic-regression-model"><i class="fa fa-check"></i><b>9.3</b> The Logistic Regression Model</a></li>
+<li class="chapter" data-level="9.4" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html#the-link-function"><i class="fa fa-check"></i><b>9.4</b> The Link Function</a></li>
+<li class="chapter" data-level="9.5" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html#the-logit-or-log-odds"><i class="fa fa-check"></i><b>9.5</b> The logit or log odds</a></li>
+<li class="chapter" data-level="9.6" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html#interpreting-the-coefficients-of-a-logistic-regression-model"><i class="fa fa-check"></i><b>9.6</b> Interpreting the Coefficients of a Logistic Regression Model</a></li>
+<li class="chapter" data-level="9.7" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html#the-logistic-regression-has-non-constant-variance"><i class="fa fa-check"></i><b>9.7</b> The Logistic Regression has non-constant variance</a></li>
+<li class="chapter" data-level="9.8" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html#fitting-a-logistic-regression-model-to-our-simulated-data"><i class="fa fa-check"></i><b>9.8</b> Fitting a Logistic Regression Model to our Simulated Data</a></li>
+<li class="chapter" data-level="9.9" data-path="logistic-regression-the-foundations.html"><a href="logistic-regression-the-foundations.html#plotting-the-logistic-regression-model"><i class="fa fa-check"></i><b>9.9</b> Plotting the Logistic Regression Model</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html"><i class="fa fa-check"></i><b>10</b> Logistic Regression and the <code>resect</code> data</a><ul>
+<li class="chapter" data-level="10.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#the-resect-data"><i class="fa fa-check"></i><b>10.1</b> The <code>resect</code> data</a></li>
+<li class="chapter" data-level="10.2" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#running-a-simple-logistic-regression-model"><i class="fa fa-check"></i><b>10.2</b> Running A Simple Logistic Regression Model</a><ul>
+<li class="chapter" data-level="10.2.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#logistic-regression-can-be-harder-than-linear-regression"><i class="fa fa-check"></i><b>10.2.1</b> Logistic Regression Can Be Harder than Linear Regression</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#logistic-regression-using-glm"><i class="fa fa-check"></i><b>10.3</b> Logistic Regression using <code>glm</code></a><ul>
+<li class="chapter" data-level="10.3.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#interpreting-the-coefficients-of-a-logistic-regression-model-1"><i class="fa fa-check"></i><b>10.3.1</b> Interpreting the Coefficients of a Logistic Regression Model</a></li>
+<li class="chapter" data-level="10.3.2" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#using-predict-to-describe-the-models-fits"><i class="fa fa-check"></i><b>10.3.2</b> Using <code>predict</code> to describe the model’s fits</a></li>
+<li class="chapter" data-level="10.3.3" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#odds-ratio-interpretation-of-coefficients"><i class="fa fa-check"></i><b>10.3.3</b> Odds Ratio interpretation of Coefficients</a></li>
+<li class="chapter" data-level="10.3.4" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#interpreting-the-rest-of-the-model-output-from-glm"><i class="fa fa-check"></i><b>10.3.4</b> Interpreting the rest of the model output from <code>glm</code></a></li>
+<li class="chapter" data-level="10.3.5" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#deviance-and-comparing-our-model-to-the-null-model"><i class="fa fa-check"></i><b>10.3.5</b> Deviance and Comparing Our Model to the Null Model</a></li>
+<li class="chapter" data-level="10.3.6" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#using-glance-with-a-logistic-regression-model"><i class="fa fa-check"></i><b>10.3.6</b> Using <code>glance</code> with a logistic regression model</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#interpreting-the-model-summary"><i class="fa fa-check"></i><b>10.4</b> Interpreting the Model Summary</a><ul>
+<li class="chapter" data-level="10.4.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#wald-z-tests-for-coefficients-in-a-logistic-regression"><i class="fa fa-check"></i><b>10.4.1</b> Wald Z tests for Coefficients in a Logistic Regression</a></li>
+<li class="chapter" data-level="10.4.2" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#confidence-intervals-for-the-coefficients"><i class="fa fa-check"></i><b>10.4.2</b> Confidence Intervals for the Coefficients</a></li>
+<li class="chapter" data-level="10.4.3" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#deviance-residuals"><i class="fa fa-check"></i><b>10.4.3</b> Deviance Residuals</a></li>
+<li class="chapter" data-level="10.4.4" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#dispersion-parameter"><i class="fa fa-check"></i><b>10.4.4</b> Dispersion Parameter</a></li>
+<li class="chapter" data-level="10.4.5" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#fisher-scoring-iterations"><i class="fa fa-check"></i><b>10.4.5</b> Fisher Scoring iterations</a></li>
+</ul></li>
+<li class="chapter" data-level="10.5" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plotting-a-simple-logistic-regression-model"><i class="fa fa-check"></i><b>10.5</b> Plotting a Simple Logistic Regression Model</a><ul>
+<li class="chapter" data-level="10.5.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#using-augment-to-capture-the-fitted-probabilities"><i class="fa fa-check"></i><b>10.5.1</b> Using <code>augment</code> to capture the fitted probabilities</a></li>
+<li class="chapter" data-level="10.5.2" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plotting-a-logistic-regression-models-fitted-values"><i class="fa fa-check"></i><b>10.5.2</b> Plotting a Logistic Regression Model’s Fitted Values</a></li>
+<li class="chapter" data-level="10.5.3" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plotting-a-simple-logistic-model-using-binomial_smooth"><i class="fa fa-check"></i><b>10.5.3</b> Plotting a Simple Logistic Model using <code>binomial_smooth</code></a></li>
+</ul></li>
+<li class="chapter" data-level="10.6" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#how-well-does-model-a-classify-subjects"><i class="fa fa-check"></i><b>10.6</b> How well does Model A classify subjects?</a></li>
+<li class="chapter" data-level="10.7" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#the-confusion-matrix"><i class="fa fa-check"></i><b>10.7</b> The Confusion Matrix</a></li>
+<li class="chapter" data-level="10.8" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#using-the-confusionmatrix-tool-from-the-caret-package"><i class="fa fa-check"></i><b>10.8</b> Using the <code>confusionMatrix</code> tool from the <code>caret</code> package</a></li>
+<li class="chapter" data-level="10.9" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#receiver-operating-characteristic-curve-analysis"><i class="fa fa-check"></i><b>10.9</b> Receiver Operating Characteristic Curve Analysis</a><ul>
+<li class="chapter" data-level="10.9.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#interpreting-the-area-under-the-roc-curve"><i class="fa fa-check"></i><b>10.9.1</b> Interpreting the Area under the ROC curve</a></li>
+</ul></li>
+<li class="chapter" data-level="10.10" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#the-roc-plot-for-res_moda"><i class="fa fa-check"></i><b>10.10</b> The ROC Plot for <code>res_modA</code></a><ul>
+<li class="chapter" data-level="10.10.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#another-way-to-plot-the-roc-curve"><i class="fa fa-check"></i><b>10.10.1</b> Another way to plot the ROC Curve</a></li>
+</ul></li>
+<li class="chapter" data-level="10.11" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#assessing-residual-plots-from-model-a"><i class="fa fa-check"></i><b>10.11</b> Assessing Residual Plots from Model A</a></li>
+<li class="chapter" data-level="10.12" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#model-b-a-kitchen-sink-logistic-regression-model"><i class="fa fa-check"></i><b>10.12</b> Model B: A “Kitchen Sink” Logistic Regression Model</a><ul>
+<li class="chapter" data-level="10.12.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#comparing-model-a-to-model-b"><i class="fa fa-check"></i><b>10.12.1</b> Comparing Model A to Model B</a></li>
+<li class="chapter" data-level="10.12.2" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#interpreting-model-b"><i class="fa fa-check"></i><b>10.12.2</b> Interpreting Model B</a></li>
+</ul></li>
+<li class="chapter" data-level="10.13" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plotting-model-b"><i class="fa fa-check"></i><b>10.13</b> Plotting Model B</a><ul>
+<li class="chapter" data-level="10.13.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#using-augment-to-capture-the-fitted-probabilities-1"><i class="fa fa-check"></i><b>10.13.1</b> Using <code>augment</code> to capture the fitted probabilities</a></li>
+<li class="chapter" data-level="10.13.2" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plotting-model-b-fits-by-observed-mortality"><i class="fa fa-check"></i><b>10.13.2</b> Plotting Model B Fits by Observed Mortality</a></li>
+<li class="chapter" data-level="10.13.3" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#confusion-matrix-for-model-b"><i class="fa fa-check"></i><b>10.13.3</b> Confusion Matrix for Model B</a></li>
+<li class="chapter" data-level="10.13.4" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#the-roc-curve-for-model-b"><i class="fa fa-check"></i><b>10.13.4</b> The ROC curve for Model B</a></li>
+<li class="chapter" data-level="10.13.5" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#residuals-leverage-and-influence"><i class="fa fa-check"></i><b>10.13.5</b> Residuals, Leverage and Influence</a></li>
+</ul></li>
+<li class="chapter" data-level="10.14" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#logistic-regression-using-lrm"><i class="fa fa-check"></i><b>10.14</b> Logistic Regression using <code>lrm</code></a><ul>
+<li class="chapter" data-level="10.14.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#interpreting-nagelkerke-r2"><i class="fa fa-check"></i><b>10.14.1</b> Interpreting Nagelkerke R<sup>2</sup></a></li>
+<li class="chapter" data-level="10.14.2" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#interpreting-the-c-statistic-and-plotting-the-roc-curve"><i class="fa fa-check"></i><b>10.14.2</b> Interpreting the C statistic and Plotting the ROC Curve</a></li>
+<li class="chapter" data-level="10.14.3" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#the-c-statistic-and-somers-d"><i class="fa fa-check"></i><b>10.14.3</b> The C statistic and Somers’ D</a></li>
+<li class="chapter" data-level="10.14.4" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#validating-the-logistic-regression-model-summary-statistics"><i class="fa fa-check"></i><b>10.14.4</b> Validating the Logistic Regression Model Summary Statistics</a></li>
+<li class="chapter" data-level="10.14.5" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plotting-the-summary-of-the-lrm-approach"><i class="fa fa-check"></i><b>10.14.5</b> Plotting the Summary of the <code>lrm</code> approach</a></li>
+<li class="chapter" data-level="10.14.6" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plot-in-sample-predictions-for-model-c"><i class="fa fa-check"></i><b>10.14.6</b> Plot In-Sample Predictions for Model C</a></li>
+<li class="chapter" data-level="10.14.7" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#anova-from-the-lrm-approach"><i class="fa fa-check"></i><b>10.14.7</b> ANOVA from the <code>lrm</code> approach</a></li>
+<li class="chapter" data-level="10.14.8" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#are-any-points-particularly-influential"><i class="fa fa-check"></i><b>10.14.8</b> Are any points particularly influential?</a></li>
+<li class="chapter" data-level="10.14.9" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#a-nomogram-for-model-c"><i class="fa fa-check"></i><b>10.14.9</b> A Nomogram for Model C</a></li>
+</ul></li>
+<li class="chapter" data-level="10.15" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#model-d-an-augmented-kitchen-sink-model"><i class="fa fa-check"></i><b>10.15</b> Model D: An Augmented Kitchen Sink Model</a><ul>
+<li class="chapter" data-level="10.15.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#spearman-rho2-plot"><i class="fa fa-check"></i><b>10.15.1</b> Spearman <span class="math inline">\(\rho^2\)</span> Plot</a></li>
+<li class="chapter" data-level="10.15.2" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#fitting-model-d-using-lrm"><i class="fa fa-check"></i><b>10.15.2</b> Fitting Model D using <code>lrm</code></a></li>
+<li class="chapter" data-level="10.15.3" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#assessing-model-d-using-lrms-tools"><i class="fa fa-check"></i><b>10.15.3</b> Assessing Model D using <code>lrm</code>’s tools</a></li>
+<li class="chapter" data-level="10.15.4" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#anova-and-wald-tests-for-model-d"><i class="fa fa-check"></i><b>10.15.4</b> ANOVA and Wald Tests for Model D</a></li>
+<li class="chapter" data-level="10.15.5" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#effect-sizes-in-model-d"><i class="fa fa-check"></i><b>10.15.5</b> Effect Sizes in Model D</a></li>
+<li class="chapter" data-level="10.15.6" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plot-in-sample-predictions-for-model-d"><i class="fa fa-check"></i><b>10.15.6</b> Plot In-Sample Predictions for Model D</a></li>
+<li class="chapter" data-level="10.15.7" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plotting-the-roc-curve-for-model-d"><i class="fa fa-check"></i><b>10.15.7</b> Plotting the ROC curve for Model D</a></li>
+<li class="chapter" data-level="10.15.8" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#validation-of-model-d-summaries"><i class="fa fa-check"></i><b>10.15.8</b> Validation of Model D summaries</a></li>
+</ul></li>
+<li class="chapter" data-level="10.16" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#model-e-fitting-a-reduced-model-in-light-of-model-d"><i class="fa fa-check"></i><b>10.16</b> Model E: Fitting a Reduced Model in light of Model D</a><ul>
+<li class="chapter" data-level="10.16.1" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#a-plot-comparing-the-two-intubation-groups"><i class="fa fa-check"></i><b>10.16.1</b> A Plot comparing the two intubation groups</a></li>
+<li class="chapter" data-level="10.16.2" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#nomogram-for-model-e"><i class="fa fa-check"></i><b>10.16.2</b> Nomogram for Model E</a></li>
+<li class="chapter" data-level="10.16.3" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#effect-sizes-from-model-e"><i class="fa fa-check"></i><b>10.16.3</b> Effect Sizes from Model E</a></li>
+<li class="chapter" data-level="10.16.4" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#plot-in-sample-predictions-for-model-e"><i class="fa fa-check"></i><b>10.16.4</b> Plot In-Sample Predictions for Model E</a></li>
+<li class="chapter" data-level="10.16.5" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#anova-for-model-e"><i class="fa fa-check"></i><b>10.16.5</b> ANOVA for Model E</a></li>
+<li class="chapter" data-level="10.16.6" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#validation-of-model-e"><i class="fa fa-check"></i><b>10.16.6</b> Validation of Model E</a></li>
+<li class="chapter" data-level="10.16.7" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#do-any-points-seem-particularly-influential"><i class="fa fa-check"></i><b>10.16.7</b> Do any points seem particularly influential?</a></li>
+<li class="chapter" data-level="10.16.8" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#fitting-model-e-using-glm-to-get-plots-about-influence"><i class="fa fa-check"></i><b>10.16.8</b> Fitting Model E using <code>glm</code> to get plots about influence</a></li>
+</ul></li>
+<li class="chapter" data-level="10.17" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#concordance-comparing-model-c-d-and-es-predictions"><i class="fa fa-check"></i><b>10.17</b> Concordance: Comparing Model C, D and E’s predictions</a></li>
+<li class="chapter" data-level="10.18" data-path="logistic-regression-and-the-resect-data.html"><a href="logistic-regression-and-the-resect-data.html#conclusions"><i class="fa fa-check"></i><b>10.18</b> Conclusions</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html"><i class="fa fa-check"></i><b>11</b> A Study of Prostate Cancer</a><ul>
+<li class="chapter" data-level="11.1" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#data-load-and-background"><i class="fa fa-check"></i><b>11.1</b> Data Load and Background</a></li>
+<li class="chapter" data-level="11.2" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#code-book"><i class="fa fa-check"></i><b>11.2</b> Code Book</a></li>
+<li class="chapter" data-level="11.3" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#additions-for-later-use"><i class="fa fa-check"></i><b>11.3</b> Additions for Later Use</a></li>
+<li class="chapter" data-level="11.4" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#fitting-and-evaluating-a-two-predictor-model"><i class="fa fa-check"></i><b>11.4</b> Fitting and Evaluating a Two-Predictor Model</a><ul>
+<li class="chapter" data-level="11.4.1" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#using-tidy"><i class="fa fa-check"></i><b>11.4.1</b> Using <code>tidy</code></a></li>
+<li class="chapter" data-level="11.4.2" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#interpretation"><i class="fa fa-check"></i><b>11.4.2</b> Interpretation</a></li>
+</ul></li>
+<li class="chapter" data-level="11.5" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#exploring-model-c11_prost_a"><i class="fa fa-check"></i><b>11.5</b> Exploring Model <code>c11_prost_A</code></a><ul>
+<li class="chapter" data-level="11.5.1" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#summary-for-model-c11_prost_a"><i class="fa fa-check"></i><b>11.5.1</b> <code>summary</code> for Model <code>c11_prost_A</code></a></li>
+<li class="chapter" data-level="11.5.2" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#adjusted-r2"><i class="fa fa-check"></i><b>11.5.2</b> Adjusted R<sup>2</sup></a></li>
+<li class="chapter" data-level="11.5.3" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#coefficient-confidence-intervals"><i class="fa fa-check"></i><b>11.5.3</b> Coefficient Confidence Intervals</a></li>
+<li class="chapter" data-level="11.5.4" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#anova-for-model-c11_prost_a"><i class="fa fa-check"></i><b>11.5.4</b> ANOVA for Model <code>c11_prost_A</code></a></li>
+<li class="chapter" data-level="11.5.5" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#residuals-fitted-values-and-standard-errors-with-augment"><i class="fa fa-check"></i><b>11.5.5</b> Residuals, Fitted Values and Standard Errors with <code>augment</code></a></li>
+<li class="chapter" data-level="11.5.6" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#making-predictions-with-c11_prost_a"><i class="fa fa-check"></i><b>11.5.6</b> Making Predictions with <code>c11_prost_A</code></a></li>
+</ul></li>
+<li class="chapter" data-level="11.6" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#plotting-model-c11_prost_a"><i class="fa fa-check"></i><b>11.6</b> Plotting Model <code>c11_prost_A</code></a><ul>
+<li class="chapter" data-level="11.6.1" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#residual-plots-of-c11_prost_a"><i class="fa fa-check"></i><b>11.6.1</b> Residual Plots of <code>c11_prost_A</code></a></li>
+</ul></li>
+<li class="chapter" data-level="11.7" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#cross-validation-of-model-c11_prost_a"><i class="fa fa-check"></i><b>11.7</b> Cross-Validation of Model <code>c11_prost_A</code></a><ul>
+<li class="chapter" data-level="11.7.1" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#a-validation-split-approach"><i class="fa fa-check"></i><b>11.7.1</b> A Validation Split Approach</a></li>
+<li class="chapter" data-level="11.7.2" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#k-fold-cross-validation"><i class="fa fa-check"></i><b>11.7.2</b> K-Fold Cross-Validation</a></li>
+<li class="chapter" data-level="11.7.3" data-path="a-study-of-prostate-cancer.html"><a href="a-study-of-prostate-cancer.html#comparing-models-with-5-fold-cross-validation"><i class="fa fa-check"></i><b>11.7.3</b> Comparing Models with 5-fold Cross-Validation</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><i class="fa fa-check"></i><b>12</b> “Best Subsets” Variable Selection in our Prostate Cancer Study</a><ul>
+<li class="chapter" data-level="12.1" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#key-summaries-well-use-to-evaluate-potential-models-in-sample"><i class="fa fa-check"></i><b>12.1</b> Key Summaries We’ll Use to Evaluate Potential Models (in-sample)</a></li>
+<li class="chapter" data-level="12.2" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#using-regsubsets-in-the-leaps-package"><i class="fa fa-check"></i><b>12.2</b> Using <code>regsubsets</code> in the <code>leaps</code> package</a><ul>
+<li class="chapter" data-level="12.2.1" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#identifying-the-models-with-which-and-outmat"><i class="fa fa-check"></i><b>12.2.1</b> Identifying the models with <code>which</code> and <code>outmat</code></a></li>
+<li class="chapter" data-level="12.2.2" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#obtaining-fit-quality-statistics"><i class="fa fa-check"></i><b>12.2.2</b> Obtaining Fit Quality Statistics</a></li>
+</ul></li>
+<li class="chapter" data-level="12.3" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#plotting-the-fit-statistics"><i class="fa fa-check"></i><b>12.3</b> Plotting the Fit Statistics</a><ul>
+<li class="chapter" data-level="12.3.1" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#plots-of-r2-and-rmse-for-each-model"><i class="fa fa-check"></i><b>12.3.1</b> Plots of <span class="math inline">\(R^2\)</span> and RMSE for each model</a></li>
+<li class="chapter" data-level="12.3.2" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#adjusted-r2-values-for-our-subsets"><i class="fa fa-check"></i><b>12.3.2</b> Adjusted <span class="math inline">\(R^2\)</span> values for our subsets</a></li>
+<li class="chapter" data-level="12.3.3" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#mallows-c_p-for-our-subsets"><i class="fa fa-check"></i><b>12.3.3</b> Mallows’ <span class="math inline">\(C_p\)</span> for our subsets</a></li>
+<li class="chapter" data-level="12.3.4" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#bic-for-our-subsets"><i class="fa fa-check"></i><b>12.3.4</b> BIC for our subsets</a></li>
+<li class="chapter" data-level="12.3.5" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#my-usual-presentation"><i class="fa fa-check"></i><b>12.3.5</b> My Usual Presentation</a></li>
+</ul></li>
+<li class="chapter" data-level="12.4" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#which-subsets-look-best-tabulation"><i class="fa fa-check"></i><b>12.4</b> Which Subsets Look Best? (Tabulation)</a><ul>
+<li class="chapter" data-level="12.4.1" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#print-the-coefficients-of-the-candidate-models"><i class="fa fa-check"></i><b>12.4.1</b> Print the Coefficients of the Candidate Models</a></li>
+<li class="chapter" data-level="12.4.2" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#rerunning-our-candidate-models"><i class="fa fa-check"></i><b>12.4.2</b> Rerunning our candidate models</a></li>
+</ul></li>
+<li class="chapter" data-level="12.5" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#validation-of-candidate-models"><i class="fa fa-check"></i><b>12.5</b> Validation of Candidate Models</a><ul>
+<li class="chapter" data-level="12.5.1" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#fold-cross-validation-of-model3"><i class="fa fa-check"></i><b>12.5.1</b> 10-fold Cross-Validation of <code>model3</code></a></li>
+<li class="chapter" data-level="12.5.2" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#fold-cross-validation-of-model6"><i class="fa fa-check"></i><b>12.5.2</b> 10-fold Cross-Validation of <code>model6</code></a></li>
+<li class="chapter" data-level="12.5.3" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#fold-cross-validation-of-model7"><i class="fa fa-check"></i><b>12.5.3</b> 10-fold Cross-Validation of <code>model7</code></a></li>
+</ul></li>
+<li class="chapter" data-level="12.6" data-path="best-subsets-variable-selection-in-our-prostate-cancer-study.html"><a href="best-subsets-variable-selection-in-our-prostate-cancer-study.html#what-about-interaction-terms"><i class="fa fa-check"></i><b>12.6</b> What about Interaction Terms?</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html"><i class="fa fa-check"></i><b>13</b> Adding Non-linear Terms to a Linear Regression Model</a><ul>
+<li class="chapter" data-level="13.1" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#the-pollution-data"><i class="fa fa-check"></i><b>13.1</b> The <code>pollution</code> data</a></li>
+<li class="chapter" data-level="13.2" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#fitting-a-straight-line-model-to-predict-y-from-x2"><i class="fa fa-check"></i><b>13.2</b> Fitting a straight line model to predict <code>y</code> from <code>x2</code></a></li>
+<li class="chapter" data-level="13.3" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#quadratic-polynomial-model-to-predict-y-using-x2"><i class="fa fa-check"></i><b>13.3</b> Quadratic polynomial model to predict <code>y</code> using <code>x2</code></a><ul>
+<li class="chapter" data-level="13.3.1" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#the-raw-quadratic-model"><i class="fa fa-check"></i><b>13.3.1</b> The raw quadratic model</a></li>
+<li class="chapter" data-level="13.3.2" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#raw-quadratic-fit-after-centering-x2"><i class="fa fa-check"></i><b>13.3.2</b> Raw quadratic fit after centering <code>x2</code></a></li>
+</ul></li>
+<li class="chapter" data-level="13.4" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#orthogonal-polynomials"><i class="fa fa-check"></i><b>13.4</b> Orthogonal Polynomials</a></li>
+<li class="chapter" data-level="13.5" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#fit-a-cubic-polynomial-to-predict-y-from-x3"><i class="fa fa-check"></i><b>13.5</b> Fit a cubic polynomial to predict <code>y</code> from <code>x3</code></a></li>
+<li class="chapter" data-level="13.6" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#fitting-a-restricted-cubic-spline-in-a-linear-regression"><i class="fa fa-check"></i><b>13.6</b> Fitting a restricted cubic spline in a linear regression</a></li>
+<li class="chapter" data-level="13.7" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#spending-degrees-of-freedom"><i class="fa fa-check"></i><b>13.7</b> “Spending” Degrees of Freedom</a><ul>
+<li class="chapter" data-level="13.7.1" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#overfitting-and-limits-on-the-of-predictors"><i class="fa fa-check"></i><b>13.7.1</b> Overfitting and Limits on the # of Predictors</a></li>
+<li class="chapter" data-level="13.7.2" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#the-importance-of-collinearity"><i class="fa fa-check"></i><b>13.7.2</b> The Importance of Collinearity</a></li>
+<li class="chapter" data-level="13.7.3" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#collinearity-in-an-explanatory-model"><i class="fa fa-check"></i><b>13.7.3</b> Collinearity in an Explanatory Model</a></li>
+<li class="chapter" data-level="13.7.4" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#collinearity-in-a-prediction-model"><i class="fa fa-check"></i><b>13.7.4</b> Collinearity in a Prediction Model</a></li>
+</ul></li>
+<li class="chapter" data-level="13.8" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#spending-df-on-non-linearity-the-spearman-plot"><i class="fa fa-check"></i><b>13.8</b> Spending DF on Non-Linearity: The Spearman Plot</a><ul>
+<li class="chapter" data-level="13.8.1" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#fitting-a-big-model-to-the-pollution-data"><i class="fa fa-check"></i><b>13.8.1</b> Fitting a Big Model to the <code>pollution</code> data</a></li>
+<li class="chapter" data-level="13.8.2" data-path="adding-non-linear-terms-to-a-linear-regression-model.html"><a href="adding-non-linear-terms-to-a-linear-regression-model.html#limitations-of-lm-for-fitting-complex-linear-regression-models"><i class="fa fa-check"></i><b>13.8.2</b> Limitations of <code>lm</code> for fitting complex linear regression models</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="14" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html"><i class="fa fa-check"></i><b>14</b> Using <code>ols</code> from the <code>rms</code> package to fit linear models</a><ul>
+<li class="chapter" data-level="14.1" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#fitting-a-model-with-ols"><i class="fa fa-check"></i><b>14.1</b> Fitting a model with <code>ols</code></a><ul>
+<li class="chapter" data-level="14.1.1" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#the-model-likelihood-ratio-test"><i class="fa fa-check"></i><b>14.1.1</b> The Model Likelihood Ratio Test</a></li>
+<li class="chapter" data-level="14.1.2" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#the-g-statistic"><i class="fa fa-check"></i><b>14.1.2</b> The g statistic</a></li>
+</ul></li>
+<li class="chapter" data-level="14.2" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#anova-for-an-ols-model"><i class="fa fa-check"></i><b>14.2</b> ANOVA for an <code>ols</code> model</a></li>
+<li class="chapter" data-level="14.3" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#effect-estimates"><i class="fa fa-check"></i><b>14.3</b> Effect Estimates</a><ul>
+<li class="chapter" data-level="14.3.1" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#simultaneous-confidence-intervals"><i class="fa fa-check"></i><b>14.3.1</b> Simultaneous Confidence Intervals</a></li>
+</ul></li>
+<li class="chapter" data-level="14.4" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#the-predict-function-for-an-ols-model"><i class="fa fa-check"></i><b>14.4</b> The <code>Predict</code> function for an <code>ols</code> model</a></li>
+<li class="chapter" data-level="14.5" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#checking-influence-via-dfbeta"><i class="fa fa-check"></i><b>14.5</b> Checking Influence via <code>dfbeta</code></a><ul>
+<li class="chapter" data-level="14.5.1" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#using-the-residuals-command-for-dfbetas"><i class="fa fa-check"></i><b>14.5.1</b> Using the <code>residuals</code> command for <code>dfbetas</code></a></li>
+<li class="chapter" data-level="14.5.2" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#using-the-residuals-command-for-other-summaries"><i class="fa fa-check"></i><b>14.5.2</b> Using the <code>residuals</code> command for other summaries</a></li>
+</ul></li>
+<li class="chapter" data-level="14.6" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#model-validation-and-correcting-for-optimism"><i class="fa fa-check"></i><b>14.6</b> Model Validation and Correcting for Optimism</a></li>
+<li class="chapter" data-level="14.7" data-path="using-ols-from-the-rms-package-to-fit-linear-models.html"><a href="using-ols-from-the-rms-package-to-fit-linear-models.html#building-a-nomogram-for-our-model"><i class="fa fa-check"></i><b>14.7</b> Building a Nomogram for Our Model</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html"><i class="fa fa-check"></i><b>15</b> Other Variable Selection Strategies</a><ul>
+<li class="chapter" data-level="15.1" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#why-not-use-stepwise-procedures"><i class="fa fa-check"></i><b>15.1</b> Why not use stepwise procedures?</a></li>
+<li class="chapter" data-level="15.2" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#ridge-regression"><i class="fa fa-check"></i><b>15.2</b> Ridge Regression</a><ul>
+<li class="chapter" data-level="15.2.1" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#assessing-a-ridge-regression-approach"><i class="fa fa-check"></i><b>15.2.1</b> Assessing a Ridge Regression Approach</a></li>
+<li class="chapter" data-level="15.2.2" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#the-lm.ridge-plot---where-do-coefficients-stabilize"><i class="fa fa-check"></i><b>15.2.2</b> The <code>lm.ridge</code> plot - where do coefficients stabilize?</a></li>
+<li class="chapter" data-level="15.2.3" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#ridge-regression-the-bottom-line"><i class="fa fa-check"></i><b>15.2.3</b> Ridge Regression: The Bottom Line</a></li>
+</ul></li>
+<li class="chapter" data-level="15.3" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#the-lasso"><i class="fa fa-check"></i><b>15.3</b> The Lasso</a><ul>
+<li class="chapter" data-level="15.3.1" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#consequences-of-the-lasso-approach"><i class="fa fa-check"></i><b>15.3.1</b> Consequences of the Lasso Approach</a></li>
+<li class="chapter" data-level="15.3.2" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#how-the-lasso-works"><i class="fa fa-check"></i><b>15.3.2</b> How The Lasso Works</a></li>
+<li class="chapter" data-level="15.3.3" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#cross-validation-with-the-lasso"><i class="fa fa-check"></i><b>15.3.3</b> Cross-Validation with the Lasso</a></li>
+<li class="chapter" data-level="15.3.4" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#what-value-of-the-key-fraction-minimizes-cross-validated-mse"><i class="fa fa-check"></i><b>15.3.4</b> What value of the key fraction minimizes cross-validated MSE?</a></li>
+<li class="chapter" data-level="15.3.5" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#coefficients-for-the-model-identified-by-the-cross-validation"><i class="fa fa-check"></i><b>15.3.5</b> Coefficients for the Model Identified by the Cross-Validation</a></li>
+<li class="chapter" data-level="15.3.6" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#obtaining-fitted-values-from-lasso"><i class="fa fa-check"></i><b>15.3.6</b> Obtaining Fitted Values from Lasso</a></li>
+<li class="chapter" data-level="15.3.7" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#complete-set-of-fitted-values-from-the-lasso"><i class="fa fa-check"></i><b>15.3.7</b> Complete Set of Fitted Values from the Lasso</a></li>
+<li class="chapter" data-level="15.3.8" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#when-is-the-lasso-most-useful"><i class="fa fa-check"></i><b>15.3.8</b> When is the Lasso Most Useful?</a></li>
+</ul></li>
+<li class="chapter" data-level="15.4" data-path="other-variable-selection-strategies.html"><a href="other-variable-selection-strategies.html#applying-the-lasso-to-the-pollution-data"><i class="fa fa-check"></i><b>15.4</b> Applying the Lasso to the <code>pollution</code> data</a></li>
+</ul></li>
+<li class="chapter" data-level="16" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html"><i class="fa fa-check"></i><b>16</b> Multiple Imputation and Linear Regression</a><ul>
+<li class="chapter" data-level="16.1" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#developing-a-smart_16-data-set"><i class="fa fa-check"></i><b>16.1</b> Developing a <code>smart_16</code> data set</a><ul>
+<li class="chapter" data-level="16.1.1" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#any-missing-values"><i class="fa fa-check"></i><b>16.1.1</b> Any missing values?</a></li>
+</ul></li>
+<li class="chapter" data-level="16.2" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#obtaining-a-simple-imputation-with-mice"><i class="fa fa-check"></i><b>16.2</b> Obtaining a Simple Imputation with <code>mice</code></a></li>
+<li class="chapter" data-level="16.3" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#linear-regression-considering-a-transformation-of-the-outcome"><i class="fa fa-check"></i><b>16.3</b> Linear Regression: Considering a Transformation of the Outcome</a></li>
+<li class="chapter" data-level="16.4" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#linear-regression-considering-non-linearity-in-the-predictors"><i class="fa fa-check"></i><b>16.4</b> Linear Regression: Considering Non-Linearity in the Predictors</a></li>
+<li class="chapter" data-level="16.5" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#main-effects-linear-regression-with-lm-on-the-complete-cases"><i class="fa fa-check"></i><b>16.5</b> “Main Effects” Linear Regression with <code>lm</code> on the Complete Cases</a><ul>
+<li class="chapter" data-level="16.5.1" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#quality-of-fit-statistics"><i class="fa fa-check"></i><b>16.5.1</b> Quality of Fit Statistics</a></li>
+<li class="chapter" data-level="16.5.2" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#interpreting-effect-sizes"><i class="fa fa-check"></i><b>16.5.2</b> Interpreting Effect Sizes</a></li>
+<li class="chapter" data-level="16.5.3" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#making-predictions-with-the-model"><i class="fa fa-check"></i><b>16.5.3</b> Making Predictions with the Model</a></li>
+</ul></li>
+<li class="chapter" data-level="16.6" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#augmented-linear-regression-with-lm-on-the-complete-cases"><i class="fa fa-check"></i><b>16.6</b> “Augmented” Linear Regression with <code>lm</code> on the Complete Cases</a><ul>
+<li class="chapter" data-level="16.6.1" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#quality-of-fit-statistics-1"><i class="fa fa-check"></i><b>16.6.1</b> Quality of Fit Statistics</a></li>
+<li class="chapter" data-level="16.6.2" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#anova-assessing-the-impact-of-the-non-linear-terms"><i class="fa fa-check"></i><b>16.6.2</b> ANOVA assessing the impact of the non-linear terms</a></li>
+<li class="chapter" data-level="16.6.3" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#interpreting-effect-sizes-1"><i class="fa fa-check"></i><b>16.6.3</b> Interpreting Effect Sizes</a></li>
+<li class="chapter" data-level="16.6.4" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#making-predictions-with-the-model-1"><i class="fa fa-check"></i><b>16.6.4</b> Making Predictions with the Model</a></li>
+</ul></li>
+<li class="chapter" data-level="16.7" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#using-mice-to-perform-multiple-imputation"><i class="fa fa-check"></i><b>16.7</b> Using <code>mice</code> to perform Multiple Imputation</a></li>
+<li class="chapter" data-level="16.8" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#running-the-linear-regression-in-lm-with-multiple-imputation"><i class="fa fa-check"></i><b>16.8</b> Running the Linear Regression in <code>lm</code> with Multiple Imputation</a></li>
+<li class="chapter" data-level="16.9" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#fit-the-multiple-imputation-model-with-aregimpute"><i class="fa fa-check"></i><b>16.9</b> Fit the Multiple Imputation Model with <code>aregImpute</code></a></li>
+<li class="chapter" data-level="16.10" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#fit-linear-regression-using-ols-and-fit.mult.impute"><i class="fa fa-check"></i><b>16.10</b> Fit Linear Regression using <code>ols</code> and <code>fit.mult.impute</code></a><ul>
+<li class="chapter" data-level="16.10.1" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#summaries-and-coefficients"><i class="fa fa-check"></i><b>16.10.1</b> Summaries and Coefficients</a></li>
+<li class="chapter" data-level="16.10.2" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#effect-sizes"><i class="fa fa-check"></i><b>16.10.2</b> Effect Sizes</a></li>
+<li class="chapter" data-level="16.10.3" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#making-predictions-with-this-model"><i class="fa fa-check"></i><b>16.10.3</b> Making Predictions with this Model</a></li>
+<li class="chapter" data-level="16.10.4" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#nomogram"><i class="fa fa-check"></i><b>16.10.4</b> Nomogram</a></li>
+<li class="chapter" data-level="16.10.5" data-path="multiple-imputation-and-linear-regression.html"><a href="multiple-imputation-and-linear-regression.html#validating-summary-statistics"><i class="fa fa-check"></i><b>16.10.5</b> Validating Summary Statistics</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="17" data-path="multiple-imputation-and-logistic-regression.html"><a href="multiple-imputation-and-logistic-regression.html"><i class="fa fa-check"></i><b>17</b> Multiple Imputation and Logistic Regression</a></li>
+<li class="chapter" data-level="18" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html"><i class="fa fa-check"></i><b>18</b> Colorectal Cancer Screening and Some Special Cases</a><ul>
+<li class="chapter" data-level="18.1" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#logistic-regression-for-aggregated-data"><i class="fa fa-check"></i><b>18.1</b> Logistic Regression for Aggregated Data</a><ul>
+<li class="chapter" data-level="18.1.1" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#colorectal-cancer-screening-data"><i class="fa fa-check"></i><b>18.1.1</b> Colorectal Cancer Screening Data</a></li>
+<li class="chapter" data-level="18.1.2" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#fitting-a-logistic-regression-model-to-proportion-data"><i class="fa fa-check"></i><b>18.1.2</b> Fitting a Logistic Regression Model to Proportion Data</a></li>
+<li class="chapter" data-level="18.1.3" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#fitting-a-logistic-regression-model-to-counts-of-successes-and-failures"><i class="fa fa-check"></i><b>18.1.3</b> Fitting a Logistic Regression Model to Counts of Successes and Failures</a></li>
+<li class="chapter" data-level="18.1.4" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#how-does-one-address-this-problem-in-rms"><i class="fa fa-check"></i><b>18.1.4</b> How does one address this problem in <code>rms</code>?</a></li>
+</ul></li>
+<li class="chapter" data-level="18.2" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#probit-regression"><i class="fa fa-check"></i><b>18.2</b> Probit Regression</a><ul>
+<li class="chapter" data-level="18.2.1" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#colorectal-cancer-screening-data-on-individuals"><i class="fa fa-check"></i><b>18.2.1</b> Colorectal Cancer Screening Data on Individuals</a></li>
+<li class="chapter" data-level="18.2.2" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#a-logistic-regression-model"><i class="fa fa-check"></i><b>18.2.2</b> A logistic regression model</a></li>
+<li class="chapter" data-level="18.2.3" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#predicting-status-for-harry-and-sally"><i class="fa fa-check"></i><b>18.2.3</b> Predicting status for Harry and Sally</a></li>
+<li class="chapter" data-level="18.2.4" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#a-probit-regression-model"><i class="fa fa-check"></i><b>18.2.4</b> A probit regression model</a></li>
+<li class="chapter" data-level="18.2.5" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#interpreting-the-probit-models-coefficients"><i class="fa fa-check"></i><b>18.2.5</b> Interpreting the Probit Model’s Coefficients</a></li>
+<li class="chapter" data-level="18.2.6" data-path="colorectal-cancer-screening-and-some-special-cases.html"><a href="colorectal-cancer-screening-and-some-special-cases.html#what-about-harry-and-sally"><i class="fa fa-check"></i><b>18.2.6</b> What about Harry and Sally?</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="19" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html"><i class="fa fa-check"></i><b>19</b> Modeling a Count Outcome in Ohio SMART</a><ul>
+<li class="chapter" data-level="19.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#preliminaries"><i class="fa fa-check"></i><b>19.1</b> Preliminaries</a></li>
+<li class="chapter" data-level="19.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#a-subset-of-the-ohio-smart-data"><i class="fa fa-check"></i><b>19.2</b> A subset of the Ohio SMART data</a><ul>
+<li class="chapter" data-level="19.2.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#is-age-group-associated-with-physhealth"><i class="fa fa-check"></i><b>19.2.1</b> Is age group associated with <code>physhealth</code>?</a></li>
+</ul></li>
+<li class="chapter" data-level="19.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#exploratory-data-analysis-in-the-18-49-group"><i class="fa fa-check"></i><b>19.3</b> Exploratory Data Analysis (in the 18-49 group)</a><ul>
+<li class="chapter" data-level="19.3.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#build-a-subset-of-those-ages-18-49"><i class="fa fa-check"></i><b>19.3.1</b> Build a subset of those ages 18-49</a></li>
+<li class="chapter" data-level="19.3.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#centering-bmi"><i class="fa fa-check"></i><b>19.3.2</b> Centering <code>bmi</code></a></li>
+<li class="chapter" data-level="19.3.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#distribution-of-the-outcome"><i class="fa fa-check"></i><b>19.3.3</b> Distribution of the Outcome</a></li>
+<li class="chapter" data-level="19.3.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#scatterplot-matrix"><i class="fa fa-check"></i><b>19.3.4</b> Scatterplot Matrix</a></li>
+<li class="chapter" data-level="19.3.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#summary-of-the-final-subset-of-data"><i class="fa fa-check"></i><b>19.3.5</b> Summary of the final subset of data</a></li>
+</ul></li>
+<li class="chapter" data-level="19.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#modeling-strategies-explored-here"><i class="fa fa-check"></i><b>19.4</b> Modeling Strategies Explored Here</a><ul>
+<li class="chapter" data-level="19.4.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#what-will-we-demonstrate"><i class="fa fa-check"></i><b>19.4.1</b> What Will We Demonstrate?</a></li>
+<li class="chapter" data-level="19.4.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#extra-data-file-for-harry-and-sally"><i class="fa fa-check"></i><b>19.4.2</b> Extra Data File for Harry and Sally</a></li>
+</ul></li>
+<li class="chapter" data-level="19.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-ols-approach"><i class="fa fa-check"></i><b>19.5</b> The OLS Approach</a><ul>
+<li class="chapter" data-level="19.5.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients"><i class="fa fa-check"></i><b>19.5.1</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.5.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals"><i class="fa fa-check"></i><b>19.5.2</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.5.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-loglikelihood-values"><i class="fa fa-check"></i><b>19.5.3</b> Specify the R<sup>2</sup> and log(likelihood) values</a></li>
+<li class="chapter" data-level="19.5.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions"><i class="fa fa-check"></i><b>19.5.4</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.5.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally"><i class="fa fa-check"></i><b>19.5.5</b> Predictions for Harry and Sally</a></li>
+<li class="chapter" data-level="19.5.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#notes"><i class="fa fa-check"></i><b>19.5.6</b> Notes</a></li>
+</ul></li>
+<li class="chapter" data-level="19.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#ols-model-on-logphyshealth-1-days"><i class="fa fa-check"></i><b>19.6</b> OLS model on log(<code>physhealth</code> + 1) days</a><ul>
+<li class="chapter" data-level="19.6.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients-1"><i class="fa fa-check"></i><b>19.6.1</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.6.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals-1"><i class="fa fa-check"></i><b>19.6.2</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.6.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-loglikelihood-values-1"><i class="fa fa-check"></i><b>19.6.3</b> Specify the R<sup>2</sup> and log(likelihood) values</a></li>
+<li class="chapter" data-level="19.6.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#getting-r2-on-the-scale-of-physhealth"><i class="fa fa-check"></i><b>19.6.4</b> Getting R<sup>2</sup> on the scale of <code>physhealth</code></a></li>
+<li class="chapter" data-level="19.6.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions-1"><i class="fa fa-check"></i><b>19.6.5</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.6.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally-1"><i class="fa fa-check"></i><b>19.6.6</b> Predictions for Harry and Sally</a></li>
+</ul></li>
+<li class="chapter" data-level="19.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#a-poisson-regression-model"><i class="fa fa-check"></i><b>19.7</b> A Poisson Regression Model</a><ul>
+<li class="chapter" data-level="19.7.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-fitted-equation"><i class="fa fa-check"></i><b>19.7.1</b> The Fitted Equation</a></li>
+<li class="chapter" data-level="19.7.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients-2"><i class="fa fa-check"></i><b>19.7.2</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.7.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#testing-the-predictors"><i class="fa fa-check"></i><b>19.7.3</b> Testing the Predictors</a></li>
+<li class="chapter" data-level="19.7.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#correcting-for-overdispersion-with-coeftestcoefci"><i class="fa fa-check"></i><b>19.7.4</b> Correcting for Overdispersion with <code>coeftest</code>/<code>coefci</code></a></li>
+<li class="chapter" data-level="19.7.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals-2"><i class="fa fa-check"></i><b>19.7.5</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.7.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#rootogram-see-the-fit-of-a-count-regression-model"><i class="fa fa-check"></i><b>19.7.6</b> Rootogram: see the fit of a count regression model</a></li>
+<li class="chapter" data-level="19.7.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-loglikelihood-values-2"><i class="fa fa-check"></i><b>19.7.7</b> Specify the R<sup>2</sup> and log(likelihood) values</a></li>
+<li class="chapter" data-level="19.7.8" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions-2"><i class="fa fa-check"></i><b>19.7.8</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.7.9" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#using-glm.diag.plots-from-the-boot-package"><i class="fa fa-check"></i><b>19.7.9</b> Using <code>glm.diag.plots</code> from the <code>boot</code> package</a></li>
+<li class="chapter" data-level="19.7.10" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally-2"><i class="fa fa-check"></i><b>19.7.10</b> Predictions for Harry and Sally</a></li>
+</ul></li>
+<li class="chapter" data-level="19.8" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#overdispersion-in-a-poisson-model"><i class="fa fa-check"></i><b>19.8</b> Overdispersion in a Poisson Model</a><ul>
+<li class="chapter" data-level="19.8.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#testing-for-overdispersion"><i class="fa fa-check"></i><b>19.8.1</b> Testing for Overdispersion?</a></li>
+</ul></li>
+<li class="chapter" data-level="19.9" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#fitting-the-quasi-poisson-model"><i class="fa fa-check"></i><b>19.9</b> Fitting the Quasi-Poisson Model</a><ul>
+<li class="chapter" data-level="19.9.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-fitted-equation-1"><i class="fa fa-check"></i><b>19.9.1</b> The Fitted Equation</a></li>
+<li class="chapter" data-level="19.9.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients-3"><i class="fa fa-check"></i><b>19.9.2</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.9.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#testing-the-predictors-1"><i class="fa fa-check"></i><b>19.9.3</b> Testing the Predictors</a></li>
+<li class="chapter" data-level="19.9.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals-3"><i class="fa fa-check"></i><b>19.9.4</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.9.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-loglikelihood-values-3"><i class="fa fa-check"></i><b>19.9.5</b> Specify the R<sup>2</sup> and log(likelihood) values</a></li>
+<li class="chapter" data-level="19.9.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions-3"><i class="fa fa-check"></i><b>19.9.6</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.9.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally-3"><i class="fa fa-check"></i><b>19.9.7</b> Predictions for Harry and Sally</a></li>
+</ul></li>
+<li class="chapter" data-level="19.10" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#poisson-and-quasi-poisson-models-using-glm-from-the-rms-package"><i class="fa fa-check"></i><b>19.10</b> Poisson and Quasi-Poisson models using <code>Glm</code> from the <code>rms</code> package</a><ul>
+<li class="chapter" data-level="19.10.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#refitting-the-original-poisson-regression-with-glm"><i class="fa fa-check"></i><b>19.10.1</b> Refitting the original Poisson regression with <code>Glm</code></a></li>
+<li class="chapter" data-level="19.10.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#refitting-the-overdispersed-poisson-regression-with-glm"><i class="fa fa-check"></i><b>19.10.2</b> Refitting the overdispersed Poisson regression with <code>Glm</code></a></li>
+<li class="chapter" data-level="19.10.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#anova-on-a-glm-fit"><i class="fa fa-check"></i><b>19.10.3</b> ANOVA on a <code>Glm</code> fit</a></li>
+<li class="chapter" data-level="19.10.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#ggplots-from-glm-fit"><i class="fa fa-check"></i><b>19.10.4</b> ggplots from <code>Glm</code> fit</a></li>
+<li class="chapter" data-level="19.10.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#summary-of-a-glm-fit"><i class="fa fa-check"></i><b>19.10.5</b> Summary of a <code>Glm</code> fit</a></li>
+<li class="chapter" data-level="19.10.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#plot-of-the-summary"><i class="fa fa-check"></i><b>19.10.6</b> Plot of the Summary</a></li>
+<li class="chapter" data-level="19.10.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#nomogram-of-a-glm-fit"><i class="fa fa-check"></i><b>19.10.7</b> Nomogram of a <code>Glm</code> fit</a></li>
+</ul></li>
+<li class="chapter" data-level="19.11" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#negative-binomial-model"><i class="fa fa-check"></i><b>19.11</b> Negative Binomial Model</a><ul>
+<li class="chapter" data-level="19.11.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-fitted-equation-2"><i class="fa fa-check"></i><b>19.11.1</b> The Fitted Equation</a></li>
+<li class="chapter" data-level="19.11.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-with-the-raw-poisson-model"><i class="fa fa-check"></i><b>19.11.2</b> Comparison with the (raw) Poisson model</a></li>
+<li class="chapter" data-level="19.11.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients-4"><i class="fa fa-check"></i><b>19.11.3</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.11.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpretation-of-coefficients-in-terms-of-irrs"><i class="fa fa-check"></i><b>19.11.4</b> Interpretation of Coefficients in terms of IRRs</a></li>
+<li class="chapter" data-level="19.11.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#testing-the-predictors-2"><i class="fa fa-check"></i><b>19.11.5</b> Testing the Predictors</a></li>
+<li class="chapter" data-level="19.11.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals-4"><i class="fa fa-check"></i><b>19.11.6</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.11.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#rootogram-for-negative-binomial-model"><i class="fa fa-check"></i><b>19.11.7</b> Rootogram for Negative Binomial model</a></li>
+<li class="chapter" data-level="19.11.8" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#simulating-what-the-negative-binomial-model-predicts"><i class="fa fa-check"></i><b>19.11.8</b> Simulating what the Negative Binomial model predicts</a></li>
+<li class="chapter" data-level="19.11.9" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-loglikelihood-values-4"><i class="fa fa-check"></i><b>19.11.9</b> Specify the R<sup>2</sup> and log(likelihood) values</a></li>
+<li class="chapter" data-level="19.11.10" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions-4"><i class="fa fa-check"></i><b>19.11.10</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.11.11" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally-4"><i class="fa fa-check"></i><b>19.11.11</b> Predictions for Harry and Sally</a></li>
+</ul></li>
+<li class="chapter" data-level="19.12" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-problem-too-few-zeros"><i class="fa fa-check"></i><b>19.12</b> The Problem: Too Few Zeros</a></li>
+<li class="chapter" data-level="19.13" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-zero-inflated-poisson-regression-model"><i class="fa fa-check"></i><b>19.13</b> The Zero-Inflated Poisson Regression Model</a><ul>
+<li class="chapter" data-level="19.13.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-null-model"><i class="fa fa-check"></i><b>19.13.1</b> Comparison to a null model</a></li>
+<li class="chapter" data-level="19.13.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-poisson-model-with-the-vuong-test"><i class="fa fa-check"></i><b>19.13.2</b> Comparison to a Poisson Model with the Vuong test</a></li>
+<li class="chapter" data-level="19.13.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-fitted-equation-3"><i class="fa fa-check"></i><b>19.13.3</b> The Fitted Equation</a></li>
+<li class="chapter" data-level="19.13.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients-5"><i class="fa fa-check"></i><b>19.13.4</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.13.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#testing-the-predictors-3"><i class="fa fa-check"></i><b>19.13.5</b> Testing the Predictors</a></li>
+<li class="chapter" data-level="19.13.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals-5"><i class="fa fa-check"></i><b>19.13.6</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.13.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#modeled-number-of-zero-counts"><i class="fa fa-check"></i><b>19.13.7</b> Modeled Number of Zero Counts</a></li>
+<li class="chapter" data-level="19.13.8" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#rootogram-for-zip-model"><i class="fa fa-check"></i><b>19.13.8</b> Rootogram for ZIP model</a></li>
+<li class="chapter" data-level="19.13.9" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-log-likelihood-values"><i class="fa fa-check"></i><b>19.13.9</b> Specify the R<sup>2</sup> and log (likelihood) values</a></li>
+<li class="chapter" data-level="19.13.10" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions-5"><i class="fa fa-check"></i><b>19.13.10</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.13.11" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally-5"><i class="fa fa-check"></i><b>19.13.11</b> Predictions for Harry and Sally</a></li>
+</ul></li>
+<li class="chapter" data-level="19.14" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-zero-inflated-negative-binomial-regression-model"><i class="fa fa-check"></i><b>19.14</b> The Zero-Inflated Negative Binomial Regression Model</a><ul>
+<li class="chapter" data-level="19.14.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-null-model-1"><i class="fa fa-check"></i><b>19.14.1</b> Comparison to a null model</a></li>
+<li class="chapter" data-level="19.14.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-negative-binomial-model-vuong-test"><i class="fa fa-check"></i><b>19.14.2</b> Comparison to a Negative Binomial Model: Vuong test</a></li>
+<li class="chapter" data-level="19.14.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-fitted-equation-4"><i class="fa fa-check"></i><b>19.14.3</b> The Fitted Equation</a></li>
+<li class="chapter" data-level="19.14.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients-6"><i class="fa fa-check"></i><b>19.14.4</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.14.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#testing-the-predictors-4"><i class="fa fa-check"></i><b>19.14.5</b> Testing the Predictors</a></li>
+<li class="chapter" data-level="19.14.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals-6"><i class="fa fa-check"></i><b>19.14.6</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.14.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#modeled-number-of-zero-counts-1"><i class="fa fa-check"></i><b>19.14.7</b> Modeled Number of Zero Counts</a></li>
+<li class="chapter" data-level="19.14.8" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#rootogram-for-zero-inflated-negative-binomial-model"><i class="fa fa-check"></i><b>19.14.8</b> Rootogram for Zero-Inflated Negative Binomial model</a></li>
+<li class="chapter" data-level="19.14.9" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-log-likelihood-values-1"><i class="fa fa-check"></i><b>19.14.9</b> Specify the R<sup>2</sup> and log (likelihood) values</a></li>
+<li class="chapter" data-level="19.14.10" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions-6"><i class="fa fa-check"></i><b>19.14.10</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.14.11" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally-6"><i class="fa fa-check"></i><b>19.14.11</b> Predictions for Harry and Sally</a></li>
+</ul></li>
+<li class="chapter" data-level="19.15" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#a-hurdle-model-with-poisson"><i class="fa fa-check"></i><b>19.15</b> A “hurdle” model (with Poisson)</a><ul>
+<li class="chapter" data-level="19.15.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-null-model-2"><i class="fa fa-check"></i><b>19.15.1</b> Comparison to a null model</a></li>
+<li class="chapter" data-level="19.15.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-poisson-model-vuong-test"><i class="fa fa-check"></i><b>19.15.2</b> Comparison to a Poisson Model: Vuong test</a></li>
+<li class="chapter" data-level="19.15.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-zero-inflated-poisson-model-vuong-test"><i class="fa fa-check"></i><b>19.15.3</b> Comparison to a Zero-Inflated Poisson Model: Vuong test</a></li>
+<li class="chapter" data-level="19.15.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-fitted-equation-5"><i class="fa fa-check"></i><b>19.15.4</b> The Fitted Equation</a></li>
+<li class="chapter" data-level="19.15.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients-7"><i class="fa fa-check"></i><b>19.15.5</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.15.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#testing-the-predictors-5"><i class="fa fa-check"></i><b>19.15.6</b> Testing the Predictors</a></li>
+<li class="chapter" data-level="19.15.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals-7"><i class="fa fa-check"></i><b>19.15.7</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.15.8" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#modeled-number-of-zero-counts-2"><i class="fa fa-check"></i><b>19.15.8</b> Modeled Number of Zero Counts</a></li>
+<li class="chapter" data-level="19.15.9" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#rootogram-for-hurdle-model"><i class="fa fa-check"></i><b>19.15.9</b> Rootogram for Hurdle Model</a></li>
+<li class="chapter" data-level="19.15.10" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#understanding-the-modeled-counts-in-detail"><i class="fa fa-check"></i><b>19.15.10</b> Understanding the Modeled Counts in Detail</a></li>
+<li class="chapter" data-level="19.15.11" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-log-likelihood-values-2"><i class="fa fa-check"></i><b>19.15.11</b> Specify the R<sup>2</sup> and log (likelihood) values</a></li>
+<li class="chapter" data-level="19.15.12" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions-7"><i class="fa fa-check"></i><b>19.15.12</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.15.13" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally-7"><i class="fa fa-check"></i><b>19.15.13</b> Predictions for Harry and Sally</a></li>
+</ul></li>
+<li class="chapter" data-level="19.16" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#a-hurdle-model-with-negative-binomial-for-overdispersion"><i class="fa fa-check"></i><b>19.16</b> A “hurdle” model (with negative binomial for overdispersion)</a><ul>
+<li class="chapter" data-level="19.16.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-null-model-3"><i class="fa fa-check"></i><b>19.16.1</b> Comparison to a null model</a></li>
+<li class="chapter" data-level="19.16.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-negative-binomial-model-vuong-test-1"><i class="fa fa-check"></i><b>19.16.2</b> Comparison to a Negative Binomial Model: Vuong test</a></li>
+<li class="chapter" data-level="19.16.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparison-to-a-zero-inflated-nb-model-vuong-test"><i class="fa fa-check"></i><b>19.16.3</b> Comparison to a Zero-Inflated NB Model: Vuong test</a></li>
+<li class="chapter" data-level="19.16.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#comparing-the-hurdle-models-with-aic-and-bic"><i class="fa fa-check"></i><b>19.16.4</b> Comparing the Hurdle Models with AIC and BIC</a></li>
+<li class="chapter" data-level="19.16.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-fitted-equation-6"><i class="fa fa-check"></i><b>19.16.5</b> The Fitted Equation</a></li>
+<li class="chapter" data-level="19.16.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients-8"><i class="fa fa-check"></i><b>19.16.6</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.16.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#testing-the-predictors-6"><i class="fa fa-check"></i><b>19.16.7</b> Testing the Predictors</a></li>
+<li class="chapter" data-level="19.16.8" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals-8"><i class="fa fa-check"></i><b>19.16.8</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.16.9" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#rootogram-for-nb-hurdle-model"><i class="fa fa-check"></i><b>19.16.9</b> Rootogram for NB Hurdle Model</a></li>
+<li class="chapter" data-level="19.16.10" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-log-likelihood-values-3"><i class="fa fa-check"></i><b>19.16.10</b> Specify the R<sup>2</sup> and log (likelihood) values</a></li>
+<li class="chapter" data-level="19.16.11" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions-8"><i class="fa fa-check"></i><b>19.16.11</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.16.12" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally-8"><i class="fa fa-check"></i><b>19.16.12</b> Predictions for Harry and Sally</a></li>
+<li class="chapter" data-level="19.16.13" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#note-fitting-a-different-hurdle-model-for-counts-and-przero"><i class="fa fa-check"></i><b>19.16.13</b> Note: Fitting a Different Hurdle Model for Counts and Pr(zero)</a></li>
+<li class="chapter" data-level="19.16.14" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#hanging-rootogram-for-this-new-hurdle-model"><i class="fa fa-check"></i><b>19.16.14</b> Hanging Rootogram for this new Hurdle Model</a></li>
+</ul></li>
+<li class="chapter" data-level="19.17" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#a-tobit-censored-regression-model"><i class="fa fa-check"></i><b>19.17</b> A Tobit (Censored) Regression Model</a><ul>
+<li class="chapter" data-level="19.17.1" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#the-fitted-equation-7"><i class="fa fa-check"></i><b>19.17.1</b> The Fitted Equation</a></li>
+<li class="chapter" data-level="19.17.2" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#interpreting-the-coefficients-9"><i class="fa fa-check"></i><b>19.17.2</b> Interpreting the Coefficients</a></li>
+<li class="chapter" data-level="19.17.3" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#testing-the-predictors-7"><i class="fa fa-check"></i><b>19.17.3</b> Testing the Predictors</a></li>
+<li class="chapter" data-level="19.17.4" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#store-fitted-values-and-residuals-9"><i class="fa fa-check"></i><b>19.17.4</b> Store fitted values and residuals</a></li>
+<li class="chapter" data-level="19.17.5" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#building-something-like-a-rootogram"><i class="fa fa-check"></i><b>19.17.5</b> Building Something Like a Rootogram</a></li>
+<li class="chapter" data-level="19.17.6" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#tables-of-the-observed-and-fitted-physhealth-from-tobit"><i class="fa fa-check"></i><b>19.17.6</b> Tables of the Observed and Fitted <code>physhealth</code> from Tobit</a></li>
+<li class="chapter" data-level="19.17.7" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#specify-the-r2-and-log-likelihood-values-4"><i class="fa fa-check"></i><b>19.17.7</b> Specify the R<sup>2</sup> and log (likelihood) values</a></li>
+<li class="chapter" data-level="19.17.8" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#check-model-assumptions-9"><i class="fa fa-check"></i><b>19.17.8</b> Check model assumptions</a></li>
+<li class="chapter" data-level="19.17.9" data-path="modeling-a-count-outcome-in-ohio-smart.html"><a href="modeling-a-count-outcome-in-ohio-smart.html#predictions-for-harry-and-sally-9"><i class="fa fa-check"></i><b>19.17.9</b> Predictions for Harry and Sally</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="20" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><i class="fa fa-check"></i><b>20</b> Modeling an Ordinal Categorical Outcome in Ohio SMART</a><ul>
+<li class="chapter" data-level="20.1" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#preliminaries-1"><i class="fa fa-check"></i><b>20.1</b> Preliminaries</a></li>
+<li class="chapter" data-level="20.2" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#a-subset-of-the-ohio-smart-data-1"><i class="fa fa-check"></i><b>20.2</b> A subset of the Ohio SMART data</a><ul>
+<li class="chapter" data-level="20.2.1" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#several-ways-of-storing-multi-categorical-data"><i class="fa fa-check"></i><b>20.2.1</b> Several Ways of Storing Multi-Categorical data</a></li>
+</ul></li>
+<li class="chapter" data-level="20.3" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#building-cross-tabulations"><i class="fa fa-check"></i><b>20.3</b> Building Cross-Tabulations</a><ul>
+<li class="chapter" data-level="20.3.1" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#using-base-table-functions"><i class="fa fa-check"></i><b>20.3.1</b> Using base <code>table</code> functions</a></li>
+<li class="chapter" data-level="20.3.2" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#using-xtabs"><i class="fa fa-check"></i><b>20.3.2</b> Using <code>xtabs</code></a></li>
+<li class="chapter" data-level="20.3.3" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#storing-a-table-in-a-tibble"><i class="fa fa-check"></i><b>20.3.3</b> Storing a table in a tibble</a></li>
+<li class="chapter" data-level="20.3.4" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#using-crosstable-from-the-gmodels-package"><i class="fa fa-check"></i><b>20.3.4</b> Using <code>CrossTable</code> from the <code>gmodels</code> package</a></li>
+</ul></li>
+<li class="chapter" data-level="20.4" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#graphing-categorical-data"><i class="fa fa-check"></i><b>20.4</b> Graphing Categorical Data</a><ul>
+<li class="chapter" data-level="20.4.1" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#a-bar-chart-for-a-single-variable"><i class="fa fa-check"></i><b>20.4.1</b> A Bar Chart for a Single Variable</a></li>
+<li class="chapter" data-level="20.4.2" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#a-counts-chart-for-a-2-way-cross-tabulation"><i class="fa fa-check"></i><b>20.4.2</b> A Counts Chart for a 2-Way Cross-Tabulation</a></li>
+</ul></li>
+<li class="chapter" data-level="20.5" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#building-a-model-for-genh-using-veg_day"><i class="fa fa-check"></i><b>20.5</b> Building a Model for <code>genh</code> using <code>veg_day</code></a><ul>
+<li class="chapter" data-level="20.5.1" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#a-little-eda"><i class="fa fa-check"></i><b>20.5.1</b> A little EDA</a></li>
+<li class="chapter" data-level="20.5.2" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#describing-the-proportional-odds-cumulative-logit-model"><i class="fa fa-check"></i><b>20.5.2</b> Describing the Proportional-Odds Cumulative Logit Model</a></li>
+<li class="chapter" data-level="20.5.3" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#fitting-a-proportional-odds-logistic-regression-with-polr"><i class="fa fa-check"></i><b>20.5.3</b> Fitting a Proportional Odds Logistic Regression with <code>polr</code></a></li>
+</ul></li>
+<li class="chapter" data-level="20.6" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#interpreting-model-m1"><i class="fa fa-check"></i><b>20.6</b> Interpreting Model <code>m1</code></a><ul>
+<li class="chapter" data-level="20.6.1" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#looking-at-predictions"><i class="fa fa-check"></i><b>20.6.1</b> Looking at Predictions</a></li>
+<li class="chapter" data-level="20.6.2" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#making-predictions-for-harry-and-sally-with-predict"><i class="fa fa-check"></i><b>20.6.2</b> Making Predictions for Harry (and Sally) with <code>predict</code></a></li>
+<li class="chapter" data-level="20.6.3" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#predicting-the-actual-classification-of-genh"><i class="fa fa-check"></i><b>20.6.3</b> Predicting the actual classification of <code>genh</code></a></li>
+<li class="chapter" data-level="20.6.4" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#a-cross-tabulation-of-predictions"><i class="fa fa-check"></i><b>20.6.4</b> A Cross-Tabulation of Predictions?</a></li>
+<li class="chapter" data-level="20.6.5" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#the-fitted-model-equations"><i class="fa fa-check"></i><b>20.6.5</b> The Fitted Model Equations</a></li>
+<li class="chapter" data-level="20.6.6" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#interpreting-the-veg_day-coefficient"><i class="fa fa-check"></i><b>20.6.6</b> Interpreting the <code>veg_day</code> coefficient</a></li>
+<li class="chapter" data-level="20.6.7" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#exponentiating-the-slope-coefficient-to-facilitate-interpretation"><i class="fa fa-check"></i><b>20.6.7</b> Exponentiating the Slope Coefficient to facilitate Interpretation</a></li>
+<li class="chapter" data-level="20.6.8" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#comparison-to-a-null-model-4"><i class="fa fa-check"></i><b>20.6.8</b> Comparison to a Null Model</a></li>
+</ul></li>
+<li class="chapter" data-level="20.7" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#the-assumption-of-proportional-odds"><i class="fa fa-check"></i><b>20.7</b> The Assumption of Proportional Odds</a><ul>
+<li class="chapter" data-level="20.7.1" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#testing-the-proportional-odds-assumption"><i class="fa fa-check"></i><b>20.7.1</b> Testing the Proportional Odds Assumption</a></li>
+</ul></li>
+<li class="chapter" data-level="20.8" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#can-model-m1-be-fit-using-rms-tools"><i class="fa fa-check"></i><b>20.8</b> Can model <code>m1</code> be fit using <code>rms</code> tools?</a></li>
+<li class="chapter" data-level="20.9" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#building-a-three-predictor-model"><i class="fa fa-check"></i><b>20.9</b> Building a Three-Predictor Model</a><ul>
+<li class="chapter" data-level="20.9.1" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#scatterplot-matrix-1"><i class="fa fa-check"></i><b>20.9.1</b> Scatterplot Matrix</a></li>
+<li class="chapter" data-level="20.9.2" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#our-three-predictor-model-m2"><i class="fa fa-check"></i><b>20.9.2</b> Our Three-Predictor Model, <code>m2</code></a></li>
+<li class="chapter" data-level="20.9.3" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#does-the-three-predictor-model-outperform-m1"><i class="fa fa-check"></i><b>20.9.3</b> Does the three-predictor model outperform <code>m1</code>?</a></li>
+<li class="chapter" data-level="20.9.4" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#wald-tests-for-individual-predictors"><i class="fa fa-check"></i><b>20.9.4</b> Wald tests for individual predictors</a></li>
+<li class="chapter" data-level="20.9.5" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#a-cross-tabulation-of-predictions-1"><i class="fa fa-check"></i><b>20.9.5</b> A Cross-Tabulation of Predictions?</a></li>
+<li class="chapter" data-level="20.9.6" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#interpreting-the-effect-sizes"><i class="fa fa-check"></i><b>20.9.6</b> Interpreting the Effect Sizes</a></li>
+<li class="chapter" data-level="20.9.7" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#quality-of-the-model-fit"><i class="fa fa-check"></i><b>20.9.7</b> Quality of the Model Fit</a></li>
+<li class="chapter" data-level="20.9.8" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#validating-the-summary-statistics-in-m2_lrm"><i class="fa fa-check"></i><b>20.9.8</b> Validating the Summary Statistics in <code>m2_lrm</code></a></li>
+<li class="chapter" data-level="20.9.9" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#testing-the-proportional-odds-assumption-1"><i class="fa fa-check"></i><b>20.9.9</b> Testing the Proportional Odds Assumption</a></li>
+<li class="chapter" data-level="20.9.10" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#plotting-the-fitted-model"><i class="fa fa-check"></i><b>20.9.10</b> Plotting the Fitted Model</a></li>
+</ul></li>
+<li class="chapter" data-level="20.10" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#a-larger-model-including-income-group"><i class="fa fa-check"></i><b>20.10</b> A Larger Model, including income group</a><ul>
+<li class="chapter" data-level="20.10.1" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#cross-tabulation-of-predictedobserved-classifications"><i class="fa fa-check"></i><b>20.10.1</b> Cross-Tabulation of Predicted/Observed Classifications</a></li>
+<li class="chapter" data-level="20.10.2" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#nomogram-2"><i class="fa fa-check"></i><b>20.10.2</b> Nomogram</a></li>
+<li class="chapter" data-level="20.10.3" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#using-predict-and-showing-mean-prediction-on-1-5-scale-1"><i class="fa fa-check"></i><b>20.10.3</b> Using Predict and showing mean prediction on 1-5 scale</a></li>
+<li class="chapter" data-level="20.10.4" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#validating-the-summary-statistics-in-m3_lrm"><i class="fa fa-check"></i><b>20.10.4</b> Validating the Summary Statistics in <code>m3_lrm</code></a></li>
+</ul></li>
+<li class="chapter" data-level="20.11" data-path="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html"><a href="modeling-an-ordinal-categorical-outcome-in-ohio-smart.html#references-for-this-chapter"><i class="fa fa-check"></i><b>20.11</b> References for this Chapter</a></li>
+</ul></li>
+<li class="chapter" data-level="21" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html"><i class="fa fa-check"></i><b>21</b> Analyzing Literary Styles with Multinomial Logistic Regression</a><ul>
+<li class="chapter" data-level="21.1" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#the-authorship-example"><i class="fa fa-check"></i><b>21.1</b> The Authorship Example</a></li>
+<li class="chapter" data-level="21.2" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#focus-on-11-key-words"><i class="fa fa-check"></i><b>21.2</b> Focus on 11 key words</a><ul>
+<li class="chapter" data-level="21.2.1" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#side-by-side-boxplots"><i class="fa fa-check"></i><b>21.2.1</b> Side by Side Boxplots</a></li>
+</ul></li>
+<li class="chapter" data-level="21.3" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#a-multinomial-logistic-regression-model"><i class="fa fa-check"></i><b>21.3</b> A Multinomial Logistic Regression Model</a><ul>
+<li class="chapter" data-level="21.3.1" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#testing-model-1"><i class="fa fa-check"></i><b>21.3.1</b> Testing Model 1</a></li>
+</ul></li>
+<li class="chapter" data-level="21.4" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#model-2"><i class="fa fa-check"></i><b>21.4</b> Model 2</a><ul>
+<li class="chapter" data-level="21.4.1" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#comparing-model-2-to-model-1"><i class="fa fa-check"></i><b>21.4.1</b> Comparing Model 2 to Model 1</a></li>
+<li class="chapter" data-level="21.4.2" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#testing-model-2"><i class="fa fa-check"></i><b>21.4.2</b> Testing Model 2</a></li>
+<li class="chapter" data-level="21.4.3" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#a-little-history"><i class="fa fa-check"></i><b>21.4.3</b> A little history</a></li>
+</ul></li>
+<li class="chapter" data-level="21.5" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#classification-table"><i class="fa fa-check"></i><b>21.5</b> Classification Table</a></li>
+<li class="chapter" data-level="21.6" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#probability-curves-based-on-a-single-predictor"><i class="fa fa-check"></i><b>21.6</b> Probability Curves based on a Single Predictor</a><ul>
+<li class="chapter" data-level="21.6.1" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#produce-the-plot-of-estimated-probabilities-based-on-been-counts"><i class="fa fa-check"></i><b>21.6.1</b> Produce the Plot of Estimated Probabilities based on “been” counts</a></li>
+<li class="chapter" data-level="21.6.2" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#boxplot-of-been-counts"><i class="fa fa-check"></i><b>21.6.2</b> Boxplot of “been” counts</a></li>
+<li class="chapter" data-level="21.6.3" data-path="analyzing-literary-styles-with-multinomial-logistic-regression.html"><a href="analyzing-literary-styles-with-multinomial-logistic-regression.html#quote-sources"><i class="fa fa-check"></i><b>21.6.3</b> Quote Sources</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="22" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html"><i class="fa fa-check"></i><b>22</b> Exploring Time To Event / Survival Data</a><ul>
+<li class="chapter" data-level="22.1" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#an-outline-of-key-topics-discussed-in-these-notes"><i class="fa fa-check"></i><b>22.1</b> An Outline of Key Topics Discussed in these Notes</a></li>
+<li class="chapter" data-level="22.2" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#foundations-of-survival-analysis"><i class="fa fa-check"></i><b>22.2</b> Foundations of Survival Analysis</a><ul>
+<li class="chapter" data-level="22.2.1" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#the-survival-function-st"><i class="fa fa-check"></i><b>22.2.1</b> The Survival Function, <span class="math inline">\(S(t)\)</span></a></li>
+<li class="chapter" data-level="22.2.2" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#kaplan-meier-estimator-of-the-survival-function"><i class="fa fa-check"></i><b>22.2.2</b> Kaplan-Meier Estimator of the Survival Function</a></li>
+<li class="chapter" data-level="22.2.3" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#creating-a-survival-object-in-r"><i class="fa fa-check"></i><b>22.2.3</b> Creating a Survival Object in R</a></li>
+</ul></li>
+<li class="chapter" data-level="22.3" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#a-first-example-recurrent-lobar-intracerebral-hemorrhage"><i class="fa fa-check"></i><b>22.3</b> A First Example: Recurrent Lobar Intracerebral Hemorrhage</a><ul>
+<li class="chapter" data-level="22.3.1" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#building-a-survival-object"><i class="fa fa-check"></i><b>22.3.1</b> Building a Survival Object</a></li>
+<li class="chapter" data-level="22.3.2" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#kaplan-meier-estimate-of-the-survival-function"><i class="fa fa-check"></i><b>22.3.2</b> Kaplan-Meier Estimate of the Survival Function</a></li>
+<li class="chapter" data-level="22.3.3" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#the-kaplan-meier-plot-using-base-r"><i class="fa fa-check"></i><b>22.3.3</b> The Kaplan-Meier Plot, using Base R</a></li>
+<li class="chapter" data-level="22.3.4" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#using-survminer-to-draw-survival-curves"><i class="fa fa-check"></i><b>22.3.4</b> Using <code>survminer</code> to draw survival curves</a></li>
+<li class="chapter" data-level="22.3.5" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#a-fancy-k-m-plot-with-a-number-at-risk-table"><i class="fa fa-check"></i><b>22.3.5</b> A “Fancy” K-M Plot with a number at risk table</a></li>
+</ul></li>
+<li class="chapter" data-level="22.4" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#comparing-survival-across-the-two-genotypes"><i class="fa fa-check"></i><b>22.4</b> Comparing Survival Across the Two Genotypes</a><ul>
+<li class="chapter" data-level="22.4.1" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#kaplan-meier-survival-function-estimates-by-genotype"><i class="fa fa-check"></i><b>22.4.1</b> Kaplan-Meier Survival Function Estimates, by Genotype</a></li>
+</ul></li>
+<li class="chapter" data-level="22.5" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#testing-the-difference-between-two-survival-curves"><i class="fa fa-check"></i><b>22.5</b> Testing the difference between two survival curves</a><ul>
+<li class="chapter" data-level="22.5.1" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#alternative-log-rank-tests"><i class="fa fa-check"></i><b>22.5.1</b> Alternative log rank tests</a></li>
+</ul></li>
+<li class="chapter" data-level="22.6" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#a-fancy-k-m-plot-with-a-number-at-risk-table-1"><i class="fa fa-check"></i><b>22.6</b> A “Fancy” K-M Plot with a number at risk table</a><ul>
+<li class="chapter" data-level="22.6.1" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#customizing-the-kaplan-meier-plot-presentation-further"><i class="fa fa-check"></i><b>22.6.1</b> Customizing the Kaplan-Meier Plot Presentation Further</a></li>
+</ul></li>
+<li class="chapter" data-level="22.7" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#the-hazard-function"><i class="fa fa-check"></i><b>22.7</b> The Hazard Function</a><ul>
+<li class="chapter" data-level="22.7.1" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#the-inverse-kaplan-meier-estimator-of-ht"><i class="fa fa-check"></i><b>22.7.1</b> The Inverse Kaplan-Meier Estimator of <span class="math inline">\(H(t)\)</span></a></li>
+<li class="chapter" data-level="22.7.2" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#cumulative-hazard-function-from-inverse-k-m"><i class="fa fa-check"></i><b>22.7.2</b> Cumulative Hazard Function from Inverse K-M</a></li>
+<li class="chapter" data-level="22.7.3" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#the-nelson-aalen-estimator-of-ht"><i class="fa fa-check"></i><b>22.7.3</b> The Nelson-Aalen Estimator of <span class="math inline">\(H(t)\)</span></a></li>
+<li class="chapter" data-level="22.7.4" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#convert-wide-data-to-long"><i class="fa fa-check"></i><b>22.7.4</b> Convert Wide Data to Long</a></li>
+<li class="chapter" data-level="22.7.5" data-path="exploring-time-to-event-survival-data.html"><a href="exploring-time-to-event-survival-data.html#plot-comparison-of-hazard-estimates"><i class="fa fa-check"></i><b>22.7.5</b> Plot Comparison of Hazard Estimates</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="23" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html"><i class="fa fa-check"></i><b>23</b> Cox Regression Models for Survival Data: Example 1</a><ul>
+<li class="chapter" data-level="23.1" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#sources-used-in-building-this-material"><i class="fa fa-check"></i><b>23.1</b> Sources used in building this material</a></li>
+<li class="chapter" data-level="23.2" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#fitting-a-cox-model-in-r-with-coxph"><i class="fa fa-check"></i><b>23.2</b> Fitting a Cox Model in R with <code>coxph</code></a><ul>
+<li class="chapter" data-level="23.2.1" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#summarizing-the-fit"><i class="fa fa-check"></i><b>23.2.1</b> Summarizing the Fit</a></li>
+<li class="chapter" data-level="23.2.2" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#glancing-at-the-model"><i class="fa fa-check"></i><b>23.2.2</b> Glancing at the model?</a></li>
+<li class="chapter" data-level="23.2.3" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#plot-the-baseline-survival-function"><i class="fa fa-check"></i><b>23.2.3</b> Plot the baseline survival function</a></li>
+<li class="chapter" data-level="23.2.4" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#plot-the-genotype-effect"><i class="fa fa-check"></i><b>23.2.4</b> Plot the genotype effect</a></li>
+<li class="chapter" data-level="23.2.5" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#testing-the-key-assumption-proportional-hazards"><i class="fa fa-check"></i><b>23.2.5</b> Testing the Key Assumption: Proportional Hazards</a></li>
+<li class="chapter" data-level="23.2.6" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#plotting-the-cox.zph-results-for-the-cfit-model"><i class="fa fa-check"></i><b>23.2.6</b> Plotting the <code>cox.zph</code> results for the <code>cfit</code> model</a></li>
+</ul></li>
+<li class="chapter" data-level="23.3" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#fitting-a-cox-model-using-cph-from-the-rms-package"><i class="fa fa-check"></i><b>23.3</b> Fitting a Cox Model using <code>cph</code> from the <code>rms</code> package</a><ul>
+<li class="chapter" data-level="23.3.1" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#the-main-cph-results"><i class="fa fa-check"></i><b>23.3.1</b> The Main <code>cph</code> results</a></li>
+<li class="chapter" data-level="23.3.2" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#using-anova-with-cph"><i class="fa fa-check"></i><b>23.3.2</b> Using <code>anova</code> with <code>cph</code></a></li>
+<li class="chapter" data-level="23.3.3" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#effect-sizes-after-cph-fit"><i class="fa fa-check"></i><b>23.3.3</b> Effect Sizes after <code>cph</code> fit</a></li>
+<li class="chapter" data-level="23.3.4" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#validating-cph-summaries"><i class="fa fa-check"></i><b>23.3.4</b> Validating <code>cph</code> summaries</a></li>
+<li class="chapter" data-level="23.3.5" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#plotting-survival-functions-for-each-genotype"><i class="fa fa-check"></i><b>23.3.5</b> Plotting Survival Functions for each Genotype</a></li>
+<li class="chapter" data-level="23.3.6" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#genotypes-effect-on-log-relative-hazard"><i class="fa fa-check"></i><b>23.3.6</b> Genotype’s effect on log relative hazard</a></li>
+<li class="chapter" data-level="23.3.7" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#nomogram-of-our-simple-hem-model"><i class="fa fa-check"></i><b>23.3.7</b> Nomogram of our simple <code>hem</code> model</a></li>
+<li class="chapter" data-level="23.3.8" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#assessing-the-proportional-hazards-assumption"><i class="fa fa-check"></i><b>23.3.8</b> Assessing the Proportional Hazards Assumption</a></li>
+<li class="chapter" data-level="23.3.9" data-path="cox-regression-models-for-survival-data-example-1.html"><a href="cox-regression-models-for-survival-data-example-1.html#plot-to-check-ph-assumption"><i class="fa fa-check"></i><b>23.3.9</b> Plot to Check PH Assumption</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="24" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html"><i class="fa fa-check"></i><b>24</b> Cox Regression Models for Survival Data: Example 2</a><ul>
+<li class="chapter" data-level="24.1" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#a-second-example-the-leukem-data"><i class="fa fa-check"></i><b>24.1</b> A Second Example: The <code>leukem</code> data</a><ul>
+<li class="chapter" data-level="24.1.1" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#creating-our-response-a-survival-time-object"><i class="fa fa-check"></i><b>24.1.1</b> Creating our response: A survival time object</a></li>
+<li class="chapter" data-level="24.1.2" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#models-well-fit"><i class="fa fa-check"></i><b>24.1.2</b> Models We’ll Fit</a></li>
+</ul></li>
+<li class="chapter" data-level="24.2" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#model-a-coxph-model-for-survival-time-using-age-at-diagnosis"><i class="fa fa-check"></i><b>24.2</b> Model A: <code>coxph</code> Model for Survival Time using <code>age</code> at diagnosis</a><ul>
+<li class="chapter" data-level="24.2.1" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#plotting-the-survival-curve-implied-by-model-a"><i class="fa fa-check"></i><b>24.2.1</b> Plotting the Survival Curve implied by Model A</a></li>
+<li class="chapter" data-level="24.2.2" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#testing-the-proportional-hazards-assumption"><i class="fa fa-check"></i><b>24.2.2</b> Testing the Proportional Hazards Assumption</a></li>
+</ul></li>
+<li class="chapter" data-level="24.3" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#building-model-a-with-cph-for-the-leukem-data"><i class="fa fa-check"></i><b>24.3</b> Building Model A with <code>cph</code> for the <code>leukem</code> data</a><ul>
+<li class="chapter" data-level="24.3.1" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#plotting-the-age-effect-implied-by-our-model."><i class="fa fa-check"></i><b>24.3.1</b> Plotting the <code>age</code> effect implied by our model.</a></li>
+<li class="chapter" data-level="24.3.2" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#survival-plots-kaplan-meier-of-the-age-effect"><i class="fa fa-check"></i><b>24.3.2</b> Survival Plots (Kaplan-Meier) of the <code>age</code> effect</a></li>
+<li class="chapter" data-level="24.3.3" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#anova-test-for-the-cph-built-model-for-leukem"><i class="fa fa-check"></i><b>24.3.3</b> ANOVA test for the <code>cph</code>-built model for <code>leukem</code></a></li>
+<li class="chapter" data-level="24.3.4" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#summarizing-the-effect-sizes-from-moda_cph"><i class="fa fa-check"></i><b>24.3.4</b> Summarizing the Effect Sizes from <code>modA_cph</code></a></li>
+<li class="chapter" data-level="24.3.5" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#validating-the-cox-model-summary-statistics"><i class="fa fa-check"></i><b>24.3.5</b> Validating the Cox Model Summary Statistics</a></li>
+<li class="chapter" data-level="24.3.6" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#looking-for-influential-points"><i class="fa fa-check"></i><b>24.3.6</b> Looking for Influential Points</a></li>
+<li class="chapter" data-level="24.3.7" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#checking-the-proportional-hazards-assumption"><i class="fa fa-check"></i><b>24.3.7</b> Checking the Proportional Hazards Assumption</a></li>
+</ul></li>
+<li class="chapter" data-level="24.4" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#model-b-fitting-a-5-predictor-model-with-coxph"><i class="fa fa-check"></i><b>24.4</b> Model B: Fitting a 5-Predictor Model with <code>coxph</code></a><ul>
+<li class="chapter" data-level="24.4.1" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#interpreting-the-results-from-model-b"><i class="fa fa-check"></i><b>24.4.1</b> Interpreting the Results from Model B</a></li>
+<li class="chapter" data-level="24.4.2" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#plotting-the-survival-curve-implied-by-model-b"><i class="fa fa-check"></i><b>24.4.2</b> Plotting the Survival Curve implied by Model B</a></li>
+<li class="chapter" data-level="24.4.3" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#plotting-the-cumulative-hazard-implied-by-model-b"><i class="fa fa-check"></i><b>24.4.3</b> Plotting the Cumulative Hazard implied by Model B</a></li>
+<li class="chapter" data-level="24.4.4" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#testing-the-proportional-hazards-assumption-1"><i class="fa fa-check"></i><b>24.4.4</b> Testing the Proportional Hazards Assumption</a></li>
+<li class="chapter" data-level="24.4.5" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#assessing-collinearity"><i class="fa fa-check"></i><b>24.4.5</b> Assessing Collinearity</a></li>
+</ul></li>
+<li class="chapter" data-level="24.5" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#model-b2-a-stepwise-reduction-of-model-b"><i class="fa fa-check"></i><b>24.5</b> Model B2: A Stepwise Reduction of Model B</a><ul>
+<li class="chapter" data-level="24.5.1" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#the-survival-curve-implied-by-model-b2"><i class="fa fa-check"></i><b>24.5.1</b> The Survival Curve implied by Model B2</a></li>
+<li class="chapter" data-level="24.5.2" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#checking-proportional-hazards-for-model-b2"><i class="fa fa-check"></i><b>24.5.2</b> Checking Proportional Hazards for Model B2</a></li>
+</ul></li>
+<li class="chapter" data-level="24.6" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#model-c-using-a-spearman-plot-to-pick-a-model"><i class="fa fa-check"></i><b>24.6</b> Model C: Using a Spearman Plot to pick a model</a><ul>
+<li class="chapter" data-level="24.6.1" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#fitting-model-c"><i class="fa fa-check"></i><b>24.6.1</b> Fitting Model C</a></li>
+<li class="chapter" data-level="24.6.2" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#anova-for-model-c"><i class="fa fa-check"></i><b>24.6.2</b> ANOVA for Model C</a></li>
+<li class="chapter" data-level="24.6.3" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#summarizing-model-c-effect-sizes"><i class="fa fa-check"></i><b>24.6.3</b> Summarizing Model C Effect Sizes</a></li>
+<li class="chapter" data-level="24.6.4" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#plotting-the-diagnosis-age-effect-in-model-c"><i class="fa fa-check"></i><b>24.6.4</b> Plotting the diagnosis <code>age</code> effect in Model C</a></li>
+<li class="chapter" data-level="24.6.5" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#survival-plot-associated-with-model-c"><i class="fa fa-check"></i><b>24.6.5</b> Survival Plot associated with Model C</a></li>
+<li class="chapter" data-level="24.6.6" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#checking-the-proportional-hazards-assumption-1"><i class="fa fa-check"></i><b>24.6.6</b> Checking the Proportional Hazards Assumption</a></li>
+<li class="chapter" data-level="24.6.7" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#model-c-nomogram"><i class="fa fa-check"></i><b>24.6.7</b> Model C Nomogram</a></li>
+<li class="chapter" data-level="24.6.8" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#validating-model-cs-summary-statistics"><i class="fa fa-check"></i><b>24.6.8</b> Validating Model C’s Summary Statistics</a></li>
+<li class="chapter" data-level="24.6.9" data-path="cox-regression-models-for-survival-data-example-2.html"><a href="cox-regression-models-for-survival-data-example-2.html#calibration-of-model-c-12-month-survival-estimates"><i class="fa fa-check"></i><b>24.6.9</b> Calibration of Model C (12-month survival estimates)</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Data Science for Biological, Medical and Health Research: Notes for 432</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="references" class="section level1 unnumbered">
+<h1>References</h1>
+
+<div id="refs" class="references">
+<div>
+<p>Barnett, Peggy A., Simon Roman-Golstein, Fred Ramsey, and others. 1995. “Differential Permeability and Quantitative Mr Imaging of a Human Lung Carcinoma Brain Xenograft in the Nude Rat.” <em>American Journal of Pathology</em> 146(2): 436–49. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1869863/">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1869863/</a>.</p>
+</div>
+<div>
+<p>Berkhemer, Olvert A., Puck S. S. Fransen, Debbie Buemer, and others. 2015. “A Randomized Trial of Intraarterial Treatment for Acute Ischemic Stroke.” <em>New England Journal of Medicine</em> 372: 11–20. <a href="http://www.nejm.org/doi/full/10.1056/NEJMoa1411587">http://www.nejm.org/doi/full/10.1056/NEJMoa1411587</a>.</p>
+</div>
+<div>
+<p>Faraway, Julian J. 2006. <em>Extending the Linear Model with R</em>. Boca Raton, FL: CRC Press.</p>
+</div>
+<div>
+<p>———. 2015. <em>Linear Models with R</em>. Second. Boca Raton, FL: CRC Press.</p>
+</div>
+<div>
+<p>Gelman, Andrew, and Jennifer Hill. 2007. <em>Data Analysis Using Regression and Multilevel/Hierarchical Models</em>. New York: Cambridge University Press.</p>
+</div>
+<div>
+<p>Harrell, Frank E. 2001. <em>Regression Modeling Strategies</em>. New York: Springer.</p>
+</div>
+<div>
+<p>———. 2018. <em>Regression Modeling Strategies Course Notes</em>. <a href="http://www.fharrell.com/#links">http://www.fharrell.com/#links</a>.</p>
+</div>
+<div>
+<p>Hastie, Trevor, Robert Tibshriani, and Jerome H. Frideman. 2001. <em>The Elements of Statistical Learning</em>. New York: Springer.</p>
+</div>
+<div>
+<p>Hurvich, Clifford M., and Chih-Ling Tsai. 1989. “Regression and Time Series Model Selection in Small Samples.” <em>Biometrika</em> 76: 297–307. <a href="https://www.stat.berkeley.edu/~binyu/summer08/Hurvich.AICc.pdf">https://www.stat.berkeley.edu/~binyu/summer08/Hurvich.AICc.pdf</a>.</p>
+</div>
+<div>
+<p>Kim, Hae-Young. 2014. “Statistical Notes for Clinical Researchers: Two-Way Analysis of Variance (Anova) - Exploring Possible Interaction Between Factors.” <em>Restorative Dentistry &amp; Endodontics</em> 39(2): 143–47. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3978106/">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3978106/</a>.</p>
+</div>
+<div>
+<p>Long, J. Scott. 1997. <em>Regression Models for Categorical and Limited Dependent Variables</em>. Thousand Oaks, CA: Sage Publications.</p>
+</div>
+<div>
+<p>McDonald, Gary C., and Richard C. Schwing. 1973. “Instabilities of Regression Estimates Relating Air Pollution to Mortality.” <em>Technometrics</em> 15 (3): 463–81.</p>
+</div>
+<div>
+<p>Peduzzi, Peter, John Concato, Elizabeth Kemper, Theodore R. Holford, and Alvan R. Feinstein. 1996. “A Simulation Study of the Number of Events Per Variable in Logistic Regression Analysis.” <em>Journal of Clinical Epidemiology</em> 49 (12): 1373–9.</p>
+</div>
+<div>
+<p>Ramsey, Fred L., and Daniel W. Schafer. 2002. <em>The Statistical Sleuth: A Course in Methods of Data Analysis</em>. Second Edition. Pacific Grove, CA: Duxbury.</p>
+</div>
+<div>
+<p>Riffenburgh, Robert H. 2006. <em>Statistics in Medicine</em>. Second Edition. Burlington, MA: Elsevier Academic Press.</p>
+</div>
+<div>
+<p>Rosenbaum, Paul R. 2017. <em>Observation and Experiment: An Introduction to Causal Inference</em>. Cambridge, MA: Harvard University Press.</p>
+</div>
+<div>
+<p>Roy, Denis, Mario Talajic, Stanley Nattel, and others. 2008. “Rhythm Control Versus Rate Control for Atrial Fibrillation and Heart Failure.” <em>New England Journal of Medicine</em> 358: 2667–77. <a href="http://www.nejm.org/doi/full/10.1056/NEJMoa0708789">http://www.nejm.org/doi/full/10.1056/NEJMoa0708789</a>.</p>
+</div>
+<div>
+<p>Stamey, J. N. Kabalin, T. A., and others. 1989. “Prostate Specific Antigen in the Diagnosis and Treatment of Adenocarcinoma of the Prostate: II. Radical Prostatectomy Treated Patients.” <em>Journal of Urology</em> 141(5): 1076–83. <a href="https://www.ncbi.nlm.nih.gov/pubmed/2468795">https://www.ncbi.nlm.nih.gov/pubmed/2468795</a>.</p>
+</div>
+<div>
+<p>Tolaney, Sara M, William T. Barry, T. Dang Chau, and others. 2015. “Adjuvant Paclitaxel and Trastuzumab for Node-Negative, Her2-Positive Breast Cancer.” <em>New England Journal of Medicine</em> 372: 134–41. <a href="http://www.nejm.org/doi/full/10.1056/NEJMoa1406281">http://www.nejm.org/doi/full/10.1056/NEJMoa1406281</a>.</p>
+</div>
+<div>
+<p>Vittinghoff, Eric, David V. Glidden, Stephen C. Shiboski, and Charles E. McCulloch. 2012. <em>Regression Methods in Biostatistics: Linear, Logistic, Survival, and Repeated Measures Models</em>. Second Edition. Springer-Verlag, Inc. <a href="http://www.biostat.ucsf.edu/vgsm/">http://www.biostat.ucsf.edu/vgsm/</a>.</p>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="cox-regression-models-for-survival-data-example-2.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["2020-432-book.pdf", "2020-432-book.epub"],
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

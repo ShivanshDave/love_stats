@@ -1,0 +1,126 @@
+# Standardizing/Rescaling in Regression Models
+
+## Scaling Predictors using Z Scores: Semi-Standardized Coefficients
+
+We know that the interpretation of the coefficients in a regression model is sensitive to the scale of the predictors. We have already seen how to "standardize" each predictor by subtracting its mean and dividing by its standard deviation. 
+
+- Each coefficient in this semi-standardized model has the following interpretation: the expected difference in the outcome, comparing units (subjects) that differ by one standard deviation in the variable of interest, but for which all other variables are fixed at their average.
+- Remember also that the intercept in such a model shows the mean outcome across all subjects.
+
+Consider a two-variable model, using `area` and `elevation` to predict the number of `species`...
+
+```{r p71a}
+model2 <- lm(species ~ area + elevation, data=gala)
+summary(model2)
+```
+
+Now compare these results to the ones we get after scaling the area and elevation variables. Remember that the `scale` function centers a variable on zero by subtracting the mean from each observation, and then scales the result by dividing by the standard deviation. This ensures that each regression input has mean 0 and standard deviation 1, and is thus a *z score*.
+
+```{r p71b}
+model2.z <- lm(species ~ scale(area) + scale(elevation), data=gala)
+summary(model2.z)
+```
+
+### Questions about the Semi-Standardized Model
+
+79. What changes after centering and rescaling the predictors, and what does not? 
+80.	Why might rescaling like this be a helpful thing to do if you want to compare predictors in terms of importance?
+
+
+
+## Fully Standardized Regression Coefficients
+
+Suppose we standardize the coefficients by also taking centering and scaling (using the z score) the outcome variable: `species`, creating a **fully standardized** model.
+
+```{r p72}
+model2.zout <- lm(scale(species) ~ 
+                  scale(area) + scale(elevation), data=gala)
+summary(model2.zout)
+```
+
+### Questions about the Standardized Model
+
+81.  How do you interpret the value 0.142 of the `scale(area)` coefficient here? You may want to start by reviewing the summary of the original `gala` data shown here.
+
+```{r p72b}
+summary(gala[c("species", "area", "elevation")])
+```
+
+82.	How do you interpret the value 0.632 of the `scale(elevation)` coefficient in the standardized model?
+83.	What is the intercept in this setting? Will this be the case whenever you scale like this?
+84.	What are some of the advantages of looking at scaled regression coefficients?
+85.	Why are these called *fully* standardized coefficients while the previous page described semi-standardized coefficients? 
+86.	What would motivate you to use one of these two methods of standardization (fully standardized or semi-standardized) vs. the other?
+
+## Robust Standardization of Regression Coefficients
+
+Another common option for scaling is to specify lower and upper comparison points, perhaps by comparing the impact of a move from the 25th to the 75th percentile for each variable, while holding all of the other variables constant.
+
+Occasionally, you will see robust semi-standardized regression coefficients, which measure the increase in the outcome, Y, associated with an increase in that particular predictor of one IQR (inter-quartile range). 
+
+```{r p73}
+gala$area.scaleiqr <- (gala$area - mean(gala$area)) / IQR(gala$area)
+gala$elevation.scaleiqr <- (gala$elevation - mean(gala$elevation)) / 
+                            IQR(gala$elevation)
+
+model2.iqr <- lm(species ~ area.scaleiqr + elevation.scaleiqr,
+                 data=gala)
+summary(model2.iqr)
+```
+
+### Questions about Robust Standardization
+
+87.  How should we interpret the 57.96 value for the scaled `elevation` variable? You may want to start by considering the summary of the original elevation data below. 
+
+```{r p73-2}
+summary(gala$elevation)
+```
+
+A **robust standardized coefficient** analysis measures the increase in Y (in IQR of Y) associated with an increase in the predictor of interest of one IQR.
+
+```{r p73-3}
+gala$species.scaleiqr <- (gala$species - mean(gala$species)) / IQR(gala$species)
+model2.iqrout <- lm(species.scaleiqr ~ area.scaleiqr + elevation.scaleiqr, data=gala)
+model2.iqrout
+```
+
+88.  What can we learn from the R output above?
+
+
+
+## Scaling Inputs by Dividing by 2 Standard Deviations
+
+It turns out that standardizing the inputs to a regression model by dividing by a standard deviation creates some difficulties when you want to include a binary predictor in the model. 
+
+Instead, Andrew Gelman recommends that you consider centering all of the predictors (binary or continuous) by subtracting off the mean, and then, for the non-binary predictors, also dividing not by one, but rather by two standard deviations. 
+
+- Such a standardization can go a long way to helping us understand a model whose predictors are on different scales, and provides an interpretable starting point. 
+- Another appealing part of this approach is that in the `arm` library, Gelman and his colleagues have created an R function called `standardize`, which can be used to automate the process of checking coefficients that have been standardized in this manner, after the regression model has been fit.
+
+```{r p74}
+model2
+
+arm::standardize(model2)
+```
+
+### Questions about Standardizing by Dividing by Two SD
+
+89.	How does this result compare to the semi-standardized regression coefficients we have seen on the previous few pages?
+
+
+
+90. How should we interpret the `z.area` coefficient of 32.5 here? Again, you may want to start by obtaining a statistical summary of the original `area` data, as shown below.
+
+```{r p74b}
+summary(gala$area)
+```
+
+To standardize the outcome in this way, as well, we use
+```{r p74-2}
+arm::standardize(model2, standardize.y=TRUE)
+```
+
+91.  How should we interpret the `z.area` coefficient of 0.142 here? 
+92.	How does these relate to the standardized regression coefficients we've seen before?
+
+
